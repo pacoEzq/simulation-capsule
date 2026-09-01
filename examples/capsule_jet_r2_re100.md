@@ -27,13 +27,13 @@ magnitude and $\alpha = 1$. The field, the exponent, the count and the seed are 
 in `summary.json` under `sampling`, so the draw is reproducible and the bias is
 legible.
 
-Each row carries a `vol_weight` column, self-normalised so that
-$\sum \text{vol\_weight}$ equals the domain volume. That makes the cloud usable for
-arithmetic rather than only for looking at: $\sum f \cdot \text{vol\_weight}$
-estimates the volume integral of $f$ over the domain.
-
-Coverage before normalisation is 0.815. At this $\alpha$ the far field is sampled
-thinly, which is the point, and the number says how thinly.
+Each row carries a `vol_weight` value, self-normalized so that the column sums
+to the domain volume. Writing $w_i$ for the weight of row $i$, $\sum_i w_i$
+recovers the domain volume and $\sum_i f_i\,w_i$ estimates the volume integral
+of $f$ over the domain. That makes the cloud usable for arithmetic rather than
+only for looking at. Coverage before normalization is 0.815. At this $\alpha$
+the far field is sampled thinly, which is the point, and the number says how
+thinly.
 
 ## Verification chains
 
