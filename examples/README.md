@@ -25,6 +25,7 @@ could not yet answer is exactly what the later layers were built for.
 
 | Capsule | Case | Layers present | From |
 |---------|------|----------------|------|
+| `capsule_naca0012_aoa5` | NACA 0012, 5 degrees, Re 1e6 | `setup.txt`, `summary.json` | [Part 2](capsule_naca0012_aoa5.md) |
 | `capsule_ahmed25_re1e6` | Ahmed body, 25 degree slant, Re 1e6 | `setup.txt`, `summary.json`, `views/` | [Part 6](capsule_ahmed25_re1e6.md) |
 
 More to follow as they are prepared.
