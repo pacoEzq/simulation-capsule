@@ -1,2 +1,115 @@
-# simulation-capsule
-A self-contained, token-budgeted distillation of a CFD simulation case, designed to be consumed by a language model.
+# Simulation Capsule
+
+**A Simulation Capsule is a self-contained, token-budgeted distillation of a
+simulation case, designed to be consumed by a language model.**
+
+A Simulation Capsule is to a CFD case what `llms.txt` is to a website.
+
+---
+
+## The problem
+
+A finished CFD case is gigabytes. Cells, fields, reports, scenes, a solver history,
+a mesh nobody wants to look at again. A language model reads a context window.
+
+The two obvious moves both fail. Exporting raw data spends the budget on structure
+the model cannot use, and runs out long before it reaches anything interesting.
+Pasting a screenshot throws away every number that could have anchored an answer,
+and leaves the model guessing at magnitudes from pixel colours.
+
+The capsule is the artifact in between. A fixed directory of small files, each one
+an answer to a question somebody would actually ask about the case, sized so the
+whole thing fits in a context window with room left over for the conversation.
+
+## Design rules
+
+**One artifact, one question.** Nothing goes in the capsule because it was easy to
+export. A plane is in there because someone wants to know what the wake looks like
+at that station. A view is in there because it answers something a scalar cannot.
+
+**Nondimensional by default.** Every scalar, coordinate, time and frequency is
+expressed as a dimensionless group: $C_p$, $C_d$, $x/c$, $St$, $tU/D$. Anything
+dimensional carries an explicit flag. A model comparing two cases should not have to
+guess whether the numbers share units.
+
+**The budget is stated, not hoped for.** Each artifact declares what it costs in
+tokens and what it bought. The series works to roughly 60,000 tokens for a complete
+capsule.
+
+**Exposure is a designed property.** Artifacts differ in how much they leak about
+the underlying geometry and setup. A features file leaks least, a rendered view
+leaks most. The capsule makes that gradient explicit rather than leaving it to
+whoever packs the zip.
+
+## Structure
+
+```
+capsule_<alias>/
+├── setup.txt           trimmed solver setup report
+├── summary.json        global scalars
+├── planes/             plane sections, CSV and image in pairs
+│   ├── plane_*.csv
+│   └── plane_*.png
+├── samples.csv         importance-weighted volume sample
+├── features.json       named flow features with their properties
+├── views/              renders, each answering a declared question
+│   └── *.png
+├── diff/               image differences between capsules
+│   └── *.png
+├── run_macro.java      reproduction
+├── manifest.json       seeds, colorbar ranges, versions
+├── signals/            time series and spectra
+├── modes/              POD and DMD decomposition
+├── snapshots/          phase-locked renders (optional)
+└── disclosure.json     what is safe to send outside
+```
+
+Not every case needs every layer. A steady RANS case has no `signals/`. The layers
+that are present must follow [SPEC.md](SPEC.md).
+
+## The tutorial series
+
+The capsule is developed one layer at a time in **Preparing CFD Output for Large
+Language Models**, a ten-part series on the Simcenter community forum. Each part
+introduces one idea, produces one artifact, and uses a reference case chosen so the
+technique reveals something the case would not otherwise show.
+
+Recipes are written for Simcenter STAR-CCM+. The principles are solver-agnostic and
+model-agnostic; nothing here depends on a particular frontier model.
+
+Index and links: [github.com/pacoEzq](https://github.com/pacoEzq)
+
+## Repository contents
+
+| Path | What it holds |
+|------|---------------|
+| `SPEC.md` | The capsule contract: directory layout, per-artifact rules, naming |
+| `examples/` | Complete capsules from the series reference cases |
+| `tools/` | Python for building and checking capsule artifacts |
+| `macros/` | Java macros for Simcenter STAR-CCM+ export |
+
+## Status
+
+The specification tracks the series and is incomplete by design: layers are
+specified as their tutorial publishes. Parts 1 to 6 are out, so everything from
+`setup.txt` through `views/` is settled. The transient layers and the disclosure
+audit are still moving.
+
+Breaking changes to settled layers get a version bump and a note in `SPEC.md`.
+
+## Contributing
+
+Issues are welcome, particularly ports to other solvers and cases where the format
+breaks down. If you build a capsule for a case of your own and something in the spec
+did not fit, that is worth an issue even without a fix attached.
+
+## License
+
+Code in `tools/` and `macros/` is MIT. Documentation, including `SPEC.md`, is
+CC BY 4.0.
+
+---
+
+Personal project by [Francisco Ezquerra Larrodé](https://github.com/pacoEzq). The
+tutorial series it accompanies is published on the Simcenter community forum. Views
+are my own.
