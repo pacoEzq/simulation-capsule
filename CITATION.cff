@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: Simulation Capsule
+message: If you use this specification, please cite it.
+type: software
+authors:
+  - given-names: Francisco
+    family-names: Ezquerra Larrode
+repository-code: https://github.com/pacoEzq/simulation-capsule
+abstract: >-
+  A specification for the Simulation Capsule, a self-contained,
+  token-budgeted distillation of a CFD simulation case designed to
+  be consumed by a language model.
+keywords:
+  - cfd
+  - large-language-models
+  - postprocessing
+  - simulation
+  - star-ccm-plus
+license: CC-BY-4.0
+version: 0.1
