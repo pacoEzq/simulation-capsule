@@ -36,6 +36,13 @@ spaces, no dates in filenames, no `_final_v2`.
 quantity is the same; a capsule may omit a key it has no value for, but must not
 rename it.
 
+**Nothing else.** The capsule contains the artifacts defined in section 4 and no
+others. A layer may be absent, but no file may be present that this specification
+does not name. Documentation about a capsule, notes to the reader, licence files and
+anything else addressed to a human belong outside the directory, because the capsule
+travels whole and everything inside it is spent from the token budget. A `README.md`
+sitting next to `summary.json` is a contract violation, not a courtesy.
+
 ## 3. Global rules
 
 ### 3.1 Nondimensionalisation
@@ -235,4 +242,4 @@ nothing.
 
 | Version | Change |
 |---------|--------|
-| 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. |
+| 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
