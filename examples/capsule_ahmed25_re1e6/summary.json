@@ -1,0 +1,82 @@
+{
+  "case": "ahmed25_re1e6",
+  "description": "Ahmed body, 25 degree slant, no stilts, full model (no symmetry plane), fixed ground",
+  "solver": "Simcenter STAR-CCM+ 2606 build 21.04.007",
+  "physics": "steady RANS, k-omega SST, segregated, incompressible",
+  "nondimensional": true,
+  "reference": {
+    "length_L": 1.0,
+    "velocity_U": 1.0,
+    "density_rho": 1.0,
+    "viscosity_mu": 1e-06,
+    "reynolds_L": 1000000.0,
+    "frontal_area": 0.1027881946
+  },
+  "geometry": {
+    "width_W": 0.37261,
+    "height_H": 0.27586,
+    "ground_clearance": 0.04789,
+    "front_radius": 0.09579,
+    "slant_length": 0.21264,
+    "slant_angle_deg": 25.0
+  },
+  "domain": {
+    "x": [-2.0, 6.0],
+    "y": [-1.5, 1.5],
+    "z": [0.0, 2.0],
+    "cells": 5870000
+  },
+  "convergence": {
+    "iterations": 6000,
+    "stopped_by": "stop_maxiter",
+    "state": "pseudo_transient_limit_cycle",
+    "limit_cycle_pixel_diff_percent": 0.135,
+    "limit_cycle_diff_note": "fraction of pixels changing between frames 10 iterations apart; frames cropped of the title band, resized to 1024 px, then differenced with a 1 percent threshold, so the number describes the image shipped in views/; early window (03000 vs 03010) gives 0.121 percent, so the cycle is stationary rather than decaying",
+    "residuals_at_6000": {
+      "continuity": 6.976341e-04,
+      "x_momentum": 1.114583e-03,
+      "y_momentum": 1.228771e-03,
+      "z_momentum": 2.945555e-03,
+      "tke": 2.101346e-04,
+      "sdr": 1.121602e-05
+    }
+  },
+  "scalars": {
+    "cd_total": 0.3218340,
+    "cd_pressure": 0.2921460,
+    "cd_friction": 0.0296879,
+    "cl_total": 0.2632033,
+    "cp_min": -2.826341,
+    "cp_base": -0.08108318,
+    "yplus_max": 1.225007,
+    "yplus_mean": 0.3488977,
+    "yplus_floor_max": 4.029988,
+    "mass_imbalance": -9.501613e-08,
+    "check_area": 0.1027881946,
+    "mdot_inlet": -6.0,
+    "mdot_outlet": 6.000001
+  },
+  "quality_checks": {
+    "qc_omegax_vol_port": 0.01696806,
+    "qc_omegax_vol_starboard": -0.01695982,
+    "qc_cpillar_asym": 4.855677e-04,
+    "qc_cpillar_asym_criterion": "PASS if below 5e-2; value always reported",
+    "qc_omega_max_port": 55.82930,
+    "qc_omega_min_starboard": -55.65101,
+    "cd_component_closure": "cd_pressure + cd_friction = 0.3218340, matches cd_total to 7 decimals"
+  },
+  "caveats": {
+    "cd_vs_experiment": "experimental cd for this configuration is about 0.285; the present RANS SST result is about 13 percent high, consistent with known over-separation of the 25 degree slant in steady RANS",
+    "cl_band": "cl_total drifts within about 3e-4 due to the limit cycle; the fourth digit is not meaningful",
+    "yplus_floor_max_location": "the floor maximum of 4.03 occurs at the domain corner (x = -1.9875, y = 1.4375), far from the body; the near-body floor stays well below it, see views/view_floor_footprint.png",
+    "run_provenance": "this run was executed on a workstation rather than the cluster; all scalars reproduce the cluster run within the declared bands, differences appear only in the fourth digit and reflect limit cycle phase"
+  },
+  "views": [
+    "views/view_slant_separation.png",
+    "views/view_wake_topology.png",
+    "views/view_cpillar_symmetry.png",
+    "views/view_floor_footprint.png",
+    "views/view_limit_cycle_a.png",
+    "views/view_limit_cycle_diff.png"
+  ]
+}
