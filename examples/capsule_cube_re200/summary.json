@@ -1,0 +1,42 @@
+{
+  "case": "cube_re200",
+  "regime": {
+    "reynolds_number": 200.0,
+    "flow_model": "laminar, steady, constant density",
+    "mach_number": null,
+    "note": "not applicable: constant-density solve, no sound speed defined"
+  },
+  "reference": {
+    "side":      {"value": 1.0,   "unit_flag": "m"},
+    "velocity":  {"value": 1.0,   "unit_flag": "m/s"},
+    "density":   {"value": 1.0,   "unit_flag": "kg/m3"},
+    "viscosity": {"value": 0.005, "unit_flag": "Pa-s", "note": "rho*U*D/Re"},
+    "area":      {"value": 1.0,   "unit_flag": "m2", "note": "frontal, D^2"}
+  },
+  "forces": {
+    "cd": 0.9669,
+    "cd_pressure": 0.8106,
+    "cd_friction": 0.1563,
+    "cl": 4.06e-5,
+    "cy": 1.27e-4,
+    "note": "cl and cy are symmetry checks, expected near zero"
+  },
+  "surface": {
+    "cp_stagnation": 1.0448,
+    "cp_min": -1.5894,
+    "cp_base": -0.2260,
+    "note": "cp uses static pressure with the gauge zero set at the pressure outlet, so the stagnation value carries the domain pressure drop and sits slightly above 1"
+  },
+  "wake": {
+    "recirculation_length_D": 2.156,
+    "note": "measured from the rear face, threshold u_U < 0"
+  },
+  "conservation": {"mass_imbalance_fraction": 1.4e-16},
+  "convergence": {
+    "iterations": 4708,
+    "monitors_flat": true,
+    "residuals": {"continuity": 1.0e-12, "x_momentum": 1.0e-12, "y_momentum": 1.0e-12, "z_momentum": 1.0e-12}
+  },
+  "mesh": {"cell_count": 405673, "dimension": "3D", "domain_extents_D": "x -5 to 15, y and z -5 to 5", "prism_layers": 2},
+  "note_wall": "no wall block: laminar solve, no turbulence model or y+ to audit"
+}

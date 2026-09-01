@@ -1,0 +1,860 @@
+============================================================
+STAR-CCM+ SIMULATION REPORT (AI-TRIMMED)
+============================================================
+Summary Report: jet_r2_re100
+
+[Session Summary]
+  Date: 28.07.2026, 23:30:52
+  Simulation: <path>\jet_r2_re100.sim
+  File size: 1.5e+02 MB
+  Number of Partitions: 1
+  Number of Restored Partitions: 1
+
+[Software Summary]
+  Version: BuildArch: win64 | BuildEnv: clang20.1vc14.2-r8 | PresentationVersion: 2602 | ReleaseDate: Tue Feb 3 16:02:22 UTC 2026 | ReleaseNumber: 21.02.007
+
+[Hardware Summary]
+  Hosts: Number Processes: 1 | Rank[0]: <host>
+
+============================================================
+SIMULATION PROPERTIES
+============================================================
+
+--- Continua ---
+  Continua
+  Continua: 1
+    physics
+  Regions: [fluid]
+  Interfaces: []
+  Point Sets: []
+  Active: true
+  Motion Always Active: false
+    Models
+      Constant Density
+      Gas
+        Air
+  Database Material: Air (Air) [Standard/Gases]
+        Material Properties
+        Density
+  Method: Constant
+          Constant
+  Value: 1.0 kg/m^3
+        Dynamic Viscosity
+  Method: Constant
+        Constant
+  Value: 1.0/${Re}
+      Gradients
+  Boundary Cell Eigenvalues Ratio Tolerance: 0.06
+  Limit GradVar By Beta: true
+  Limiter Method: Venkatakrishnan
+  Custom Accuracy Level Selector: 2.0
+  Maximum Reconstruction Coefficient: 1.0
+  Two Pass Velocity Gradient: false
+  Use TVB Gradient Limiting: false
+  Acceptable Field Variation (Factor): 0.05
+      Laminar
+      Passive Scalar
+  Secondary Gradients: On
+  Convection: 2nd-order
+        Passive Scalars
+        jet_tracer
+  ID: 1
+  Maximum Clip Value: 0.0
+  Minimum Clip Value: 0.0
+  Clip: Off
+  Transport: Convection and Diffusion
+  Use GGDH: false
+        Material Properties
+        Molecular Diffusivity
+  Method: Schmidt Number
+        Schmidt Number
+  Schmidt Number: 1.0
+      Segregated Flow
+  Flux Update Dissipation Factor: 0.5
+  Positivity Rate Limit: 0.2
+  Unsteady Flux Dissipation Corrections: false
+  Limit Acoustic-CFL Option: Per-Model
+  Secondary Gradients: On
+  Convection: 2nd-order
+  Delta-V Dissipation: Off
+      Solution Interpolation
+  Per Part Mapping: false
+  Interpolation Method: Nearest neighbor
+  Legacy Method: false
+  Conservation Correction: Disable
+      Steady
+  Continuum Iteration: 1187
+      Three Dimensional
+    Reference Values
+      Maximum Allowable Absolute Pressure
+  Value: 1.0E8 Pa
+      Minimum Allowable Absolute Pressure
+  Value: 1000.0 Pa
+      Reference Pressure
+  Value: 101325.0 Pa
+    Initial Conditions
+    Passive Scalar
+  Method: Constant
+      Constant
+  Value: [0.0]
+    Pressure
+  Method: Constant
+      Constant
+  Value: 0.0 Pa
+    Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+    Constant
+  Value: [1.0, 0.0, 0.0] m/s
+
+--- Regions ---
+  Regions
+  Part Selection Priority: [fluid]
+  Regions: 1
+    fluid
+  Index: 0
+  Allow Per-Part Values: false
+  Physics Continuum: [physics]
+  Parts: [domain]
+  Type: Fluid Region
+  Topology: VOLUME
+    Boundaries
+  Part Surface Selection Priority: [fluid: crossflow_inlet, fluid: side_y_pos, fluid: outlet, fluid: side_y_neg, fluid: top, fluid: floor, fluid: jet_inlet]
+  Boundaries: 7
+      crossflow_inlet
+  Index: 2
+  Part Surfaces: [domain.crossflow_inlet]
+  Type: Velocity Inlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+          Reference Frame Specification
+  Option: Lab Frame
+          Velocity Specification
+  Method: Components
+        Physics Values
+        Passive Scalar
+  Method: Constant
+          Constant
+  Value: [0.0]
+        Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+        Constant
+  Value: [1.0, 0.0, 0.0] m/s
+      floor
+  Index: 7
+  Part Surfaces: [domain.floor]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+        Reference Frame Specification
+  Option: Region Reference Frame
+        Shear Stress Specification
+  Method: No-Slip
+        Tangential Velocity Specification
+  Method: Fixed
+        Wall Passive Scalar Option
+  Wall Passive Scalar: Zero Flux
+      jet_inlet
+  Index: 8
+  Part Surfaces: [domain.jet_inlet]
+  Type: Velocity Inlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+          Reference Frame Specification
+  Option: Lab Frame
+          Velocity Specification
+  Method: Components
+        Physics Values
+        Passive Scalar
+  Method: Constant
+          Constant
+  Value: [1.0]
+        Velocity
+  Method: Field Function
+  Coordinate System: Laboratory
+        Field Function
+  Vector Function: jet_inlet_velocity
+      outlet
+  Index: 4
+  Part Surfaces: [domain.outlet]
+  Type: Pressure Outlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Backflow Specification
+  Direction: Boundary-Normal
+  Pressure: Environmental
+  Scalars: Specified
+          Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+          Pressure Outlet Option
+  Option: None
+          Reference Frame Specification
+  Option: Lab Frame
+        Physics Values
+        Passive Scalar
+  Method: Constant
+          Constant
+  Value: [0.0]
+        Pressure
+  Method: Constant
+        Constant
+  Value: 0.0 Pa
+      side_y_neg
+  Index: 5
+  Part Surfaces: [domain.side_y_neg]
+  Type: Symmetry Plane
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+      side_y_pos
+  Index: 3
+  Part Surfaces: [domain.side_y_pos]
+  Type: Symmetry Plane
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+      top
+  Index: 6
+  Part Surfaces: [domain.top]
+  Type: Symmetry Plane
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+    Physics Conditions
+      Initial Condition Option
+  Option: Use Continuum Values
+      Mass Source Option
+  Mass Source Option: false
+      Momentum Source Option
+  Momentum Source Option: None
+      Motion Specification Option
+  Option: Motion Specification
+      Passive Scalar Source Option
+  Source Definition: No sources active
+    Physics Values
+    Axis
+  Coordinate System: Laboratory
+  Origin: [0.0, 0.0, 0.0] m
+  Direction: [0.0, 0.0, 1.0]
+    Motion Specification
+  Motion: Stationary
+  Reference Frame: Lab Reference Frame
+
+--- Representations ---
+  Representations
+    Latest Surface/Volume
+  Representation: Volume Mesh
+    Geometry
+      automated_mesh.Remesh
+      Latest Surface
+    Volume Mesh
+  Cells: 436390
+  Interior Faces: 1318610
+  Vertices: 459570
+    Finite Volume Regions
+      fluid
+  Cells: 436390
+  Interior Faces: 1318610
+  Vertices: 459570
+  Edges: 0
+      Finite Volume Boundaries
+      crossflow_inlet
+  Faces: 360
+      floor
+  Faces: 8181
+      jet_inlet
+  Faces: 216
+      outlet
+  Faces: 2502
+      side_y_neg
+  Faces: 720
+      side_y_pos
+  Faces: 720
+      top
+  Faces: 800
+    Cell Sets
+
+--- Automation ---
+  Automation
+    Parameters
+      alpha
+  Type: SCALAR
+  Value: 1.0
+      r
+  Type: SCALAR
+  Value: 2.0
+      Re
+  Type: SCALAR
+  Value: 100.0
+    Field Functions
+      cp
+  Function Name: cp
+  Value Type: Scalar
+  Assembly Code: (* 2 ${Pressure})
+  Definition: 2.0*$Pressure
+  Ignore Boundary Values: false
+      grad_tracer
+  Function Name: grad_tracer
+  Value Type: Scalar
+  Assembly Code: (mag grad ${jet_tracer})
+  Definition: mag(grad($jet_tracer))
+  Ignore Boundary Values: false
+      grad_vel_mag
+  Function Name: grad_vel_mag
+  Value Type: Scalar
+  Assembly Code: (mag grad ${vel_mag})
+  Definition: mag(grad($vel_mag))
+  Ignore Boundary Values: false
+      importance
+  Function Name: importance
+  Value Type: Scalar
+  Assembly Code: (pow ${grad_vel_mag} ${alpha})
+  Definition: pow($grad_vel_mag, ${alpha})
+  Ignore Boundary Values: false
+      jet_inlet_velocity
+  Function Name: jet_inlet_velocity
+  Value Type: Vector
+  Assembly Code: (vector 0 0 ${w_jet})
+  Definition: [0.0, 0.0, ${w_jet}]
+  Ignore Boundary Values: false
+      u_U
+  Function Name: u_U
+  Value Type: Scalar
+  Assembly Code: $${Velocity}[0]
+  Definition: $$Velocity[0]
+  Ignore Boundary Values: false
+      v_U
+  Function Name: v_U
+  Value Type: Scalar
+  Assembly Code: $${Velocity}[1]
+  Definition: $$Velocity[1]
+  Ignore Boundary Values: false
+      vel_mag
+  Function Name: vel_mag
+  Value Type: Scalar
+  Assembly Code: (mag $${Velocity})
+  Definition: mag($$Velocity)
+  Ignore Boundary Values: false
+      w_jet
+  Function Name: w_jet
+  Value Type: Scalar
+  Assembly Code: (* (* 2 ${r}) (- 1 (* 4 (+ (pow $${Position}[0] 2) (pow $${Position}[1] 2)))))
+  Definition: 2*${r}*(1 - 4*(pow($$Position[0],2) + pow($$Position[1],2)))
+  Ignore Boundary Values: false
+      w_U
+  Function Name: w_U
+  Value Type: Scalar
+  Assembly Code: $${Velocity}[2]
+  Definition: $$Velocity[2]
+  Ignore Boundary Values: false
+      weight
+  Function Name: weight
+  Value Type: Scalar
+  Assembly Code: (* ${Volume} ${importance})
+  Definition: $Volume*$importance
+  Ignore Boundary Values: false
+      x_D
+  Function Name: x_D
+  Value Type: Scalar
+  Assembly Code: $${Position}[0]
+  Definition: $$Position[0]
+  Ignore Boundary Values: false
+      y_D
+  Function Name: y_D
+  Value Type: Scalar
+  Assembly Code: $${Position}[1]
+  Definition: $$Position[1]
+  Ignore Boundary Values: false
+      z_D
+  Function Name: z_D
+  Value Type: Scalar
+  Assembly Code: $${Position}[2]
+  Definition: $$Position[2]
+  Ignore Boundary Values: false
+    Simulation Operations
+  Selected: []
+    Filters
+    Tags
+    Stages
+  Active Stage: []
+    Update Events
+  Event Count: 0
+    Time Scales
+
+--- Operations ---
+  Operations
+    automated_mesh
+  Per-Part Meshing: false
+  Mesher Execution Mode: Serial
+  Input Parts: [domain]
+  Perform Local Meshing: false
+  Preserve Surface Perimeters: None
+  Verbose Output: false
+    Meshers
+      Surface Remesher
+  Meshing Method: Triangle
+  Perform Curvature Refinement: true
+  Perform Proximity Refinement: true
+  Perform Compatibility Refinement: false
+  Create Aligned Meshes: true
+  Minimum Face Quality: 0.05
+  Field Function based Refinement: []
+      Trimmed Cell Mesher
+  Core Cell Type: Hexahedra
+  Field Function based Refinement: []
+  Coordinate System: Laboratory
+  Perform Mesh Alignment: false
+  Size Dependent Growth Rates: All cells
+  Run Post Mesh Optimizer: true
+      Prism Layer Mesher
+  Stretching Function: Geometric Progression
+  Distribution Mode: Stretch Factor
+  Enhanced Quality Prisms: false
+    Default Controls
+      Base Size
+  Base Size: 0.5 m
+  Base Size: 0.5 m
+      CAD Projection
+  Project to CAD: true
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 100.0
+  Absolute Size: 0.5 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 10.0
+  Absolute Size: 0.05 m
+      Surface Curvature
+  Enable Curvature Deviation Distance: false
+  # Pts/circle: 72.0
+  Max # Pts/circle: 200.0
+  Curvature Deviation Distance: 0.01 m
+      Surface Proximity
+  Search Floor: 0.0 m
+  # Points in gap: 2.0
+  Enable Search Ceiling: false
+  Search Ceiling: 1.0E10 m
+  Search Direction: INSIDE
+      Prism Layer Controls
+        Number of Prism Layers
+  Number of Prism Layers: 2
+        Prism Layer Stretching
+  Prism Layer Stretching: 1.5
+        Prism Layer Reduction Percentage
+  Prism Layer Reduction Percentage: 50.0
+        Concave Angle Limit
+  Concave Angle Limit: 0.0 deg
+        Convex Angle Limit
+  Convex Angle Limit: 360.0 deg
+        Near Core Layer Aspect Ratio
+  Near Core Layer Aspect Ratio: 0.0
+        Gap Fill Percentage
+  Gap Fill Percentage: 25.0
+        Minimum Thickness Percentage
+  Minimum Thickness Percentage: 10.0
+        Boundary March Angle
+  Boundary March Angle: 50.0 deg
+        Prism Layer Total Thickness
+  Size Type: Absolute
+  Percentage of Base: 20.0
+  Absolute Size: 0.1 m
+      Surface Growth Rate
+  Surface Growth Rate: DEFAULT
+  User Specified Value: 1.3
+      Maximum Core/Prism Transition Ratio
+  Limit Cell Size by Prism Layer Thickness: false
+      Volume Growth Rate
+  Default Growth Rate: Fast
+  Surface Growth Rate: Disable
+      Maximum Cell Size
+  Size Type: Relative to base
+  Percentage of Base: 10000.0
+  Absolute Size: 50.0 m
+      Post Mesh Optimization
+  Optimize Boundary Vertices: false
+  Optimize Cell Topology: false
+    Custom Controls
+    vc_orifice
+  Enable Control: true
+  Controls Display Mode: All
+  Parts: [orifice_cylinder]
+      Controls
+        Surface Remesher
+  Customize Size: true
+        Prism Layer Mesher
+  Customize Number of Layers: false
+  Customize Total Thickness: false
+  Customize Stretching: false
+  Customize Layer Reduction Percentage: false
+  Customize Limit Aspect Ratio: false
+  Customize Minimum Thickness Percentage: false
+  Customize Boundary March Angle: false
+  Customize Concave Angle Limit: false
+  Customize Convex Angle Limit: false
+  Customize Core Layer Aspect Ratio: false
+  Customize Gap Fill Percentage: false
+        Trimmer
+  Customize Isotropic Size: true
+  Customize Anisotropic Size: false
+      Values
+      Custom Size
+  Size Type: Absolute
+  Percentage of Base: 12.5
+  Absolute Size: 0.0625 m
+    vc_trajectory
+  Enable Control: true
+  Controls Display Mode: All
+  Parts: [trajectory_box]
+    Controls
+      Surface Remesher
+  Customize Size: false
+      Prism Layer Mesher
+  Customize Number of Layers: false
+  Customize Total Thickness: false
+  Customize Stretching: false
+  Customize Layer Reduction Percentage: false
+  Customize Limit Aspect Ratio: false
+  Customize Minimum Thickness Percentage: false
+  Customize Boundary March Angle: false
+  Customize Concave Angle Limit: false
+  Customize Convex Angle Limit: false
+  Customize Core Layer Aspect Ratio: false
+  Customize Gap Fill Percentage: false
+      Trimmer
+  Customize Isotropic Size: true
+  Customize Anisotropic Size: false
+    Values
+    Custom Size
+  Size Type: Absolute
+  Percentage of Base: 25.0
+  Absolute Size: 0.125 m
+
+--- Motions ---
+  Motions
+  Motion Preview Time: 0.0 s
+  Motion Preview Parts: []
+    Stationary
+
+--- Reference Frames ---
+  Reference Frames
+    Lab Reference Frame
+
+--- Derived Parts ---
+  Derived Parts
+  Derived Parts: 9
+    bl_line
+  Parts: [fluid]
+  Point 1: [-1.0, 0.0, 0.0] m,m,m
+  Point 2: [-1.0, 0.0, 3.0] m,m,m
+  Coordinate System: Laboratory
+  Resolution: 60
+    grid_x5
+  Parts: [fluid]
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Origin: [5.0, -3.0, 0.0] m,m,m
+  Point 1: [5.0, 3.0, 0.0] m,m,m
+  Point 2: [5.0, -3.0, 6.0] m,m,m
+  Coordinate System: Laboratory
+  X Resolution: 24
+  Y Resolution: 24
+    grid_x10
+  Parts: [fluid]
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Origin: [10.0, -3.0, 0.0] m,m,m
+  Point 1: [10.0, 3.0, 0.0] m,m,m
+  Point 2: [10.0, -3.0, 6.0] m,m,m
+  Coordinate System: Laboratory
+  X Resolution: 24
+  Y Resolution: 24
+    grid_y0
+  Parts: [fluid]
+  Normal: [0.0, -1.0, 0.0] m,m,m
+  Origin: [-2.0, 0.0, 0.0] m,m,m
+  Point 1: [12.0, 0.0, 0.0] m,m,m
+  Point 2: [-2.0, 0.0, 6.0] m,m,m
+  Coordinate System: Laboratory
+  X Resolution: 28
+  Y Resolution: 24
+    probe_shear_point
+  Parts: [fluid]
+  Point: [5.0, 0.0, 2.5] m,m,m
+  Coordinate System: Laboratory
+  Follow Motion: false
+  Highlight Input Coordinates: false
+    section_x5
+  Origin: [5.0, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    section_x10
+  Origin: [10.0, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    section_x10_ypos
+  Parts: [section_x10]
+  Scalar Field: y_D
+  Range: [0.0, 1000000.0]
+  Mode: BETWEEN_TAG
+    section_y0
+  Origin: [0.0, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [0.0, 1.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+    Single Section
+  Offset: 0.0 m
+
+--- Monitors ---
+  Monitors
+  Monitors: 9
+  Monitors To Print: [Continuity, X-momentum, Y-momentum, Z-momentum, jet_tracer, probe_shear Monitor, tracer_max_at_x10 Monitor]
+  Output Direction: Horizontal
+  Heading Print Frequency: 10
+    Iteration
+    Physical Time
+    probe_shear Monitor
+  Report: [probe_shear]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    tracer_max_at_x10 Monitor
+  Report: [tracer_max_at_x10]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+
+--- Reports ---
+  Reports
+  Reports: 10
+  Report NaN Option: REPORT_NAN
+    area_jet_inlet
+  Units: m^2
+  Field Function: Area: Magnitude
+  Parts: [fluid: jet_inlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+    cvp_circulation_x10
+  Units: m^2/s
+  Field Function: Vorticity[i]
+  Parts: [section_x10_ypos]
+  Representation: Volume Mesh
+  Smooth Values: false
+    cvp_circulation_x10_check
+  Units: m^2/s
+  Field Function: Vorticity[i]
+  Parts: [section_x10]
+  Representation: Volume Mesh
+  Smooth Values: false
+    mass_imbalance_fraction
+  Definition: abs(${mdot_net}) / (abs(${mdot_crossflow}) + abs(${mdot_jet}))
+  Periodicity: Non-periodic
+  Delta Value: false
+    mdot_crossflow
+  Units: kg/s
+  Parts: [fluid: crossflow_inlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    mdot_jet
+  Units: kg/s
+  Parts: [fluid: jet_inlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    mdot_net
+  Units: kg/s
+  Parts: [fluid: crossflow_inlet, fluid: side_y_pos, fluid: outlet, fluid: side_y_neg, fluid: top, fluid: floor, fluid: jet_inlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    probe_shear
+  Field Function: vel_mag
+  Collocated Field Functions: []
+  Parts: [probe_shear_point]
+  Representation: Volume Mesh
+  Smooth Values: false
+    tracer_max_at_x5
+  Field Function: jet_tracer
+  Collocated Field Functions: []
+  Parts: [section_x5]
+  Representation: Volume Mesh
+  Smooth Values: false
+    tracer_max_at_x10
+  Field Function: jet_tracer
+  Collocated Field Functions: []
+  Parts: [section_x10]
+  Representation: Volume Mesh
+  Smooth Values: false
+
+--- Solvers ---
+  Solvers
+  Cache Solver Settings: true
+    Steady
+      Stopping Criteria
+  Verbose: false
+    Partitioning
+  Solver Frozen: false
+  Partitioning Method: Per-Continuum
+    Segregated Flow
+  Implicit Scheme: SIMPLE
+  Freeze Flow: false
+  Reconstruction Frozen: false
+  Reconstruction Zeroed: false
+  Enable Enhanced Stability Treatment: false
+  Temporary Storage Retained: false
+  Pressure Corrections: Bad Cell Minimum Scaling: 0.8
+  Pressure Corrections: Acceptable Cell Volume Change: 0.001
+  Velocity Corrections: Maximum Unlimited Velocity: 20.0 m/s
+  Velocity Corrections: Acceptable Velocity Increase Rate [&lt;1]: 0.15
+  Continuity Initialization: false
+      Velocity
+  Under-Relaxation Factor: 0.7
+  Dynamic Local Under-Relaxation: false
+        Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+        AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: Flex Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: None
+  Scaling: Disabled
+        Flex Cycle
+  Restriction Tolerance: 0.9
+  Prolongation Tolerance: 0.5
+  Sweeps: 1
+      Pressure
+  Number of Non-Orthogonality Correctors: 0
+  Under-Relaxation Factor: 0.3
+  Pressure Reference Location: Automatic Selection
+      Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+      AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: V Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: Conjugate Gradient
+  Scaling: Auto
+      V Cycle
+  Pre-Sweeps: 1
+  Post-Sweeps: 1
+  Max Levels: 50
+    Passive Scalar
+  Solver Frozen: false
+  Reconstruction Freeze: false
+  Reconstruction Zeroed: false
+  Temporary Storage Retained: false
+  Under-Relaxation Factor: 0.9
+    Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+    AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: Flex Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: None
+  Scaling: Disabled
+    Flex Cycle
+  Restriction Tolerance: 0.9
+  Prolongation Tolerance: 0.5
+  Sweeps: 1
+
+--- Stopping Criteria ---
+  Stopping Criteria
+  Verbose: false
+    Maximum Steps
+  Enabled: true
+  Maximum Steps: 5000
+  Logical Rule: Or
+  Criterion Satisfied: false
+    probe_shear Monitor Criterion
+  Enabled: true
+  Monitor: probe_shear Monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 1.0E-4
+  Number of Samples: 500
+  Normalized: true
+    Stop File
+  Enabled: true
+  Stop Inner Iterations: true
+  Path: ABORT
+  Logical Rule: Or
+  Criterion Satisfied: false
+    tracer_max_at_x10 Monitor Criterion
+  Enabled: true
+  Monitor: tracer_max_at_x10 Monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+    Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 1.0E-4
+  Number of Samples: 500
+  Normalized: true
+
+============================================================
+SOLUTION
+============================================================
+Solution
+  Accumulated CPU Time over all processes (s): 1077.7739999999892
+  Elapsed Time (s): 1077.7529999999895
+  Iterations: 1187

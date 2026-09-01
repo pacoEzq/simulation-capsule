@@ -26,9 +26,26 @@ could not yet answer is exactly what the later layers were built for.
 | Capsule | Case | Layers present | From |
 |---------|------|----------------|------|
 | `capsule_naca0012_aoa5` | NACA 0012, 5 degrees, Re 1e6 | `setup.txt`, `summary.json` | [Part 2](capsule_naca0012_aoa5.md) |
+| `capsule_cube_re200` | Cube, Re 200, laminar | `+ planes/` | [Part 3](capsule_cube_re200.md) |
+| `capsule_jet_r2_re100` | Jet in crossflow, r = 2, Re 100 | `+ samples.csv` | [Part 4](capsule_jet_r2_re100.md) |
+| `capsule_delta65_a13p3_re1e6` | Delta wing, 65 degrees, alpha 13.3 | `+ features.json` | [Part 5](capsule_delta65_a13p3_re1e6.md) |
 | `capsule_ahmed25_re1e6` | Ahmed body, 25 degree slant, Re 1e6 | `setup.txt`, `summary.json`, `views/` | [Part 6](capsule_ahmed25_re1e6.md) |
 
-More to follow as they are prepared.
+Read down the table and the format assembles itself: scalars, then sections, then a
+volume sample, then named features, then curated views.
+
+## One thing they do not yet agree on
+
+The five capsules use five different conventions for the reference-quantity block in
+`summary.json`. Chord and velocity as `{value, unit_flag}` objects in two of them,
+flat keys with the unit folded into the name in a third, a nested
+`nondimensionalization` block in a fourth, bare numbers in the fifth.
+
+The specification says keys are stable across cases where the quantity is the same,
+so this is a divergence rather than a variation, and it is left visible here on
+purpose. It is also invisible until several capsules sit side by side, which is a
+decent argument for publishing them together. The automation part is where it gets
+settled; the jet capsule already carries the `schema` key that will do it.
 
 Each capsule has a case card beside it, `<capsule_name>.md`, describing the run and
 what the capsule is honest about. The card sits outside the capsule directory on
