@@ -8,7 +8,7 @@ does not, and the other way round.
 
 | Reader | Family | Version | Date | Conversation |
 |---|---|---|---|---|
-| Claude | Anthropic | frontier at the time | [author: date] | [shared](https://claude.ai/share/323cc2bd-ca93-4a2e-9431-94fe098bba13) |
+| Claude | Anthropic | frontier at the time | 2026-07-24 | [shared](https://claude.ai/share/323cc2bd-ca93-4a2e-9431-94fe098bba13) |
 
 ## The kit as issued
 
