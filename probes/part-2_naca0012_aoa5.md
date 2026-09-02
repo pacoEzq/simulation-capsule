@@ -8,7 +8,7 @@ and notice when they disagree.
 
 | Reader | Family | Version | Date | Conversation |
 |---|---|---|---|---|
-| Claude | Anthropic | frontier at the time | [author: date] | [shared](https://claude.ai/share/76f3cada-470a-4475-812d-2878ab491456) |
+| Claude | Anthropic | frontier at the time | 2026-07-16 | [shared](https://claude.ai/share/76f3cada-470a-4475-812d-2878ab491456) |
 
 ## The kit as issued
 
