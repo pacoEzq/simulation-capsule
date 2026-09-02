@@ -105,8 +105,22 @@ did not fit, that is worth an issue even without a fix attached.
 
 ## License
 
-Code in `tools/` and `macros/` is MIT. Documentation, including `SPEC.md`, is
-CC BY 4.0.
+Two licenses, because this repository holds two kinds of thing.
+
+| What | License |
+|---|---|
+| `tools/`, `macros/` | [MIT](LICENSE) |
+| `SPEC.md`, `README.md`, `examples/`, `probes/`, `assets/` | [CC BY 4.0](LICENSE-DOCS) |
+
+The code is MIT so you can run it, fork it and ship it inside your own
+workflow without asking anyone. The specification, the example capsules and
+the documentation are CC BY 4.0, which asks only that you credit the source
+when you reproduce or adapt them. `CITATION.cff` says how.
+
+Both licenses cover what is in this repository. Neither reaches the capsules
+you build by following the specification. Those are your data, and nothing
+here claims a share of them.
+
 
 ---
 
