@@ -10,7 +10,7 @@ This is also the session that found the defect the validator now catches.
 
 | Reader | Family | Version | Date | Conversation |
 |---|---|---|---|---|
-| Claude | Anthropic | frontier at the time | [author: date] | [shared](https://claude.ai/share/7f777966-930d-455d-b563-05febd1d1092) |
+| Claude | Anthropic | frontier at the time | 2026-07-29 | [shared](https://claude.ai/share/7f777966-930d-455d-b563-05febd1d1092) |
 
 ## The kit as issued
 
