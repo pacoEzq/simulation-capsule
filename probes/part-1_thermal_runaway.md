@@ -14,7 +14,7 @@ in the answer has to come from the file.
 
 | Reader | Family | Version | Date | Conversation |
 |---|---|---|---|---|
-| Claude | Anthropic | frontier at the time | [author: date] | [shared](https://claude.ai/share/908cc4f0-61c3-4fe9-ac5b-d68ec93b1e5c) |
+| Claude | Anthropic | frontier at the time | 2026-07-15 | [shared](https://claude.ai/share/908cc4f0-61c3-4fe9-ac5b-d68ec93b1e5c) |
 
 ## The kit as issued
 
