@@ -1,0 +1,30 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 Francisco Ezquerra Larrode
+
+This license covers the documentation and data in this repository:
+
+    SPEC.md
+    README.md
+    examples/
+    probes/
+    assets/
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit, link to the license, and
+indicate whether changes were made.
+
+Full license text:
+    https://creativecommons.org/licenses/by/4.0/legalcode
+
+Summary:
+    https://creativecommons.org/licenses/by/4.0/
+
+Attribution for academic or technical use is described in CITATION.cff.
+
+The source code in tools/ and macros/ is licensed separately under the MIT
+License. See LICENSE.
+
+This license applies to the contents of this repository. It does not apply to
+Simulation Capsules that you produce yourself by following the specification.
+Those are yours, and this repository claims nothing over them.
