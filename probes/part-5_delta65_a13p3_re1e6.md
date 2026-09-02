@@ -8,7 +8,7 @@ flow from an artefact of the extraction method that produced the file.
 
 | Reader | Family | Version | Date | Conversation |
 |---|---|---|---|---|
-| Claude | Anthropic | frontier at the time | [author: date] | [shared](https://claude.ai/share/feab090c-2f45-4615-9810-18d5a6b4e54a) |
+| Claude | Anthropic | frontier at the time | 2026-08-04 | [shared](https://claude.ai/share/feab090c-2f45-4615-9810-18d5a6b4e54a) |
 
 ## The kit as issued
 
