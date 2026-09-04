@@ -34,13 +34,13 @@ jobs:
       - name: Validate every example capsule
         run: |
           set -o pipefail
-          python3 tools/check_capsule.py examples/*/ | tee validation.txt
+          python3 tools/check_capsule.py examples/capsule_*/ | tee validation.txt
 
       # Informational for now. Add --fail-over 60000 once Part 7 settles
       # whether one capsule may carry both spatial layers at full resolution.
       - name: Measure the token cost
         if: always()
-        run: python3 tools/capsule_ledger.py examples/*/ --markdown > ledger.md
+        run: python3 tools/capsule_ledger.py examples/capsule_*/ --markdown > ledger.md
 
       - name: Publish the report
         if: always()
