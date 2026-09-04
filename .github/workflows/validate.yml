@@ -1,0 +1,56 @@
+name: validate
+
+# Every capsule in examples/ is checked on every push. A reader found the
+# trailing comma in the jet capsule during the Part 4 probe test, named it as
+# the one packaging change worth making, and the capsule shipped with it
+# anyway. This workflow is the difference between finding a defect and
+# enforcing one.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  capsules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # The validator has to prove it can still fail before its passes mean
+      # anything. This asserts the jet regression and that all fourteen checks
+      # fire on at least one fixture.
+      - name: Self test the validator
+        run: python3 tools/test_check_capsule.py
+
+      # No --strict here. Errors block the push; warnings are schema divergence
+      # that Part 7 closes, and failing on them would only teach everyone to
+      # ignore a red badge.
+      - name: Validate every example capsule
+        run: |
+          set -o pipefail
+          python3 tools/check_capsule.py examples/*/ | tee validation.txt
+
+      # Informational for now. Add --fail-over 60000 once Part 7 settles
+      # whether one capsule may carry both spatial layers at full resolution.
+      - name: Measure the token cost
+        if: always()
+        run: python3 tools/capsule_ledger.py examples/*/ --markdown > ledger.md
+
+      - name: Publish the report
+        if: always()
+        run: |
+          {
+            echo "## Capsule validation"
+            echo ""
+            echo '```'
+            cat validation.txt 2>/dev/null || echo "validation did not run"
+            echo '```'
+            echo ""
+            cat ledger.md 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
