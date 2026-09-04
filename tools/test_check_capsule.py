@@ -12,9 +12,10 @@ Three things are proved here.
    and quiet is what let the two jet defects reach a published post.
 
 3. The dimensional rule of SPEC 3.1. A unit suffix outside the reference
-   block is an error. The object form and the bare number are legacy: a
-   warning in normal mode, a failure under --strict. A dimensionless group
-   inside reference, such as re_D, fires nothing.
+   block, the object form and the bare number are all legacy: a warning in
+   normal mode, a failure under --strict. A dimensionless group inside
+   reference, an angle in degrees anywhere, and a key named after a symbol
+   such as width_W fire nothing.
 
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
@@ -118,6 +119,19 @@ def build_bad_name(root):
     }, indent=2))
 
 
+def build_angles(root):
+    """What the Ahmed and NACA capsules taught: an angle in degrees is a
+    group, a width named W is not a power, and a units line is not an
+    object form."""
+    write(os.path.join(root, "setup.txt"), "Case: angles\n")
+    write(os.path.join(root, "summary.json"), json.dumps({
+        "case": "angles",
+        "geometry": {"width_W": 0.389, "slant_angle_deg": 25.0},
+        "regime": {"angle_of_attack_deg": 5.0},
+        "reference": {"length_scale_L_m": 1.044, "units": "SI"},
+    }, indent=2))
+
+
 def build_legacy(root):
     """The Part 2 and 3 form: reference quantities as {value, unit_flag}
     objects, plus one bare number. Legal until Part 7, never an error."""
@@ -156,6 +170,7 @@ def main():
         blind = os.path.join(workspace, "capsule_blind")
         badname = os.path.join(workspace, "jet_capsule_backup")
         legacy = os.path.join(workspace, "capsule_legacy")
+        angles_ok = os.path.join(workspace, "capsule_angles")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -164,6 +179,7 @@ def main():
         build_no_setup(blind)
         build_bad_name(badname)
         build_legacy(legacy)
+        build_angles(angles_ok)
 
         # 1. The jet regression.
         got = failed_checks(jet_bad)
@@ -196,11 +212,18 @@ def main():
                   % len(all_ids))
 
         # 3. The dimensional rule.
-        sev = {f["severity"] for f in findings(torture, "dimensional_flags")}
-        if check_capsule.ERROR not in sev:
-            failures.append("unit suffix outside reference should be ERROR")
+        outside = [f for f in findings(torture, "dimensional_flags")
+                   if "outside the reference block" in f["message"]]
+        if not outside or outside[0]["severity"] != check_capsule.WARN:
+            failures.append("unit suffix outside reference should warn")
         else:
-            print("PASS  unit suffix outside reference is an error")
+            print("PASS  unit suffix outside reference warns, fails strict")
+
+        angles = [f["message"] for f in findings(angles_ok, "dimensional_flags")]
+        if angles:
+            failures.append("angles and named symbols fired: %s" % angles)
+        else:
+            print("PASS  _deg angles and width_W stay silent")
 
         if "dimensional_flags" in failed_checks(legacy):
             failures.append("legacy forms should not fail in normal mode")

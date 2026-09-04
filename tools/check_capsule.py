@@ -34,7 +34,7 @@ import re
 import sys
 
 SPEC_VERSION = "0.2"
-TOOL_VERSION = "1.1"
+TOOL_VERSION = "1.2"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -101,9 +101,14 @@ NONDIM_MARKERS = ("ratio", "number", "coefficient", "coeff", "fraction",
 
 # Unit suffix grammar, SPEC 3.1: SI symbol in lowercase, joined with
 # underscores, _per_ for division, trailing digit for a power.
-# length_scale_D_m, u_inf_m_per_s, rho_kg_per_m3, mu_pa_s, omega_rad_per_s.
-_UNIT = r"(?:m|mm|s|kg|pa|k|n|j|w|hz|deg|rad)\d?"
+# length_scale_D_m, u_inf_m_per_s, rho_kg_per_m3, mu_pa_s.
+# Matched on the key as written: width_W is a width named W, not watts.
+_UNIT = r"(?:m|mm|s|kg|pa|k|n|j|w|hz)\d?"
 UNIT_SUFFIX = re.compile(r"(?:_%s)+(?:_per(?:_%s)+)?$" % (_UNIT, _UNIT))
+
+# An angle is already dimensionless. _deg and _rad declare the convention,
+# not a dimension, and may appear anywhere in the capsule.
+ANGLE_SUFFIX = re.compile(r"_(deg|rad)$")
 
 # Keys that mark the pre v0.2 object form {value, unit_flag}.
 LEGACY_UNIT_KEYS = ("unit", "units", "unit_flag", "dimensional", "flag")
@@ -440,8 +445,12 @@ def is_reference_root(key):
 
 
 def is_legacy_object(value):
-    return isinstance(value, dict) and any(
-        k.lower() in LEGACY_UNIT_KEYS for k in value)
+    """True for the pre v0.2 form {value, unit_flag}: a value key next to a
+    unit key. A block that merely lists its units is not one."""
+    if not isinstance(value, dict):
+        return False
+    keys = {k.lower() for k in value}
+    return "value" in keys and bool(keys & set(LEGACY_UNIT_KEYS))
 
 
 def find_reference_block(node, trail=()):
@@ -458,7 +467,7 @@ def find_reference_block(node, trail=()):
             elif is_reference_root(lowered):
                 if is_legacy_object(value):
                     hits.append(("/".join(here), "value plus unit flag"))
-                elif UNIT_SUFFIX.search(lowered):
+                elif UNIT_SUFFIX.search(key):
                     hits.append(("/".join(here), "unit in the key name"))
                 elif isinstance(value, (int, float)):
                     hits.append(("/".join(here), "bare number"))
@@ -523,22 +532,21 @@ def check_dimensional_flags(root, entries):
             where = "/".join(trail + (key,))
             in_reference = bool(trail) and trail[0].lower() == REFERENCE_BLOCK
             in_legacy = any(t.lower() in LEGACY_CONTAINERS for t in trail)
-            has_suffix = bool(UNIT_SUFFIX.search(lowered))
+            has_suffix = bool(UNIT_SUFFIX.search(key))
+            if ANGLE_SUFFIX.search(lowered):
+                continue  # an angle is a group; _deg names the convention
 
-            # Rule 1: a unit suffix outside reference is an error, always.
-            # Only numeric leaves count: _n and _k are also how a counter or
-            # an index ends, and count_n is not a force in newtons.
+            # Rule 1: a unit suffix outside reference. New in SPEC 0.2, so
+            # legal in a capsule published under 0.1: a warning here, an
+            # error under --strict. Only numeric leaves count: _n and _k
+            # are also how a counter or an index ends.
             numeric = isinstance(value, (int, float)) \
                 and not isinstance(value, bool)
             if has_suffix and numeric and not in_reference \
                     and not is_nondimensional_name(lowered):
-                if in_legacy:
-                    legacy += 1
-                    check.warn("dimensional key in a legacy container, the "
-                               "SPEC names only 'reference': %s" % where, rel)
-                else:
-                    check.error("dimensional key outside the reference "
-                                "block: %s" % where, rel)
+                legacy += 1
+                check.warn("dimensional key outside the reference block, "
+                           "the SPEC names only 'reference': %s" % where, rel)
                 continue
 
             # Rule 2: the object form {value, unit_flag} is legacy.
