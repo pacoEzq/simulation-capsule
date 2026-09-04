@@ -22,6 +22,9 @@ Exit codes:
 Reporting model: findings are grouped into checks. A capsule fails in as many
 places as it has failing checks, not as many as it has findings. Three orphan
 plane files are one broken pairing, not three.
+
+Every check cites the SPEC section it enforces. A check with nothing to cite
+is a check to remove.
 """
 
 import argparse
@@ -30,8 +33,8 @@ import os
 import re
 import sys
 
-SPEC_VERSION = "0.1"
-TOOL_VERSION = "1.0"
+SPEC_VERSION = "0.2"
+TOOL_VERSION = "1.1"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -75,15 +78,18 @@ FORBIDDEN_CHARS = {
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PNG_LONG_SIDE = 1024
 
-# Keys that name a reference quantity, under any of the conventions seen in
-# the published examples. The SPEC asks for the block to be present; T7 closes
-# which spelling wins.
+# Keys that name a reference quantity. SPEC 3.1 asks that every one of them
+# carries its unit as a suffix and lives in the reference block.
 REFERENCE_ROOTS = ("length", "velocity", "density", "viscosity", "pressure",
                    "temperature", "time", "chord", "side", "diameter", "span",
                    "area", "frequency")
 
-REFERENCE_CONTAINERS = ("reference", "references", "reference_quantities",
-                        "nondimensionalization", "nondimensionalisation")
+# The one container SPEC 3.1 names. The others were seen in capsules
+# published before v0.2 and are reported as legacy locations.
+REFERENCE_BLOCK = "reference"
+LEGACY_CONTAINERS = ("references", "reference_quantities",
+                     "nondimensionalization", "nondimensionalisation",
+                     "scales")
 
 # A key that says it is a ratio, a group or a coefficient is nondimensional by
 # name and is never a reference quantity, however it starts. Without this,
@@ -93,10 +99,14 @@ NONDIM_MARKERS = ("ratio", "number", "coefficient", "coeff", "fraction",
                   "reynolds", "mach", "strouhal", "normalized", "normalised",
                   "rel_error", "relative", "imbalance", "residual", "percent")
 
-UNIT_SUFFIX = re.compile(r"_(m|mm|cm|s|ms|kg|pa|k|c|deg|rad|hz|n|nm|j|w|"
-                         r"m_s|m2|m3|kg_m3|pa_s)$", re.IGNORECASE)
+# Unit suffix grammar, SPEC 3.1: SI symbol in lowercase, joined with
+# underscores, _per_ for division, trailing digit for a power.
+# length_scale_D_m, u_inf_m_per_s, rho_kg_per_m3, mu_pa_s, omega_rad_per_s.
+_UNIT = r"(?:m|mm|s|kg|pa|k|n|j|w|hz|deg|rad)\d?"
+UNIT_SUFFIX = re.compile(r"(?:_%s)+(?:_per(?:_%s)+)?$" % (_UNIT, _UNIT))
 
-UNIT_KEYS = ("unit", "units", "unit_flag", "dimensional", "flag")
+# Keys that mark the pre v0.2 object form {value, unit_flag}.
+LEGACY_UNIT_KEYS = ("unit", "units", "unit_flag", "dimensional", "flag")
 
 
 class Check:
@@ -204,13 +214,25 @@ def iter_leaves(node, trail=()):
             yield from iter_leaves(value, trail + (str(index),))
 
 
+def iter_nodes(node, trail=()):
+    """Yield (trail, key, value) for every key of a parsed JSON tree,
+    including the ones whose value is a dict or a list."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            yield trail, key, value
+            yield from iter_nodes(value, trail + (key,))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            yield from iter_nodes(value, trail + (str(index),))
+
+
 # ---------------------------------------------------------------------------
 # Checks
 # ---------------------------------------------------------------------------
 
 def check_root(root, entries):
     check = Check("root", "Capsule root is a directory named capsule_<alias>",
-                  "SPEC 1")
+                  "SPEC 2")
     name = os.path.basename(os.path.normpath(root))
     if not name.startswith("capsule_"):
         check.error("directory name does not start with 'capsule_'", name)
@@ -246,14 +268,15 @@ def check_declared_files(root, entries):
 
 
 def check_required_files(root, entries):
-    check = Check("required_files", "Mandatory artifacts are present",
+    check = Check("required_files",
+                  "The minimum capsule, setup.txt and summary.json, is present",
                   "SPEC 2")
     names = {e.replace("\\", "/").split("/")[0] for e in entries}
     if "summary.json" not in names:
         check.error("summary.json is missing: the capsule has no anchor")
     if "setup.txt" not in names:
-        check.warn("setup.txt is missing: the capsule cannot be audited "
-                   "against what the solver was told")
+        check.error("setup.txt is missing: the capsule cannot be audited "
+                    "against what the solver was told")
     return check
 
 
@@ -266,7 +289,8 @@ def check_not_empty(root, entries):
 
 
 def check_json_parses(root, entries):
-    check = Check("json_parses", "Every JSON artifact parses", "SPEC 3")
+    check = Check("json_parses", "Every JSON artifact parses",
+                  "SPEC 4.2, 4.5")
     targets = [e for e in entries if e.lower().endswith(".json")]
     if not targets:
         check.skip("no JSON artifacts")
@@ -292,7 +316,7 @@ def check_json_parses(root, entries):
 def check_plane_pairs(root, entries):
     check = Check("plane_pairs",
                   "Each plane ships as a CSV and PNG sharing one root",
-                  "SPEC 4")
+                  "SPEC 4.3")
     members = [e.replace("\\", "/") for e in entries
                if e.replace("\\", "/").startswith("planes/")]
     if not members:
@@ -325,7 +349,7 @@ def check_plane_pairs(root, entries):
 
 def check_png_geometry(root, entries):
     check = Check("png_geometry", "Every PNG is 1024 px on the long side",
-                  "SPEC 5")
+                  "SPEC 3.3")
     targets = [e for e in entries if e.lower().endswith(".png")]
     if not targets:
         check.skip("no PNG artifacts")
@@ -345,7 +369,7 @@ def check_png_geometry(root, entries):
 
 def check_png_metadata(root, entries):
     check = Check("png_metadata", "No metadata rides along inside a PNG",
-                  "SPEC 5, T10")
+                  "SPEC 3.3")
     targets = [e for e in entries if e.lower().endswith(".png")]
     if not targets:
         check.skip("no PNG artifacts")
@@ -360,15 +384,15 @@ def check_png_metadata(root, entries):
                         "leaves the building", rel)
         carriers = [c for c in chunk_types if c in ("tEXt", "iTXt", "zTXt")]
         if carriers:
-            check.warn("text chunk %s present: it can carry a machine path "
-                       "or a user name" % ", ".join(sorted(set(carriers))),
-                       rel)
+            check.error("text chunk %s present: it can carry a machine path "
+                        "or a user name, and costs nothing to strip"
+                        % ", ".join(sorted(set(carriers))), rel)
     return check
 
 
 def check_csv_header(root, entries):
     check = Check("csv_header", "Every plane CSV opens with a header that "
-                  "closes its world", "SPEC 4")
+                  "closes its world", "SPEC 4.3")
     targets = [e for e in entries
                if e.replace("\\", "/").startswith("planes/")
                and e.lower().endswith(".csv")]
@@ -409,6 +433,17 @@ def is_nondimensional_name(key):
     return any(marker in lowered for marker in NONDIM_MARKERS)
 
 
+def is_reference_root(key):
+    lowered = key.lower()
+    return (lowered.startswith(REFERENCE_ROOTS)
+            and not is_nondimensional_name(lowered))
+
+
+def is_legacy_object(value):
+    return isinstance(value, dict) and any(
+        k.lower() in LEGACY_UNIT_KEYS for k in value)
+
+
 def find_reference_block(node, trail=()):
     """Return a list of (path, convention) for reference quantities found."""
     hits = []
@@ -416,13 +451,12 @@ def find_reference_block(node, trail=()):
         for key, value in node.items():
             lowered = key.lower()
             here = trail + (key,)
-            if lowered in REFERENCE_CONTAINERS and isinstance(value, dict):
-                hits.append(("/".join(here), "named container"))
-            elif is_nondimensional_name(lowered):
-                pass
-            elif lowered.startswith(REFERENCE_ROOTS):
-                if isinstance(value, dict) and any(
-                        k.lower() in UNIT_KEYS for k in value):
+            if lowered == REFERENCE_BLOCK and isinstance(value, dict):
+                hits.append(("/".join(here), "reference block"))
+            elif lowered in LEGACY_CONTAINERS and isinstance(value, dict):
+                hits.append(("/".join(here), "legacy container"))
+            elif is_reference_root(lowered):
+                if is_legacy_object(value):
                     hits.append(("/".join(here), "value plus unit flag"))
                 elif UNIT_SUFFIX.search(lowered):
                     hits.append(("/".join(here), "unit in the key name"))
@@ -438,7 +472,7 @@ def find_reference_block(node, trail=()):
 
 def check_reference_block(root, entries):
     check = Check("reference_block", "summary.json declares its reference "
-                  "quantities", "SPEC 3")
+                  "quantities", "SPEC 3.1")
     if "summary.json" not in entries:
         check.skip("no summary.json")
         return check
@@ -455,57 +489,84 @@ def check_reference_block(root, entries):
                     "anchor are numbers the model cannot check",
                     "summary.json")
         return check
+    containers = ("reference block", "legacy container")
     conventions = sorted({convention for _, convention in hits})
-    leaves = sorted(p for p, c in hits if c != "named container")
+    leaves = sorted(p for p, c in hits if c not in containers)
     where = ", ".join(leaves[:4]) if leaves else \
         ", ".join(sorted(p for p, _ in hits))
     check.info("reference quantities declared by '%s' at %s"
                % ("', '".join(conventions), where), "summary.json")
-    leaf_conventions = sorted({c for _, c in hits if c != "named container"})
+    leaf_conventions = sorted({c for _, c in hits if c not in containers})
     if len(leaf_conventions) > 1:
-        check.info("this capsule mixes %d conventions in one file; the SPEC "
-                   "leaves the divergence visible until T7 closes the schema"
+        check.info("this capsule mixes %d conventions in one file; the "
+                   "dimensional_flags check reports which are legacy"
                    % len(leaf_conventions))
     return check
 
 
 def check_dimensional_flags(root, entries):
-    check = Check("dimensional_flags", "Dimensional values carry an explicit "
-                  "flag", "SPEC 3")
+    check = Check("dimensional_flags", "Dimensional values carry the unit as "
+                  "a key suffix and live in the reference block", "SPEC 3.1")
     targets = [e for e in entries if e.lower().endswith(".json")]
     if not targets:
         check.skip("no JSON artifacts")
         return check
-    unflagged = []
+    legacy = 0
     for rel in targets:
         try:
             text, _ = read_text(os.path.join(root, rel))
             data = json.loads(text)
         except (ValueError, OSError):
             continue
-        for trail, key, value in iter_leaves(data):
-            if not isinstance(value, (int, float)):
-                continue
+        for trail, key, value in iter_nodes(data):
             lowered = key.lower()
-            if is_nondimensional_name(lowered):
+            where = "/".join(trail + (key,))
+            in_reference = bool(trail) and trail[0].lower() == REFERENCE_BLOCK
+            in_legacy = any(t.lower() in LEGACY_CONTAINERS for t in trail)
+            has_suffix = bool(UNIT_SUFFIX.search(lowered))
+
+            # Rule 1: a unit suffix outside reference is an error, always.
+            # Only numeric leaves count: _n and _k are also how a counter or
+            # an index ends, and count_n is not a force in newtons.
+            numeric = isinstance(value, (int, float)) \
+                and not isinstance(value, bool)
+            if has_suffix and numeric and not in_reference \
+                    and not is_nondimensional_name(lowered):
+                if in_legacy:
+                    legacy += 1
+                    check.warn("dimensional key in a legacy container, the "
+                               "SPEC names only 'reference': %s" % where, rel)
+                else:
+                    check.error("dimensional key outside the reference "
+                                "block: %s" % where, rel)
                 continue
-            if UNIT_SUFFIX.search(lowered):
-                continue  # the unit is spelled in the key: that is the flag
-            if any(k.lower() in UNIT_KEYS for k in trail):
+
+            # Rule 2: the object form {value, unit_flag} is legacy.
+            if is_legacy_object(value):
+                legacy += 1
+                check.warn("legacy object form, migrate to a unit suffix on "
+                           "the key: %s" % where, rel)
                 continue
-            if lowered.startswith(REFERENCE_ROOTS):
-                unflagged.append((rel, "/".join(trail + (key,))))
-    for rel, where in unflagged:
-        check.warn("reference quantity carries no unit flag: %s" % where, rel)
-    if unflagged:
-        check.info("the SPEC allows this until T7 closes the schema; a bare "
-                   "number is not wrong, it is unreadable")
+
+            # Rule 3: a known reference quantity as a bare number is legacy.
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                continue
+            if any(t.lower() in LEGACY_UNIT_KEYS for t in trail):
+                continue  # the leaf inside a legacy object, reported above
+            if is_reference_root(lowered) and not has_suffix:
+                legacy += 1
+                check.warn("reference quantity carries no unit suffix: %s"
+                           % where, rel)
+    if legacy:
+        check.info("%d legacy form(s) accepted until Part 7 migrates the "
+                   "published capsules; run with --strict to see the "
+                   "post migration verdict" % legacy)
     return check
 
 
 def check_publication_residue(root, entries):
     check = Check("publication_residue", "No working state left in a "
-                  "published capsule", "SPEC 3")
+                  "published capsule", "SPEC 2")
     targets = [e for e in entries if e.lower().endswith(".json")]
     if not targets:
         check.skip("no JSON artifacts")
@@ -532,7 +593,7 @@ def check_publication_residue(root, entries):
 
 def check_punctuation(root, entries):
     check = Check("punctuation", "No em dash, en dash or minus sign",
-                  "SPEC 6")
+                  "SPEC 3.2")
     targets = [e for e in entries
                if os.path.splitext(e)[1].lower() in TEXT_SUFFIXES]
     if not targets:
@@ -560,7 +621,8 @@ def check_punctuation(root, entries):
 
 
 def check_encoding(root, entries):
-    check = Check("encoding", "Every text artifact is valid UTF-8", "SPEC 6")
+    check = Check("encoding", "Every text artifact is valid UTF-8",
+                  "SPEC 3.2")
     targets = [e for e in entries
                if os.path.splitext(e)[1].lower() in TEXT_SUFFIXES]
     if not targets:
@@ -622,81 +684,4 @@ def report_text(root, checks, strict, verbose):
         for finding in check.findings:
             where = finding["path"] or name
             lines.append("           %-5s %s" % (finding["severity"], where))
-            lines.append("                 %s" % finding["message"])
-    total = len([c for c in checks if not c.skipped])
-    if failed:
-        lines.append("  RESULT: failed %d of %d checks in %d place(s): %s"
-                     % (len(failed), total, len(failed), ", ".join(failed)))
-    else:
-        warned = [c.id for c in checks if c.status(strict) == "WARN"]
-        suffix = " with warnings in %s" % ", ".join(warned) if warned else ""
-        lines.append("  RESULT: passed %d of %d checks%s"
-                     % (total - len(warned), total, suffix))
-    return "\n".join(lines), failed
-
-
-def report_json(root, checks, strict):
-    return {
-        "capsule": os.path.basename(os.path.normpath(root)),
-        "spec_version": SPEC_VERSION,
-        "tool_version": TOOL_VERSION,
-        "strict": strict,
-        "checks": [
-            {
-                "id": check.id,
-                "title": check.title,
-                "spec": check.spec_ref,
-                "status": check.status(strict),
-                "skip_reason": check.skip_reason or None,
-                "findings": check.findings,
-            }
-            for check in checks
-        ],
-        "failed": [c.id for c in checks if c.status(strict) == "FAIL"],
-    }
-
-
-def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Validate one or more Simulation Capsules against the "
-                    "SPEC.")
-    parser.add_argument("capsules", nargs="+",
-                        help="capsule directories to validate")
-    parser.add_argument("--strict", action="store_true",
-                        help="treat warnings as failures")
-    parser.add_argument("--json", action="store_true", dest="as_json",
-                        help="emit a machine readable report")
-    parser.add_argument("--verbose", "-v", action="store_true",
-                        help="list passing and skipped checks too")
-    args = parser.parse_args(argv)
-
-    reports, any_failure = [], False
-    for root in args.capsules:
-        if not os.path.isdir(root):
-            sys.stderr.write("not a directory: %s\n" % root)
-            return 2
-        checks = validate(root)
-        if args.as_json:
-            payload = report_json(root, checks, args.strict)
-            reports.append(payload)
-            if payload["failed"]:
-                any_failure = True
-        else:
-            text, failed = report_text(root, checks, args.strict, args.verbose)
-            reports.append(text)
-            if failed:
-                any_failure = True
-
-    if args.as_json:
-        print(json.dumps(reports if len(reports) > 1 else reports[0],
-                         indent=2))
-    else:
-        print("\n\n".join(reports))
-    return 1 if any_failure else 0
-
-
-if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except BrokenPipeError:  # piping into head is normal usage
-        os._exit(0)
+            lines.append("                 %s" % findi
