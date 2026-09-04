@@ -58,3 +58,27 @@ lock onto the edge and never see the feature.
 
 The simulation file is attached to the tutorial, not to this repository. See
 [SPEC.md](../SPEC.md) for why the capsule ships without it.
+
+## For `capsule_delta65_a13p3_re1e6.md`
+
+```markdown
+## Known issues
+
+Found by the [Part 5 probe test](../probes/part-5_delta65_a13p3_re1e6.md) and
+by `tools/check_capsule.py`. The capsule is frozen, so these are recorded
+rather than patched.
+
+- **The `u_ax_core` reports do not declare where they were probed.** The value
+  sits near the x = 0.30 station rather than the x = 0.60 cluster, and nothing
+  in the capsule says which. Registered against the automation part.
+- **The root chord is declared twice**, in `case/geometry` and in
+  `nondimensionalization/reference_quantities`. One reference quantity in two
+  places is one that will eventually disagree with itself.
+- **Reference quantities ship as bare numbers.** `chord_root` and `span_b` carry
+  no unit flag, in `summary.json` and again in `features.json`. The validator
+  warns on all four.
+- **The plane headers are short two fields.** They declare the grid, the field
+  precision and the word nondimensional, and omit the spacing and the count of
+  nodes returned over nodes requested that the other capsules carry.
+```
+
