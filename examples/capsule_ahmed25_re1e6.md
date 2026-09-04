@@ -67,3 +67,28 @@ clear it before it means anything.
 
 The simulation file is attached to the tutorial, not to this repository. See
 [SPEC.md](../SPEC.md) for why the capsule ships without it.
+
+## For `capsule_ahmed25_re1e6.md`
+
+```markdown
+## Known issues
+
+Found by the [Part 6 probe test](../probes/part-6_ahmed25_re1e6.md) and by
+`tools/check_capsule.py`. The capsule is frozen, so these are recorded rather
+than patched.
+
+- **No view title declares the regime.** The burned in titles carry the case,
+  the plane, the field, the range and the orientation. One reader out of four
+  read `view_limit_cycle_diff.png` as evidence of a time accurate run, inferring
+  the regime from the filename because the image itself does not defend it, and
+  every later error in that session followed. The view contract now requires the
+  title to declare the regime and the iteration span.
+- **Reference quantities ship as bare numbers.** `length_L`, `velocity_U`,
+  `density_rho` and `viscosity_mu` carry no unit flag. The validator warns on
+  all four.
+- **The scalars are a phase, not a fixed point.** The capsule reports the limit
+  cycle and its amplitude, so this is disclosed rather than hidden, but it bears
+  restating next to the numbers: the last digit of any scalar here moves with
+  the phase of a weak wake oscillation.
+```
+
