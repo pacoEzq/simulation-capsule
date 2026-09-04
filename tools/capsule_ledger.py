@@ -242,6 +242,9 @@ def main(argv=None):
     parser.add_argument("--json", action="store_true", dest="as_json")
     parser.add_argument("--per-file", action="store_true",
                         help="list every artifact instead of every layer")
+    parser.add_argument("--fail-over", type=int, metavar="N",
+                        help="exit 1 if any capsule exceeds N tokens, so the "
+                             "budget can be enforced rather than reported")
     args = parser.parse_args(argv)
 
     results = []
@@ -250,6 +253,9 @@ def main(argv=None):
             sys.stderr.write("not a directory: %s\n" % root)
             return 2
         results.append(measure_capsule(root, args.budget, args.window))
+
+    over = [r for r in results
+            if args.fail_over and r["tokens"] > args.fail_over]
 
     if args.as_json:
         print(json.dumps(results, indent=2))
@@ -268,7 +274,12 @@ def main(argv=None):
             print()
     else:
         print(format_text(results, args.budget, args.window))
-    return 0
+
+    for result in over:
+        sys.stderr.write("over budget: %s costs %d tokens, the limit is %d\n"
+                         % (result["capsule"], result["tokens"],
+                            args.fail_over))
+    return 1 if over else 0
 
 
 if __name__ == "__main__":
