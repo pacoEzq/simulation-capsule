@@ -1,3 +1,5 @@
+[![validate](https://github.com/pacoEzq/simulation-capsule/actions/workflows/validate.yml/badge.svg)](https://github.com/pacoEzq/simulation-capsule/actions/workflows/validate.yml)
+
 # Simulation Capsule
 
 **A Simulation Capsule is a self-contained, token-budgeted distillation of a
@@ -34,7 +36,8 @@ guess whether the numbers share units.
 
 **The budget is stated, not hoped for.** Each artifact declares what it costs in
 tokens and what it bought. The series works to roughly 60,000 tokens for a complete
-capsule.
+capsule, and [`examples/token-ledger.md`](examples/token-ledger.md) records what the
+published capsules actually cost.
 
 **Exposure is a designed property.** Artifacts differ in how much they leak about
 the underlying geometry and setup. A features file leaks least, a rendered view
@@ -77,7 +80,7 @@ technique reveals something the case would not otherwise show.
 Recipes are written for Simcenter STAR-CCM+. The principles are solver-agnostic and
 model-agnostic; nothing here depends on a particular frontier model.
 
-Index and links: [github.com/pacoEzq](https://github.com/pacoEzq)
+The series starts here: [Part 1, What does an LLM consume well?](https://community.sw.siemens.com/s/question/0D5Vb00001OziUAKAZ/preparing-cfd-output-for-large-language-models-110-what-does-an-llm-consume-well)
 
 ## Repository contents
 
@@ -85,8 +88,41 @@ Index and links: [github.com/pacoEzq](https://github.com/pacoEzq)
 |------|---------------|
 | `SPEC.md` | The capsule contract: directory layout, per-artifact rules, naming |
 | `examples/` | Complete capsules from the series reference cases |
+| `probes/` | Probe test records: what models could and could not read from each capsule |
 | `tools/` | Python for building and checking capsule artifacts |
 | `macros/` | Java macros for Simcenter STAR-CCM+ export |
+| `assets/` | Figures used by the series |
+
+## Validation
+
+A capsule gets checked twice, by a program and by a reader.
+
+The program is [`tools/check_capsule.py`](tools/check_capsule.py), which turns the
+mechanical parts of the SPEC into fourteen checks: standard library only, nothing to
+install. Every capsule in `examples/` runs through it on every push.
+
+```bash
+python3 tools/check_capsule.py examples/*/          # errors fail, warnings show
+python3 tools/check_capsule.py examples/*/ --strict # warnings fail too
+python3 tools/capsule_ledger.py examples/*/ --markdown
+```
+
+The validator carries its own regression test.
+[`tools/test_check_capsule.py`](tools/test_check_capsule.py) asserts that the jet
+capsule, as it was first published, fails in exactly two places, and that every
+check fires on at least one fixture. A check that has never failed has not been
+verified, it has only been quiet.
+
+The reader is a language model. Before a capsule is published it is handed whole to
+one, in a fresh conversation, and asked narrow questions whose answers can be
+checked against the files. [`probes/`](probes/README.md) holds those sessions and
+the nine capsule defects they caught, including the one that this validator now
+catches automatically.
+
+The published capsules pass with warnings. Those warnings are schema divergence
+across capsules written before the schema was closed, listed in
+[`examples/README.md`](examples/README.md) and settled by the automation part. They
+are left visible rather than patched.
 
 ## Status
 
@@ -120,7 +156,6 @@ when you reproduce or adapt them. `CITATION.cff` says how.
 Both licenses cover what is in this repository. Neither reaches the capsules
 you build by following the specification. Those are your data, and nothing
 here claims a share of them.
-
 
 ---
 
