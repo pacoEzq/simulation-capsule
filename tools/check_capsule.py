@@ -90,7 +90,8 @@ REFERENCE_CONTAINERS = ("reference", "references", "reference_quantities",
 # velocity_ratio reads as a velocity scale and the validator invents a defect.
 NONDIM_MARKERS = ("ratio", "number", "coefficient", "coeff", "fraction",
                   "exponent", "index", "nondim", "_over_", "count",
-                  "reynolds", "mach", "strouhal", "normalized", "normalised")
+                  "reynolds", "mach", "strouhal", "normalized", "normalised",
+                  "rel_error", "relative", "imbalance", "residual", "percent")
 
 UNIT_SUFFIX = re.compile(r"_(m|mm|cm|s|ms|kg|pa|k|c|deg|rad|hz|n|nm|j|w|"
                          r"m_s|m2|m3|kg_m3|pa_s)$", re.IGNORECASE)
@@ -460,9 +461,11 @@ def check_reference_block(root, entries):
         ", ".join(sorted(p for p, _ in hits))
     check.info("reference quantities declared by '%s' at %s"
                % ("', '".join(conventions), where), "summary.json")
-    if len(conventions) > 1:
-        check.info("this capsule mixes conventions; the SPEC leaves the "
-                   "divergence visible until T7 closes the schema")
+    leaf_conventions = sorted({c for _, c in hits if c != "named container"})
+    if len(leaf_conventions) > 1:
+        check.info("this capsule mixes %d conventions in one file; the SPEC "
+                   "leaves the divergence visible until T7 closes the schema"
+                   % len(leaf_conventions))
     return check
 
 
@@ -515,7 +518,13 @@ def check_publication_residue(root, entries):
             continue
         for trail, key, _ in iter_leaves(data):
             lowered = key.lower()
-            if lowered in ("status", "_pending") or lowered.startswith("_"):
+            # A status nested inside a declared block is content, not residue:
+            # a candidates block records what was tried and rejected, and the
+            # capsule is better for carrying it. Only a top level marker is a
+            # leftover.
+            top_level = not trail
+            if (top_level and lowered in ("status", "_pending")) \
+                    or lowered.startswith("_"):
                 check.warn("working key survives publication: %s"
                            % "/".join(trail + (key,)), rel)
     return check
@@ -687,4 +696,7 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except BrokenPipeError:  # piping into head is normal usage
+        os._exit(0)
