@@ -1,0 +1,913 @@
+============================================================
+STAR-CCM+ SIMULATION REPORT (AI-TRIMMED)
+============================================================
+Summary Report: cube_re200
+
+[Session Summary]
+  Date: 23.07.2026, 12:32:06
+  Simulation: C:\cube_re200.sim
+  File size: 97 MB
+  Number of Partitions: 1
+  Number of Restored Partitions: 1
+
+[Software Summary]
+  Version: BuildArch: win64 | BuildEnv: clang20.1vc14.2-r8 | PresentationVersion: 2602 | ReleaseDate: Tue Feb 3 16:02:22 UTC 2026 | ReleaseNumber: 21.02.007
+
+[Hardware Summary]
+  Hosts: Number Processes: 1 | Rank[0]: 
+
+============================================================
+SIMULATION PROPERTIES
+============================================================
+
+--- Continua ---
+  Continua
+  Continua: 1
+    fluid_physics
+  Regions: [fluid]
+  Interfaces: []
+  Point Sets: []
+  Active: true
+  Motion Always Active: false
+    Models
+      Constant Density
+      Gas
+        Air
+  Database Material: Air (Air) [Standard/Gases]
+        Material Properties
+        Density
+  Method: Constant
+          Constant
+  Value: ${rho}
+        Dynamic Viscosity
+  Method: Constant
+        Constant
+  Value: ${mu}
+      Gradients
+  Boundary Cell Eigenvalues Ratio Tolerance: 0.06
+  Limit GradVar By Beta: true
+  Limiter Method: Venkatakrishnan
+  Custom Accuracy Level Selector: 2.0
+  Maximum Reconstruction Coefficient: 1.0
+  Two Pass Velocity Gradient: false
+  Use TVB Gradient Limiting: false
+  Acceptable Field Variation (Factor): 0.05
+      Laminar
+      Segregated Flow
+  Flux Update Dissipation Factor: 0.5
+  Positivity Rate Limit: 0.2
+  Unsteady Flux Dissipation Corrections: false
+  Limit Acoustic-CFL Option: Per-Model
+  Secondary Gradients: On
+  Convection: 2nd-order
+  Delta-V Dissipation: Off
+      Solution Interpolation
+  Per Part Mapping: false
+  Interpolation Method: Nearest neighbor
+  Legacy Method: false
+  Conservation Correction: Disable
+      Steady
+  Continuum Iteration: 4708
+      Three Dimensional
+    Reference Values
+      Maximum Allowable Absolute Pressure
+  Value: 1.0E8 Pa
+      Minimum Allowable Absolute Pressure
+  Value: 1000.0 Pa
+      Reference Pressure
+  Value: 101325.0 Pa
+    Initial Conditions
+    Pressure
+  Method: Constant
+      Constant
+  Value: 0.0 Pa
+    Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+    Constant
+  Value: [0.0, 0.0, 0.0] m/s
+
+--- Regions ---
+  Regions
+  Part Selection Priority: [fluid]
+  Regions: 1
+    fluid
+  Index: 0
+  Allow Per-Part Values: false
+  Physics Continuum: [fluid_physics]
+  Parts: [fluid]
+  Type: Fluid Region
+  Topology: VOLUME
+    Boundaries
+  Part Surface Selection Priority: [fluid: cube_top, fluid: lateral_zplus, fluid: cube_left, fluid: cube_front, fluid: cube_right, fluid: cube_bottom, fluid: cube_back, fluid: lateral_yminus, fluid: inlet, fluid: lateral_yplus, fluid: lateral_zminus, fluid: outlet]
+  Boundaries: 12
+      cube
+        cube_back
+  Index: 8
+  Part Surfaces: [fluid.cube_back]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+          Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+        cube_bottom
+  Index: 7
+  Part Surfaces: [fluid.cube_bottom]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+          Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+        cube_front
+  Index: 5
+  Part Surfaces: [fluid.cube_front]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+          Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+        cube_left
+  Index: 4
+  Part Surfaces: [fluid.cube_left]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+          Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+        cube_right
+  Index: 6
+  Part Surfaces: [fluid.cube_right]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+          Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+        cube_top
+  Index: 2
+  Part Surfaces: [fluid.cube_top]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+        Reference Frame Specification
+  Option: Region Reference Frame
+        Shear Stress Specification
+  Method: No-Slip
+        Tangential Velocity Specification
+  Method: Fixed
+      lateral
+        lateral_yminus
+  Index: 9
+  Part Surfaces: [fluid.lateral_yminus]
+  Type: Symmetry Plane
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        lateral_yplus
+  Index: 11
+  Part Surfaces: [fluid.lateral_yplus]
+  Type: Symmetry Plane
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        lateral_zminus
+  Index: 12
+  Part Surfaces: [fluid.lateral_zminus]
+  Type: Symmetry Plane
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        lateral_zplus
+  Index: 3
+  Part Surfaces: [fluid.lateral_zplus]
+  Type: Symmetry Plane
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+      inlet
+  Index: 10
+  Part Surfaces: [fluid.inlet]
+  Type: Velocity Inlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+          Reference Frame Specification
+  Option: Lab Frame
+          Velocity Specification
+  Method: Components
+        Physics Values
+        Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+        Constant
+  Value: [${U}, 0.0, 0.0]
+      outlet
+  Index: 13
+  Part Surfaces: [fluid.outlet]
+  Type: Pressure Outlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+      Physics Conditions
+        Backflow Specification
+  Direction: Boundary-Normal
+  Pressure: Environmental
+  Scalars: Specified
+        Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+        Pressure Outlet Option
+  Option: None
+        Reference Frame Specification
+  Option: Lab Frame
+      Physics Values
+      Pressure
+  Method: Constant
+      Constant
+  Value: 0.0 Pa
+    Physics Conditions
+      Initial Condition Option
+  Option: Use Continuum Values
+      Mass Source Option
+  Mass Source Option: false
+      Momentum Source Option
+  Momentum Source Option: None
+      Motion Specification Option
+  Option: Motion Specification
+    Physics Values
+    Axis
+  Coordinate System: Laboratory
+  Origin: [0.0, 0.0, 0.0] m
+  Direction: [0.0, 0.0, 1.0]
+    Motion Specification
+  Motion: Stationary
+  Reference Frame: Lab Reference Frame
+
+--- Representations ---
+  Representations
+    Latest Surface/Volume
+  Representation: Volume Mesh
+    Geometry
+      mesh_cube.Remesh
+      Latest Surface
+    Volume Mesh
+  Cells: 405673
+  Interior Faces: 1230752
+  Vertices: 433252
+    Finite Volume Regions
+      fluid
+  Cells: 405673
+  Interior Faces: 1230752
+  Vertices: 433252
+  Edges: 0
+      Finite Volume Boundaries
+      cube_back
+  Faces: 1613
+      cube_bottom
+  Faces: 1612
+      cube_front
+  Faces: 1612
+      cube_left
+  Faces: 1613
+      cube_right
+  Faces: 1613
+      cube_top
+  Faces: 1612
+      inlet
+  Faces: 400
+      lateral_yminus
+  Faces: 800
+      lateral_yplus
+  Faces: 800
+      lateral_zminus
+  Faces: 800
+      lateral_zplus
+  Faces: 800
+      outlet
+  Faces: 400
+    Cell Sets
+
+--- Automation ---
+  Automation
+    Parameters
+      D
+  Type: SCALAR
+  Value: 1.0 m
+      mu
+  Type: SCALAR
+  Value: ${rho}*${U}*${D}/${Re}
+      Re
+  Type: SCALAR
+  Value: 200.0
+      rho
+  Type: SCALAR
+  Value: 1.0 kg/m^3
+      U
+  Type: SCALAR
+  Value: 1.0 m/s
+    Field Functions
+      cp
+  Function Name: cp
+  Value Type: Scalar
+  Assembly Code: (/ ${StaticPressure} (* (* (* 0.5 ${rho}) ${U}) ${U}))
+  Definition: ${StaticPressure}/(0.5*${rho}*${U}*${U})
+  Ignore Boundary Values: false
+      u_U
+  Function Name: u_U
+  Value Type: Scalar
+  Assembly Code: (/ $${Velocity}[0] ${U})
+  Definition: $${Velocity}[0]/${U}
+  Ignore Boundary Values: false
+      v_U
+  Function Name: v_U
+  Value Type: Scalar
+  Assembly Code: (/ $${Velocity}[1] ${U})
+  Definition: $${Velocity}[1]/${U}
+  Ignore Boundary Values: false
+      w_U
+  Function Name: w_U
+  Value Type: Scalar
+  Assembly Code: (/ $${Velocity}[2] ${U})
+  Definition: $${Velocity}[2]/${U}
+  Ignore Boundary Values: false
+      x_D
+  Function Name: x_D
+  Value Type: Scalar
+  Assembly Code: (/ $${Position}[0] ${D})
+  Definition: $${Position}[0]/${D}
+  Ignore Boundary Values: false
+      y_D
+  Function Name: y_D
+  Value Type: Scalar
+  Assembly Code: (/ $${Position}[1] ${D})
+  Definition: $${Position}[1]/${D}
+  Ignore Boundary Values: false
+      z_D
+  Function Name: z_D
+  Value Type: Scalar
+  Assembly Code: (/ $${Position}[2] ${D})
+  Definition: $${Position}[2]/${D}
+  Ignore Boundary Values: false
+    Simulation Operations
+  Selected: []
+    Filters
+    Tags
+    Stages
+  Active Stage: []
+    Update Events
+  Event Count: 0
+    Time Scales
+
+--- Operations ---
+  Operations
+    mesh_cube
+  Per-Part Meshing: false
+  Mesher Execution Mode: Serial
+  Input Parts: [fluid]
+  Perform Local Meshing: false
+  Preserve Surface Perimeters: None
+  Verbose Output: false
+    Meshers
+      Surface Remesher
+  Meshing Method: Triangle
+  Perform Curvature Refinement: true
+  Perform Proximity Refinement: true
+  Perform Compatibility Refinement: false
+  Create Aligned Meshes: true
+  Minimum Face Quality: 0.05
+  Field Function based Refinement: []
+      Trimmed Cell Mesher
+  Core Cell Type: Hexahedra
+  Field Function based Refinement: []
+  Coordinate System: Laboratory
+  Perform Mesh Alignment: true
+  Size Dependent Growth Rates: All cells
+  Run Post Mesh Optimizer: true
+      Prism Layer Mesher
+  Stretching Function: Geometric Progression
+  Distribution Mode: Stretch Factor
+  Enhanced Quality Prisms: false
+    Default Controls
+      Base Size
+  Base Size: 0.5 m
+  Base Size: 0.5 m
+      CAD Projection
+  Project to CAD: true
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 100.0
+  Absolute Size: 0.5 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 10.0
+  Absolute Size: 0.05 m
+      Surface Curvature
+  Enable Curvature Deviation Distance: false
+  # Pts/circle: 36.0
+  Max # Pts/circle: 200.0
+  Curvature Deviation Distance: 0.01 m
+      Surface Proximity
+  Search Floor: 0.0 m
+  # Points in gap: 2.0
+  Enable Search Ceiling: false
+  Search Ceiling: 1.0E10 m
+  Search Direction: INSIDE
+      Prism Layer Controls
+        Number of Prism Layers
+  Number of Prism Layers: 2
+        Prism Layer Stretching
+  Prism Layer Stretching: 1.5
+        Prism Layer Reduction Percentage
+  Prism Layer Reduction Percentage: 50.0
+        Concave Angle Limit
+  Concave Angle Limit: 0.0 deg
+        Convex Angle Limit
+  Convex Angle Limit: 360.0 deg
+        Near Core Layer Aspect Ratio
+  Near Core Layer Aspect Ratio: 0.0
+        Gap Fill Percentage
+  Gap Fill Percentage: 25.0
+        Minimum Thickness Percentage
+  Minimum Thickness Percentage: 10.0
+        Boundary March Angle
+  Boundary March Angle: 50.0 deg
+        Prism Layer Total Thickness
+  Size Type: Relative to base
+  Percentage of Base: 33.33
+  Absolute Size: 0.16665 m
+      Surface Growth Rate
+  Surface Growth Rate: DEFAULT
+  User Specified Value: 1.3
+      Maximum Core/Prism Transition Ratio
+  Limit Cell Size by Prism Layer Thickness: false
+      Volume Growth Rate
+  Default Growth Rate: Medium
+  Surface Growth Rate: Medium
+      Maximum Cell Size
+  Size Type: Relative to base
+  Percentage of Base: 100.0
+  Absolute Size: 0.5 m
+      Mesh Alignment Location
+  Location: [0.0, 0.0, 0.0] m
+      Post Mesh Optimization
+  Optimize Boundary Vertices: false
+  Optimize Cell Topology: false
+    Custom Controls
+    cube_refinement
+  Enable Control: true
+  Controls Display Mode: All
+  Part Surfaces: [fluid.cube_back, fluid.cube_bottom, fluid.cube_front, fluid.cube_left, fluid.cube_right, fluid.cube_top]
+  Apply Only to Contacting Area: false
+      Controls
+        Target Surface Size
+  Target Surface Size: Custom
+        Minimum Surface Size
+  Minimum Surface Size: Custom
+        Surface Curvature
+  Curvature: Parent
+        Surface Proximity
+  Proximity: Parent
+        Edge Proximity
+  Proximity: Parent
+        Surface Growth Rate
+  Surface Growth Rate: Parent
+        Surface Remeshing
+  Surface Remeshing: Parent
+        Meshing Method
+  Meshing Method: Parent
+        Prism Layers
+  Prism Layers: Parent
+        Trimmer Surface Growth Rate
+  Trimmer Surface Growth Rate: Parent
+        Remesher Wake Refinement
+  Specify wake refinement options: false
+        Trimmer Wake Refinement
+  Specify Trimmer Wake Refinement Options: false
+      Values
+      Target Surface Size
+  Size Type: Absolute
+  Percentage of Base: 6.0
+  Absolute Size: 0.03*${D}
+      Minimum Surface Size
+  Size Type: Absolute
+  Percentage of Base: 4.0
+  Absolute Size: 0.02*${D}
+    wake_refinement
+  Enable Control: true
+  Controls Display Mode: All
+  Parts: [refine_wake]
+    Controls
+      Surface Remesher
+  Customize Size: false
+      Prism Layer Mesher
+  Customize Number of Layers: false
+  Customize Total Thickness: false
+  Customize Stretching: false
+  Customize Layer Reduction Percentage: false
+  Customize Limit Aspect Ratio: false
+  Customize Minimum Thickness Percentage: false
+  Customize Boundary March Angle: false
+  Customize Concave Angle Limit: false
+  Customize Convex Angle Limit: false
+  Customize Core Layer Aspect Ratio: false
+  Customize Gap Fill Percentage: false
+      Trimmer
+  Customize Isotropic Size: true
+  Customize Anisotropic Size: false
+    Values
+    Custom Size
+  Size Type: Absolute
+  Percentage of Base: 12.5
+  Absolute Size: 0.0625*${D}
+
+--- Motions ---
+  Motions
+  Motion Preview Time: 0.0 s
+  Motion Preview Parts: []
+    Stationary
+
+--- Reference Frames ---
+  Reference Frames
+    Lab Reference Frame
+
+--- Derived Parts ---
+  Derived Parts
+  Derived Parts: 10
+    grid_x1
+  Parts: [fluid]
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Origin: [1.0, -1.5, -1.5] m,m,m
+  Point 1: [1.0, 1.5, -1.5] m,m,m
+  Point 2: [1.0, -1.5, 1.5] m,m,m
+  Coordinate System: Laboratory
+  X Resolution: 12
+  Y Resolution: 12
+    grid_x2
+  Parts: [fluid]
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Origin: [2.0, -1.5, -1.5] m,m,m
+  Point 1: [2.0, 1.5, -1.5] m,m,m
+  Point 2: [2.0, -1.5, 1.5] m,m,m
+  Coordinate System: Laboratory
+  X Resolution: 12
+  Y Resolution: 12
+    grid_x4
+  Parts: [fluid]
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Origin: [4.0, -1.5, -1.5] m,m,m
+  Point 1: [4.0, 1.5, -1.5] m,m,m
+  Point 2: [4.0, -1.5, 1.5] m,m,m
+  Coordinate System: Laboratory
+  X Resolution: 12
+  Y Resolution: 12
+    grid_y0
+  Parts: [fluid]
+  Normal: [0.0, -1.0, 0.0] m,m,m
+  Origin: [-2.0, 0.0, -1.5] m,m,m
+  Point 1: [6.0, 0.0, -1.5] m,m,m
+  Point 2: [-2.0, 0.0, 1.5] m,m,m
+  Coordinate System: Laboratory
+  X Resolution: 32
+  Y Resolution: 12
+    Plane Section
+  Origin: [5.000000000000002, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [0.0, 1.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    section_x1
+  Origin: [1.0, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    section_x2
+  Origin: [2.0, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    section_x4
+  Origin: [4.0, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    section_y0
+  Origin: [0.0, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [0.0, 1.0, 0.0] m,m,m
+  Parts: [fluid]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    wake_reversed
+  Parts: [fluid]
+  Scalar Field: u_U
+  Range: [0.0, 0.0]
+  Mode: BELOW_TAG
+
+--- Monitors ---
+  Monitors
+  Monitors: 8
+  Monitors To Print: [Continuity, X-momentum, Y-momentum, Z-momentum, cd_monitor, cl_monitor]
+  Output Direction: Horizontal
+  Heading Print Frequency: 10
+    cd_monitor
+  Report: [cd]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    cl_monitor
+  Report: [cl]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    Iteration
+    Physical Time
+
+--- Reports ---
+  Reports
+  Reports: 13
+  Report NaN Option: REPORT_NAN
+    cd
+  Coordinate System: Laboratory
+  Direction: [1.0, 0.0, 0.0]
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.0 kg/m^3
+  Reference Velocity: 1.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cd_friction
+  Coordinate System: Laboratory
+  Direction: [1.0, 0.0, 0.0]
+  Force Option: Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.0 kg/m^3
+  Reference Velocity: 1.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cd_pressure
+  Coordinate System: Laboratory
+  Direction: [1.0, 0.0, 0.0]
+  Force Option: Pressure
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.0 kg/m^3
+  Reference Velocity: 1.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cl
+  Coordinate System: Laboratory
+  Direction: [0.0, 0.0, 1.0]
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.0 kg/m^3
+  Reference Velocity: 1.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cp_base
+  Field Function: cp
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Weighting Function: &lt;Select Function&gt;
+    cp_min
+  Field Function: cp
+  Collocated Field Functions: []
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+    cp_stagnation
+  Field Function: cp
+  Collocated Field Functions: []
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+    cy
+  Coordinate System: Laboratory
+  Direction: [0.0, 1.0, 0.0]
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.0 kg/m^3
+  Reference Velocity: 1.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: cube_back, fluid: cube_bottom, fluid: cube_front, fluid: cube_left, fluid: cube_right, fluid: cube_top]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    mass_imbalance
+  Definition: (${mdot_in}+${mdot_out})/${mdot_in}
+  Periodicity: Non-periodic
+  Delta Value: false
+    mdot_in
+  Units: kg/s
+  Parts: [fluid: inlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    mdot_out
+  Units: kg/s
+  Parts: [fluid: outlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    recirculation_length_D
+  Definition: ${x_reattach}-0.5
+  Periodicity: Non-periodic
+  Delta Value: false
+    x_reattach
+  Units: m
+  Field Function: Position[X]
+  Collocated Field Functions: []
+  Parts: [wake_reversed]
+  Representation: Volume Mesh
+  Smooth Values: false
+
+--- Solvers ---
+  Solvers
+  Cache Solver Settings: true
+    Steady
+      Stopping Criteria
+  Verbose: false
+    Partitioning
+  Solver Frozen: false
+  Partitioning Method: Per-Continuum
+    Segregated Flow
+  Implicit Scheme: SIMPLE
+  Freeze Flow: false
+  Reconstruction Frozen: false
+  Reconstruction Zeroed: false
+  Enable Enhanced Stability Treatment: false
+  Temporary Storage Retained: false
+  Pressure Corrections: Bad Cell Minimum Scaling: 0.8
+  Pressure Corrections: Acceptable Cell Volume Change: 0.001
+  Velocity Corrections: Maximum Unlimited Velocity: 20.0 m/s
+  Velocity Corrections: Acceptable Velocity Increase Rate [&lt;1]: 0.15
+  Continuity Initialization: false
+    Velocity
+  Under-Relaxation Factor: 0.7
+  Dynamic Local Under-Relaxation: false
+      Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+      AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: Flex Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: None
+  Scaling: Disabled
+      Flex Cycle
+  Restriction Tolerance: 0.9
+  Prolongation Tolerance: 0.5
+  Sweeps: 1
+    Pressure
+  Number of Non-Orthogonality Correctors: 0
+  Under-Relaxation Factor: 0.3
+  Pressure Reference Location: Automatic Selection
+    Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+    AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: V Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: Conjugate Gradient
+  Scaling: Auto
+    V Cycle
+  Pre-Sweeps: 1
+  Post-Sweeps: 1
+  Max Levels: 50
+
+--- Stopping Criteria ---
+  Stopping Criteria
+  Verbose: false
+    cd_asymptotic
+  Enabled: true
+  Monitor: cd_monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 1.0E-4
+  Number of Samples: 500
+  Normalized: true
+    cl_asymptotic
+  Enabled: true
+  Monitor: cl_monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 1.0E-4
+  Number of Samples: 500
+  Normalized: true
+    Maximum Steps
+  Enabled: true
+  Maximum Steps: 5000
+  Logical Rule: Or
+  Criterion Satisfied: false
+    Stop File
+  Enabled: true
+  Stop Inner Iterations: true
+  Path: ABORT
+  Logical Rule: Or
+  Criterion Satisfied: false
+
+============================================================
+SOLUTION
+============================================================
+Solution
+  Accumulated CPU Time over all processes (s): 3519.8199999999847
+  Elapsed Time (s): 3519.7849999999835
+  Iterations: 4708

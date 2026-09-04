@@ -1,0 +1,779 @@
+============================================================
+STAR-CCM+ SIMULATION REPORT (AI-TRIMMED)
+============================================================
+Summary Report: naca0012
+
+[Session Summary]
+  Date: 16.07.2026, 17:38:17
+  Simulation: C:\naca0012.sim
+  File size: 19 MB
+  Number of Partitions: 1
+  Number of Restored Partitions: unsupported in version used to save C:\naca0012.sim
+
+[Software Summary]
+  Version: BuildArch: win64 | BuildEnv: clang20.1vc14.2-r8 | PresentationVersion: 2602 | ReleaseDate: Tue Feb 3 16:02:22 UTC 2026 | ReleaseNumber: 21.02.007
+
+[Hardware Summary]
+  Hosts: Number Processes: 1 | Rank[0]: 
+
+============================================================
+SIMULATION PROPERTIES
+============================================================
+
+--- Continua ---
+  Continua
+  Continua: 1
+    Physics 1
+  Regions: [fluid]
+  Interfaces: []
+  Point Sets: []
+  Active: true
+  Motion Always Active: false
+    Models
+      All y+ Wall Treatment
+  Iterative Ustar: false
+      Constant Density
+      Gas
+        Air
+  Database Material: Air (Air) [Standard/Gases]
+        Material Properties
+        Density
+  Method: Constant
+          Constant
+  Value: 1.18 kg/m^3
+        Dynamic Viscosity
+  Method: Constant
+        Constant
+  Value: 1.77E-5 Pa-s
+      Gradients
+  Limit GradVar By Beta: true
+  Boundary Cell Eigenvalues Ratio Tolerance: 0.06
+  Limiter Method: Venkatakrishnan
+  Custom Accuracy Level Selector: 2.0
+  Maximum Reconstruction Coefficient: 1.0
+  Two Pass Velocity Gradient: false
+  Use TVB Gradient Limiting: false
+  Acceptable Field Variation (Factor): 0.05
+      K-Omega Turbulence
+      Reynolds-Averaged Navier-Stokes
+      Segregated Flow
+  Flux Update Dissipation Factor: 0.5
+  Positivity Rate Limit: 0.2
+  Unsteady Flux Dissipation Corrections: false
+  Limit Acoustic-CFL Option: Per-Model
+  Secondary Gradients: On
+  Convection: 2nd-order
+  Delta-V Dissipation: Off
+      Solution Interpolation
+  Per Part Mapping: false
+  Interpolation Method: Nearest neighbor
+  Legacy Method: false
+  Conservation Correction: Disable
+      SST (Menter) K-Omega
+  Curvature Correction Option: Off
+  Realizability Option: Durbin Scale Limiter
+  Compressibility Correction: false
+  Low Re Damping Modification: false
+  Convection: 2nd-order
+  Normal Stress Term: false
+  Tke Minimum: 1.0E-10
+  Sdr Minimum: 1.0E-10
+  Secondary Gradients: On
+  Kappa: 0.41
+  BetaStar: 0.09
+  Beta1: 0.075
+  Sigma_k1: 0.85
+  Sigma_w1: 0.5
+  Beta2: 0.0828
+  Sigma_k2: 1.0
+  Sigma_w2: 0.856
+  Constitutive Option: Linear
+  a1: 0.31
+        Realizability Coefficient
+  Realizability Coefficient: 0.6
+      Steady
+  Continuum Iteration: 2285
+      Turbulent
+      Two Dimensional
+      Wall Distance
+  Wall Distance Method: Implicit Tree
+    Reference Values
+      Minimum Allowable Wall Distance
+  Value: 1.0E-6 m
+      Maximum Allowable Absolute Pressure
+  Value: 1.0E8 Pa
+      Minimum Allowable Absolute Pressure
+  Value: 1000.0 Pa
+      Reference Pressure
+  Value: 101325.0 Pa
+    Initial Conditions
+    Pressure
+  Method: Constant
+      Constant
+  Value: 0.0 Pa
+    Turbulence Intensity
+  Method: Constant
+      Constant
+  Value: 0.01
+    Turbulence Specification
+  Method: Intensity + Viscosity Ratio
+    Turbulent Velocity Scale Specification
+  Method: Use Initial Velocity
+    Turbulent Viscosity Ratio
+  Method: Constant
+      Constant
+  Value: 10.0
+    Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+    Constant
+  Value: [15.0, 0.0] m/s
+
+--- Regions ---
+  Regions
+  Part Selection Priority: [fluid]
+  Regions: 1
+    fluid
+  Index: 0
+  Allow Per-Part Values: false
+  Physics Continuum: [Physics 1]
+  Parts: [fluid]
+  Type: Fluid Region
+  Topology: VOLUME
+    Boundaries
+  Part Surface Selection Priority: [fluid: airfoil, fluid: outlet, fluid: inlet]
+  Boundaries: 3
+      airfoil
+  Index: 2
+  Part Surfaces: [fluid.airfoil]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+          Wall Surface Specification
+  Method: Smooth
+        Physics Values
+        Blended Wall Function
+  E: 9.0
+  Kappa: 0.42
+      inlet
+  Index: 4
+  Part Surfaces: []
+  Type: Velocity Inlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+          Reference Frame Specification
+  Option: Lab Frame
+          Turbulence Specification
+  Method: Intensity + Viscosity Ratio
+          Velocity Specification
+  Method: Components
+        Physics Values
+        Turbulence Intensity
+  Method: Constant
+          Constant
+  Value: 0.01
+        Turbulent Viscosity Ratio
+  Method: Constant
+          Constant
+  Value: 10.0
+        Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+        Constant
+  Value: [15.0, 0.0] m/s
+      outlet
+  Index: 3
+  Part Surfaces: [fluid.freestream]
+  Type: Pressure Outlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+      Physics Conditions
+        Backflow Specification
+  Direction: Boundary-Normal
+  Pressure: Environmental
+  Scalars: Specified
+        Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+        Pressure Outlet Option
+  Option: None
+        Reference Frame Specification
+  Option: Lab Frame
+        Turbulence Specification
+  Method: Intensity + Viscosity Ratio
+      Physics Values
+      Pressure
+  Method: Constant
+        Constant
+  Value: 0.0 Pa
+      Turbulence Intensity
+  Method: Constant
+        Constant
+  Value: 0.01
+      Turbulent Viscosity Ratio
+  Method: Constant
+      Constant
+  Value: 10.0
+    Physics Conditions
+      Initial Condition Option
+  Option: Use Continuum Values
+      Mass Source Option
+  Mass Source Option: false
+      Momentum Source Option
+  Momentum Source Option: None
+      Motion Specification Option
+  Option: Motion Specification
+      Turbulence Source Option
+  Turbulence Source Option: None
+    Physics Values
+    Axis
+  Coordinate System: Laboratory
+  Origin: [0.0, 0.0] m
+  Direction: [0.0, 0.0, 1.0]
+    Motion Specification
+  Motion: Stationary
+  Reference Frame: Lab Reference Frame
+
+--- Representations ---
+  Representations
+    Latest Surface/Volume
+  Representation: Volume Mesh
+    Geometry
+      Latest Surface
+    Volume Mesh
+  Cells: 65885
+  Interior Faces: 177269
+  Vertices: 112209
+    Finite Volume Regions
+      fluid
+  Cells: 65885
+  Interior Faces: 177269
+  Vertices: 112209
+  Edges: 0
+      Finite Volume Boundaries
+      airfoil
+  Faces: 749
+      inlet
+  Faces: 38
+      outlet
+  Faces: 38
+    Cell Sets
+
+--- Automation ---
+  Automation
+    Parameters
+    Field Functions
+      User Field Function 1
+  Function Name: Split Boundary
+  Value Type: Scalar
+  Assembly Code: (if (&gt; $${Centroid}[0] 0.25) 1 0)
+  Definition: $${Centroid}[0] &gt; 0.25 ? 1 : 0
+  Ignore Boundary Values: false
+    Simulation Operations
+  Selected: []
+    Filters
+    Tags
+      Boundary (2D Mesh)
+  Objects: [fluid.airfoil, fluid.freestream]
+      Region (2D Mesh)
+  Objects: [fluid, fluid.z_min]
+    Stages
+  Active Stage: []
+    Update Events
+  Event Count: 0
+    Time Scales
+
+--- Operations ---
+  Operations
+    Badge for 2D Meshing
+  Input Parts: [fluid]
+    Automated Mesh (2D)
+  Per-Part Meshing: false
+  Mesher Execution Mode: Serial
+  Input Parts: [fluid]
+  Preserve Surface Perimeters: None
+  Verbose Output: false
+    Meshers
+      Polygonal Mesher
+  Perform Curvature Refinement: true
+  Perform Proximity Refinement: true
+  Perform Compatibility Refinement: false
+  Create Aligned Meshes: true
+  Minimum Face Quality: 0.05
+  Field Function based Refinement: []
+      Prism Layer Mesher
+  Stretching Function: Geometric Progression
+  Distribution Mode: Wall Thickness
+  Enhanced Quality Prisms: true
+    Default Controls
+      Base Size
+  Base Size: 1.0 m
+  Base Size: 1.0 m
+      CAD Projection
+  Project to CAD: true
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 0.5
+  Absolute Size: 0.005 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 0.05
+  Absolute Size: 5.0E-4 m
+      Surface Curvature
+  Enable Curvature Deviation Distance: false
+  # Pts/circle: 120.0
+  Max # Pts/circle: 200.0
+  Curvature Deviation Distance: 0.01 m
+      Surface Proximity
+  Search Floor: 0.0 m
+  # Points in gap: 2.0
+  Enable Search Ceiling: false
+  Search Ceiling: 1.0E10 m
+  Search Direction: INSIDE
+      Prism Layer Controls
+        Number of Prism Layers
+  Number of Prism Layers: 28
+        Prism Layer Near Wall Thickness
+  Prism Layer Near Wall Thickness: 2.3E-5 m
+        Concave Angle Limit
+  Concave Angle Limit: 0.0 deg
+        Convex Angle Limit
+  Convex Angle Limit: 360.0 deg
+        Gap Fill Percentage
+  Gap Fill Percentage: 25.0
+        Minimum Thickness Percentage
+  Minimum Thickness Percentage: 10.0
+        Boundary March Angle
+  Boundary March Angle: 50.0 deg
+        Prism Layer Total Thickness
+  Size Type: Absolute
+  Percentage of Base: 2.0
+  Absolute Size: 0.02 m
+      Surface Growth Rate
+  Surface Growth Rate: USER_SPECIFIED
+  User Specified Value: 1.15
+    Custom Controls
+    airfoil
+  Enable Control: true
+  Controls Display Mode: All
+  Part Surfaces: [fluid.airfoil]
+  Apply Only to Contacting Area: false
+      Controls
+        Target Surface Size
+  Target Surface Size: Custom
+        Minimum Surface Size
+  Minimum Surface Size: Custom
+        Surface Curvature
+  Curvature: Parent
+        Surface Proximity
+  Proximity: Parent
+        Edge Proximity
+  Proximity: Parent
+        Surface Growth Rate
+  Surface Growth Rate: Parent
+        Meshing Method
+  Meshing Method: Parent
+        Prism Layers
+  Prism Layers: Parent
+        Wake Refinement
+  Specify wake refinement options: false
+      Values
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 0.3
+  Absolute Size: 0.003 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 0.005
+  Absolute Size: 5.0E-5 m
+    freestream
+  Enable Control: true
+  Controls Display Mode: All
+  Part Surfaces: [fluid.freestream]
+  Apply Only to Contacting Area: false
+      Controls
+        Target Surface Size
+  Target Surface Size: Custom
+        Minimum Surface Size
+  Minimum Surface Size: Custom
+        Surface Curvature
+  Curvature: Parent
+        Surface Proximity
+  Proximity: Parent
+        Edge Proximity
+  Proximity: Parent
+        Surface Growth Rate
+  Surface Growth Rate: Parent
+        Meshing Method
+  Meshing Method: Parent
+        Prism Layers
+  Prism Layers: Parent
+        Wake Refinement
+  Specify wake refinement options: false
+      Values
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 500.0
+  Absolute Size: 5.0 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 500.0
+  Absolute Size: 5.0 m
+    wake
+  Enable Control: true
+  Controls Display Mode: All
+  Parts: [wake_refine]
+    Controls
+      Surface Remesher
+  Customize Size: true
+      Prism Layer Mesher
+  Customize Number of Layers: false
+  Customize Total Thickness: false
+  Customize Stretching: false
+  Customize Layer Reduction Percentage: false
+  Customize Limit Aspect Ratio: false
+  Customize Minimum Thickness Percentage: false
+  Customize Boundary March Angle: false
+  Customize Concave Angle Limit: false
+  Customize Convex Angle Limit: false
+  Customize Core Layer Aspect Ratio: false
+  Customize Gap Fill Percentage: false
+    Values
+    Custom Size
+  Size Type: Relative to base
+  Percentage of Base: 2.5
+  Absolute Size: 0.025 m
+
+--- Motions ---
+  Motions
+  Motion Preview Time: 0.0 s
+  Motion Preview Parts: []
+    Stationary
+
+--- Reference Frames ---
+  Reference Frames
+    Lab Reference Frame
+
+--- Derived Parts ---
+  Derived Parts
+  Derived Parts: 0
+
+--- Monitors ---
+  Monitors
+  Monitors: 9
+  Monitors To Print: [Continuity, X-momentum, Y-momentum, Tke, Sdr, cd Monitor, cl Monitor]
+  Output Direction: Horizontal
+  Heading Print Frequency: 10
+    cd Monitor
+  Report: [cd]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    cl Monitor
+  Report: [cl]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    Iteration
+    Physical Time
+
+--- Reports ---
+  Reports
+  Reports: 13
+  Report NaN Option: REPORT_NAN
+    cd
+  Coordinate System: Laboratory
+  Direction: [1.0, 0.0, 0.0]
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.18 kg/m^3
+  Reference Velocity: 15.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cd_friction
+  Coordinate System: Laboratory
+  Direction: [1.0, 0.0, 0.0]
+  Force Option: Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.18 kg/m^3
+  Reference Velocity: 15.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cd_pressure
+  Coordinate System: Laboratory
+  Direction: [1.0, 0.0, 0.0]
+  Force Option: Pressure
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.18 kg/m^3
+  Reference Velocity: 15.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cl
+  Coordinate System: Laboratory
+  Direction: [0.0, 1.0, 0.0]
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: 1.18 kg/m^3
+  Reference Velocity: 15.0 m/s
+  Reference Area: 1.0 m^2
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    cm_quarter_chord
+  Coordinate System: Laboratory
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Axis: [0.0, 0.0, 1.0]
+  Number of Bands: 0
+  Axis Origin: [0.2490487, -0.0217889, 0.0] m
+  Reference Density: 1.18 kg/m^3
+  Reference Velocity: 15.0 m/s
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Reference Area: 1.0 m^2
+  Account for Idealization: false
+  Reference Radius: 1.0 m
+    cp_min
+  Field Function: Pressure Coefficient
+  Collocated Field Functions: []
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+    cp_stagnation
+  Field Function: Pressure Coefficient
+  Collocated Field Functions: []
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+    lift_to_drag
+  Definition: ${clReport}/${cdReport}
+  Periodicity: Non-periodic
+  Delta Value: false
+    mass_imbalance_fraction
+  Definition: abs(${mdot_inReport}+${mdot_outReport})/abs(${mdot_inReport})
+  Periodicity: Non-periodic
+  Delta Value: false
+    mdot_in
+  Units: kg/s
+  Parts: [fluid: inlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    mdot_out
+  Units: kg/s
+  Parts: [fluid: outlet]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Account for Idealization: false
+    yplus_avg
+  Field Function: Wall Y+
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+  Weighting Function: &lt;Select Function&gt;
+    yplus_max
+  Field Function: Wall Y+
+  Collocated Field Functions: []
+  Parts: [fluid: airfoil]
+  Representation: Volume Mesh
+  Smooth Values: false
+
+--- Solvers ---
+  Solvers
+  Cache Solver Settings: true
+    Steady
+      Stopping Criteria
+  Verbose: false
+      Maximum Steps
+  Enabled: true
+  Maximum Steps: 3000
+  Logical Rule: Or
+  Criterion Satisfied: false
+    Partitioning
+  Solver Frozen: false
+  Partitioning Method: Per-Continuum
+    Wall Distance
+  Solver Frozen: false
+  Verbosity: 0
+  Minimum Tree Size Threshold: 500000
+    Segregated Flow
+  Implicit Scheme: SIMPLE
+  Freeze Flow: false
+  Reconstruction Frozen: false
+  Reconstruction Zeroed: false
+  Enable Enhanced Stability Treatment: false
+  Temporary Storage Retained: false
+  Pressure Corrections: Bad Cell Minimum Scaling: 0.8
+  Pressure Corrections: Acceptable Cell Volume Change: 0.001
+  Velocity Corrections: Maximum Unlimited Velocity: 20.0 m/s
+  Velocity Corrections: Acceptable Velocity Increase Rate [&lt;1]: 0.15
+  Continuity Initialization: false
+      Velocity
+  Under-Relaxation Factor: 0.7
+  Dynamic Local Under-Relaxation: false
+        Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+        AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: Flex Cycle
+  Group Size Control: Auto
+  Group Size: 2
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: None
+  Scaling: Disabled
+        Flex Cycle
+  Restriction Tolerance: 0.9
+  Prolongation Tolerance: 0.5
+  Sweeps: 1
+      Pressure
+  Number of Non-Orthogonality Correctors: 0
+  Under-Relaxation Factor: 0.3
+  Pressure Reference Location: Automatic Selection
+      Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+      AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: V Cycle
+  Group Size Control: Auto
+  Group Size: 2
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: Conjugate Gradient
+  Scaling: Auto
+      V Cycle
+  Pre-Sweeps: 1
+  Post-Sweeps: 1
+  Max Levels: 50
+    K-Omega Turbulence
+  Solver Frozen: false
+  Reconstruction Frozen: false
+  Reconstruction Zeroed: false
+  Temporary Storage Retained: false
+  Under-Relaxation Factor: 0.8
+  Boundary Layer Initialization: false
+      Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+      AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: Flex Cycle
+  Group Size Control: Auto
+  Group Size: 2
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: None
+  Scaling: Disabled
+      Flex Cycle
+  Restriction Tolerance: 0.9
+  Prolongation Tolerance: 0.5
+  Sweeps: 1
+    K-Omega Turbulent Viscosity
+  Solver Frozen: false
+  Under-Relaxation Factor: 1.0
+  Maximum Ratio: 100000.0
+
+--- Stopping Criteria ---
+  Stopping Criteria
+  Verbose: false
+    cd Monitor Criterion
+  Enabled: true
+  Monitor: cd Monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: true
+  |Max - Min|: 1.0E-5
+  Number of Samples: 500
+  Normalized: true
+    cl Monitor Criterion
+  Enabled: true
+  Monitor: cl Monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 1.0E-4
+  Number of Samples: 500
+  Normalized: true
+    Maximum Steps
+  Enabled: true
+  Maximum Steps: 5000
+  Logical Rule: Or
+  Criterion Satisfied: false
+    Stop File
+  Enabled: true
+  Stop Inner Iterations: true
+  Path: ABORT
+  Logical Rule: Or
+  Criterion Satisfied: false
+
+============================================================
+SOLUTION
+============================================================
+Solution
+  Accumulated CPU Time over all processes (s): 388.2969999999955
+  Elapsed Time (s): 388.28999999999445
+  Iterations: 2285

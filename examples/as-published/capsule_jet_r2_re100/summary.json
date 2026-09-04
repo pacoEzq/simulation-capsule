@@ -1,0 +1,121 @@
+{
+  "schema": "simulation-capsule-summary/1",
+  "case": "jet in crossflow, r=2, Re=100, laminar steady",
+  "alias": "capsule_jet_r2_re100",
+  "nondimensional": true,
+  "reference": {
+    "unit_flag": "dimensional",
+    "length_scale_D_m": 1.0,
+    "velocity_scale_U_m_s": 1.0,
+    "density_rho_kg_m3": 1.0,
+    "dynamic_viscosity_Pa_s": 0.01,
+    "reynolds_number": 100,
+    "note": "Air is a nondimensionalization device: rho=1, mu=1/Re, so Re = rho*U*D/mu = 100. Not a physical air test at 1 m/s. This is the only dimensional block; it is the disclosure surface for T10."
+  },
+  "parameters": {
+    "velocity_ratio_r": 2.0,
+    "importance_alpha": 1.0,
+    "note": "r is the bulk jet velocity over the crossflow speed. The parabolic exit profile peaks at 2r = 4 U on the axis; see the w_jet field function in setup.txt."
+  },
+  "geometry": {
+    "orifice_diameter_D": 1.0,
+    "orifice_center": [0.0, 0.0, 0.0],
+    "domain_x_D": [-5.0, 15.0],
+    "domain_y_D": [-5.0, 5.0],
+    "domain_z_D": [0.0, 8.0],
+    "crossflow_section_D2": 80.0,
+    "note": "Jet issues along +z from a floor orifice, crossflow along +x. Extents verified against boundary face counts in setup.txt (inlet 360, sides 720, top 800 at 0.5 D base size with two prism rows at the floor)."
+  },
+  "sampling": {
+    "field": "grad_vel_mag",
+    "alpha": 1.0,
+    "n_samples": 800,
+    "seed": 42,
+    "coverage_prenormalization": 0.815,
+    "note": "Law of the samples.csv draw: weight = cell volume x importance field ^ alpha, drawn without replacement. Reproducible from these four values plus the case; same law declared in the samples.csv header."
+  },
+  "planes": {
+    "grid_y0": {"held_constant": "y_D = 0", "spacing_x_D": 0.5, "spacing_z_D": 0.25, "nodes": [29, 25]},
+    "grid_x5": {"held_constant": "x_D = 5", "spacing_y_D": 0.25, "spacing_z_D": 0.25, "nodes": [25, 25]},
+    "grid_x10": {"held_constant": "x_D = 10", "spacing_y_D": 0.25, "spacing_z_D": 0.25, "nodes": [25, 25]},
+    "note": "Sampling grids of the planes/ layer, not the mesh. The trajectory plane is deliberately anisotropic: 0.5 D along the streamwise direction it spans (14 D) and 0.25 D in height. The two crossflow planes are isotropic at 0.25 D. Grid spacing is the tables' dial only; the PNG scenes are rendered at full mesh resolution."
+  },
+  "jet": {
+    "mass_flow": 1.578672,
+    "mass_flow_analytic": 1.570796,
+    "mass_flow_rel_error": 0.00501,
+    "area_jet_inlet": 0.780766,
+    "area_jet_inlet_analytic": 0.785398,
+    "area_jet_inlet_rel_error": -0.00590,
+    "note": "Analytic jet mass flow = (pi/4)*r for the parabolic profile over the unit-diameter orifice. Area deficit sits in the near-tangent rim; the residual mass-flow excess is midpoint quadrature over a concave profile. Both second order, in noise. See appendix D (hexagon saga)."
+  },
+  "mass_balance": {
+    "mdot_crossflow": 80.0,
+    "mdot_jet": 1.578672,
+    "mdot_net": -1.75e-09,
+    "mass_imbalance_fraction": 2.14e-11,
+    "note": "Signed net over all seven boundaries; closes to machine precision."
+  },
+  "mixing": {
+    "tracer_max_at_x5": 0.340699,
+    "tracer_max_at_x10": 0.265239,
+    "penetration_z_D_at_x5": 3.49,
+    "penetration_z_D_at_x10": 4.39,
+    "note": "Passive scalar in [0,1]. Penetration = tracer-weighted centroid height on each plane (robust to the bimodal core: peak sits on the CVP lobes, with a secondary centerline maximum). Argmax alternative: 3.0 at x5, 4.5 at x10. Grid-max tracer (0.334 at x5, 0.259 at x10) trails the full-mesh report by ~2% and ~2%, the coarse-grid signature. Penetration read from plane_x5/plane_x10 tables (no report; Position hook parked to T7)."
+  },
+  "shear_probe": {
+    "u_U_at_5_0_2p5": 1.029760,
+    "note": "Monitored asymptotic quantity, from the probe_shear report (vel_mag/U at [5,0,2.5]); one of the two stopping signals."
+  },
+  "candidates": {
+    "cvp_circulation_x10": {
+      "value": -2.114,
+      "symmetry_check_full_plane": -7.03e-05,
+      "symmetry_check_ratio": 0.000033,
+      "status": "kept",
+      "note": "Surface integral of vorticity_x on the y>=0 half of section_x10; nondimensional Gamma/(U*D), unit fluid. Full-plane check is 0.0033% of the half-plane magnitude (rule: < ~2%), so the plane resolution sustains the scalar. Sign is the x-vorticity of the y>=0 lobe; magnitude 2.11."
+    },
+    "bl_thickness_D_at_x_minus1": {
+      "value": null,
+      "status": "discarded",
+      "note": "u_U never reaches 0.99 on the line x=-1 (max 0.962 at z=3), and the profile is non-monotonic: peak 0.933 at z~0.90, dip 0.910 at z~1.60, rising again to 0.962 at z=3. At Re=100 the jet blockage decelerates the whole column ~1 D upstream, so there is no clean 99% edge. Discarded with cause; legitimate appendix-D material (the summary decides, even when the answer is no)."
+    }
+  },
+  "convergence": {
+    "iterations": 1187,
+    "stopped_by": ["probe_shear asymptotic", "tracer_max_at_x10 asymptotic"],
+    "max_steps": 5000,
+    "max_steps_reached": false,
+    "stop_file_triggered": false,
+    "residuals": {
+      "continuity": 4.754015e-08,
+      "x_momentum": 1.201778e-08,
+      "y_momentum": 5.688131e-08,
+      "z_momentum": 7.281700e-08,
+      "jet_tracer": 2.372372e-06
+    },
+    "note": "Two asymptotic criteria joined by AND, |Max-Min| < 1e-4 over 500 normalized samples. The jet_tracer residual plateau is numerical, not physical; it dropped an order of magnitude (1.9e-5 -> 2.4e-6) when the orifice mesh was refined, without touching the scalar."
+  },
+  "mesh": {
+    "cells": 436390,
+    "faces": 1318610,
+    "vertices": 459570,
+    "prism_layers": 2,
+    "prism_total_thickness_D": 0.1,
+    "base_size_D": 0.5,
+    "orifice_cell_size_D": 0.0625,
+    "trajectory_cell_size_D": 0.125,
+    "note": "Trim mesh, hex core. Cell sizes are the isotropic Custom Size of the two volumetric controls in setup.txt: vc_orifice on the orifice cylinder at 0.0625 D (= D/16) and vc_trajectory on the jet-path box at 0.125 D (= base/4). Prism total thickness lowered to 0.1 D (deliberate deviation from the 0.15 D guide). The orifice refinement and the thinner prism stack are the hexagon-saga cure."
+  },
+  "performance": {
+    "unit_flag": "dimensional",
+    "solver_cpu_time_s": 1077.774,
+    "solver_elapsed_time_s": 1077.753,
+    "partitions": 1
+  },
+  "provenance": {
+    "starccm_version": "2602 (21.02.007)",
+    "run_mode": "serial",
+    "note": "Values from the AI-trimmed setup report and the report dump of the accepted run."
+  }
+}

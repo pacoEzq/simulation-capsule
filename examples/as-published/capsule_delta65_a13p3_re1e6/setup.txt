@@ -1,0 +1,1475 @@
+============================================================
+STAR-CCM+ SIMULATION REPORT (AI-TRIMMED)
+============================================================
+Summary Report: delta65_a13p3_re1e6
+
+[Session Summary]
+  Date: Aug 4, 2026, 11:35:48 AM
+  Simulation: <path>/delta65_a13p3_re1e6.sim
+  File size: 1.8e+03 MB
+  Number of Partitions: 1
+  Number of Restored Partitions: 1
+
+[Software Summary]
+  Version: BuildArch: linux-x86_64-2.28 | BuildEnv: clang20.1 | PresentationVersion: 2602.0001 | ReleaseDate: Fri Mar 13 16:16:45 UTC 2026 | ReleaseNumber: 21.02.008
+
+[Hardware Summary]
+  Hosts: Number Processes: 1 | Rank[0]: <host>
+
+============================================================
+SIMULATION PROPERTIES
+============================================================
+
+--- Continua ---
+  Continua
+  Continua: 1
+    Physics 1
+  Regions: [fluid_domain]
+  Interfaces: []
+  Point Sets: []
+  Active: true
+  Motion Always Active: false
+    Models
+      All y+ Wall Treatment
+  Iterative Ustar: false
+      Constant Density
+      Gas
+        Air
+  Database Material: Air (Air) [Standard/Gases]
+        Material Properties
+        Density
+  Method: Constant
+          Constant
+  Value: $rho_ref
+        Dynamic Viscosity
+  Method: Constant
+        Constant
+  Value: $mu_ref
+      Gradients
+  Boundary Cell Eigenvalues Ratio Tolerance: 0.06
+  Limit GradVar By Beta: true
+  Limiter Method: Venkatakrishnan
+  Custom Accuracy Level Selector: 2.0
+  Maximum Reconstruction Coefficient: 1.0
+  Two Pass Velocity Gradient: false
+  Use TVB Gradient Limiting: false
+  Acceptable Field Variation (Factor): 0.05
+      K-Omega Turbulence
+      Reynolds-Averaged Navier-Stokes
+      Segregated Flow
+  Flux Update Dissipation Factor: 0.5
+  Positivity Rate Limit: 0.2
+  Unsteady Flux Dissipation Corrections: false
+  Limit Acoustic-CFL Option: Per-Model
+  Secondary Gradients: On
+  Convection: 2nd-order
+  Delta-V Dissipation: Off
+      Solution Interpolation
+  Per Part Mapping: false
+  Interpolation Method: Nearest neighbor
+  Legacy Method: false
+  Conservation Correction: Disable
+      SST (Menter) K-Omega
+  Curvature Correction Option: Off
+  Realizability Option: Durbin Scale Limiter
+  Compressibility Correction: false
+  Low Re Damping Modification: false
+  Convection: 2nd-order
+  Normal Stress Term: false
+  Tke Minimum: 1.0E-10
+  Sdr Minimum: 1.0E-10
+  Secondary Gradients: On
+  Kappa: 0.41
+  BetaStar: 0.09
+  Beta1: 0.075
+  Sigma_k1: 0.85
+  Sigma_w1: 0.5
+  Beta2: 0.0828
+  Sigma_k2: 1.0
+  Sigma_w2: 0.856
+  Constitutive Option: Linear
+  a1: 0.31
+        Realizability Coefficient
+  Realizability Coefficient: 0.6
+      Steady
+  Continuum Iteration: 2696
+      Three Dimensional
+      Turbulent
+      Wall Distance
+  Wall Distance Method: Implicit Tree
+    Reference Values
+      Minimum Allowable Wall Distance
+  Value: 1.0E-6 m
+      Maximum Allowable Absolute Pressure
+  Value: 1.0E8 Pa
+      Minimum Allowable Absolute Pressure
+  Value: 1000.0 Pa
+      Reference Pressure
+  Value: 101325.0 Pa
+    Initial Conditions
+    Pressure
+  Method: Constant
+      Constant
+  Value: 0.0 Pa
+    Turbulence Intensity
+  Method: Constant
+      Constant
+  Value: 0.01
+    Turbulence Specification
+  Method: Intensity + Viscosity Ratio
+    Turbulent Velocity Scale Specification
+  Method: Use Initial Velocity
+    Turbulent Viscosity Ratio
+  Method: Constant
+      Constant
+  Value: 10.0
+    Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+    Constant
+  Value: [${u_inf}*cos($alpha_deg), 0, ${u_inf}*sin($alpha_deg)]
+
+--- Regions ---
+  Regions
+  Part Selection Priority: [fluid_domain]
+  Regions: 1
+    fluid_domain
+  Index: 2
+  Allow Per-Part Values: false
+  Physics Continuum: [Physics 1]
+  Parts: [fluid_domain]
+  Type: Fluid Region
+  Topology: VOLUME
+    Boundaries
+  Part Surface Selection Priority: [fluid_domain: wing_te, fluid_domain: freestream_inlet, fluid_domain: pressure_outlet, fluid_domain: wing_pressure, fluid_domain: wing_suction]
+  Boundaries: 5
+      freestream_inlet
+  Index: 12
+  Part Surfaces: [fluid_domain.farfield_block.freestream_inlet]
+  Type: Velocity Inlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+          Reference Frame Specification
+  Option: Lab Frame
+          Turbulence Specification
+  Method: Intensity + Viscosity Ratio
+          Velocity Specification
+  Method: Components
+        Physics Values
+        Turbulence Intensity
+  Method: Constant
+          Constant
+  Value: 0.01
+        Turbulent Viscosity Ratio
+  Method: Constant
+          Constant
+  Value: 10.0
+        Velocity
+  Method: Constant
+  Coordinate System: Laboratory
+        Constant
+  Value: [${u_inf}*cos($alpha_deg), 0, ${u_inf}*sin($alpha_deg)]
+      pressure_outlet
+  Index: 13
+  Part Surfaces: [fluid_domain.farfield_block.pressure_outlet]
+  Type: Pressure Outlet
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Backflow Specification
+  Direction: Boundary-Normal
+  Pressure: Environmental
+  Scalars: Specified
+          Flow Boundary Diffusion
+  Flow Boundary Diffusion: On
+          Pressure Outlet Option
+  Option: None
+          Reference Frame Specification
+  Option: Lab Frame
+          Turbulence Specification
+  Method: Intensity + Viscosity Ratio
+        Physics Values
+        Pressure
+  Method: Constant
+          Constant
+  Value: 0.0 Pa
+        Turbulence Intensity
+  Method: Constant
+          Constant
+  Value: 0.01
+        Turbulent Viscosity Ratio
+  Method: Constant
+        Constant
+  Value: 10.0
+      wing_pressure
+  Index: 14
+  Part Surfaces: [fluid_domain.wing_solid.wing_pressure]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+          Wall Surface Specification
+  Method: Smooth
+        Physics Values
+        Blended Wall Function
+  E: 9.0
+  Kappa: 0.42
+      wing_suction
+  Index: 15
+  Part Surfaces: [fluid_domain.wing_solid.wing_suction]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+        Physics Conditions
+          Reference Frame Specification
+  Option: Region Reference Frame
+          Shear Stress Specification
+  Method: No-Slip
+          Tangential Velocity Specification
+  Method: Fixed
+          Wall Surface Specification
+  Method: Smooth
+        Physics Values
+        Blended Wall Function
+  E: 9.0
+  Kappa: 0.42
+      wing_te
+  Index: 11
+  Part Surfaces: [fluid_domain.wing_solid.wing_te]
+  Type: Wall
+  Allow Per-Surface Values: false
+  Topology: SURFACE
+      Physics Conditions
+        Reference Frame Specification
+  Option: Region Reference Frame
+        Shear Stress Specification
+  Method: No-Slip
+        Tangential Velocity Specification
+  Method: Fixed
+        Wall Surface Specification
+  Method: Smooth
+      Physics Values
+      Blended Wall Function
+  E: 9.0
+  Kappa: 0.42
+    Physics Conditions
+      Initial Condition Option
+  Option: Use Continuum Values
+      Mass Source Option
+  Mass Source Option: false
+      Momentum Source Option
+  Momentum Source Option: None
+      Motion Specification Option
+  Option: Motion Specification
+      Turbulence Source Option
+  Turbulence Source Option: None
+    Physics Values
+    Axis
+  Coordinate System: Laboratory
+  Origin: [0.0, 0.0, 0.0] m
+  Direction: [0.0, 0.0, 1.0]
+    Motion Specification
+  Motion: Stationary
+  Reference Frame: Lab Reference Frame
+
+--- Representations ---
+  Representations
+    Latest Surface/Volume
+  Representation: Volume Mesh
+    Geometry
+      mesh_production.Remesh
+      Input Surface
+      Latest Surface
+    Volume Mesh
+  Cells: 6491106
+  Interior Faces: 19396409
+  Vertices: 6511158
+    Finite Volume Regions
+      fluid_domain
+  Cells: 6491106
+  Interior Faces: 19396409
+  Vertices: 6511158
+  Edges: 0
+      Finite Volume Boundaries
+      freestream_inlet
+  Faces: 1316
+      pressure_outlet
+  Faces: 196
+      wing_pressure
+  Faces: 35130
+      wing_suction
+  Faces: 44543
+      wing_te
+  Faces: 25522
+    Cell Sets
+
+--- Automation ---
+  Automation
+    Parameters
+      alpha_deg
+  Type: SCALAR
+  Value: 13.3 deg
+      aspect_ratio
+  Type: SCALAR
+  Value: 1.865
+      chord_root
+  Type: SCALAR
+  Value: 1.0 m
+      expected_sign_port
+  Type: SCALAR
+  Value: -1.0
+      expected_sign_starboard
+  Type: SCALAR
+  Value: 1.0
+      mach_number
+  Type: SCALAR
+  Value: 0.0
+      mu_ref
+  Type: SCALAR
+  Value: 1.0E-6 Pa-s
+      q_floor
+  Type: SCALAR
+  Value: 100.0 /s^2
+      q_inf
+  Type: SCALAR
+  Value: 0.5 Pa
+      re_cr
+  Type: SCALAR
+  Value: 1000000.0
+      rho_ref
+  Type: SCALAR
+  Value: 1.0 kg/m^3
+      s_ref
+  Type: SCALAR
+  Value: 0.4663 m^2
+      span_b
+  Type: SCALAR
+  Value: 0.9326 m
+      sweep_le_deg
+  Type: SCALAR
+  Value: 65.0 deg
+      u_inf
+  Type: SCALAR
+  Value: 1.0 m/s
+      wall_offset
+  Type: SCALAR
+  Value: 0.02 m
+    Field Functions
+      box_flag_x06
+  Function Name: box_flag_x06
+  Value Type: Scalar
+  Assembly Code: (if (&amp;&amp; (&amp;&amp; (&amp;&amp; (&gt;= $${Position}[0] 0.575) (&lt;= $${Position}[0] 0.625)) (&amp;&amp; (&gt;= (abs $${Position}[1]) 0.05) (&lt;= (abs $${Position}[1]) 0.45))) (&amp;&amp; (&gt;= $${Position}[2] 0.02) (&lt;= $${Position}[2] 0.25))) 1 0)
+  Definition: (($$Position[0] &gt;= 0.575 &amp;&amp; $$Position[0] &lt;= 0.625) &amp;&amp; (abs($$Position[1]) &gt;= 0.05 &amp;&amp; abs($$Position[1]) &lt;= 0.45) &amp;&amp; ($$Position[2] &gt;= 0.02 &amp;&amp; $$Position[2] &lt;= 0.25)) ? 1 : 0
+  Ignore Boundary Values: false
+      cell_h_est
+  Function Name: cell_h_est
+  Value Type: Scalar
+  Assembly Code: (pow ${Volume} 0.333333)
+  Definition: pow(${Volume},1/3)
+  Ignore Boundary Values: false
+      cone_flag_port
+  Function Name: cone_flag_port
+  Value Type: Scalar
+  Assembly Code: (if (&amp;&amp; (&amp;&amp; (&gt;= ${cone_t_port} 0) (&lt;= ${cone_t_port} 1)) (&lt;= (- (+ (+ (pow $${Position}[0] 2) (pow $${Position}[1] 2)) (pow $${Position}[2] 2)) (* (pow ${cone_t_port} 2) 2.14189)) (pow ${cone_r_port} 2))) 1 0)
+  Ignore Boundary Values: false
+      cone_flag_starboard
+  Function Name: cone_flag_starboard
+  Value Type: Scalar
+  Assembly Code: (if (&amp;&amp; (&amp;&amp; (&gt;= ${cone_t_starboard} 0) (&lt;= ${cone_t_starboard} 1)) (&lt;= (- (+ (+ (pow $${Position}[0] 2) (pow $${Position}[1] 2)) (pow $${Position}[2] 2)) (* (pow ${cone_t_starboard} 2) 2.14189)) (pow ${cone_r_starboard} 2))) 1 0)
+  Ignore Boundary Values: false
+      cone_r_port
+  Function Name: cone_r_port
+  Value Type: Scalar
+  Assembly Code: (+ 0.03 (* 0.19 ${cone_t_port}))
+  Definition: 0.03 + 0.19*$cone_t_port
+  Ignore Boundary Values: false
+      cone_r_starboard
+  Function Name: cone_r_starboard
+  Value Type: Scalar
+  Assembly Code: (+ 0.03 (* 0.19 ${cone_t_starboard}))
+  Definition: 0.03 + 0.19*${cone_t_starboard}
+  Ignore Boundary Values: false
+      cone_t_port
+  Function Name: cone_t_port
+  Value Type: Scalar
+  Assembly Code: (/ (+ (- (* 1.4 $${Position}[0]) (* 0.392 $${Position}[1])) (* 0.168 $${Position}[2])) 2.14189)
+  Definition: (1.4*$$Position[0] - 0.392*$$Position[1] + 0.168*$$Position[2]) / 2.141888
+  Ignore Boundary Values: false
+      cone_t_starboard
+  Function Name: cone_t_starboard
+  Value Type: Scalar
+  Assembly Code: (/ (+ (+ (* 1.4 $${Position}[0]) (* 0.392 $${Position}[1])) (* 0.168 $${Position}[2])) 2.14189)
+  Definition: (1.4*$$Position[0] + 0.392*$$Position[1] + 0.168*$$Position[2]) / 2.141888
+  Ignore Boundary Values: false
+      dist_to_core_x06
+  Function Name: dist_to_core_x06
+  Value Type: Scalar
+  Assembly Code: (sqrt (+ (+ (pow (- $${Position}[0] 0.6) 2) (pow (- $${Position}[1] 0.18153) 2)) (pow (- $${Position}[2] 0.049086) 2)))
+  Definition: sqrt(pow($${Position}[0]-0.6,2)+pow($${Position}[1]-0.181530,2)+pow($${Position}[2]-0.049086,2))
+  Ignore Boundary Values: false
+      dist_to_core_x09
+  Function Name: dist_to_core_x09
+  Value Type: Scalar
+  Assembly Code: (sqrt (+ (+ (pow (- $${Position}[0] 0.9) 2) (pow (- $${Position}[1] 0.272295) 2)) (pow (- $${Position}[2] 0.073629) 2)))
+  Definition: sqrt(pow($${Position}[0]-0.9,2)+pow($${Position}[1]-0.272295,2)+pow($${Position}[2]-0.073629,2))
+  Ignore Boundary Values: false
+      helicity_norm
+  Function Name: helicity_norm
+  Value Type: Scalar
+  Assembly Code: (/ (dot $${Velocity} $${VorticityVector}) (+ (* (mag $${Velocity}) (mag $${VorticityVector})) 1e-12))
+  Definition: dot($$Velocity,$${VorticityVector})/(mag($$Velocity)*mag($$VorticityVector) + 1e-12)
+  Ignore Boundary Values: false
+      omega_x
+  Function Name: omega_x
+  Value Type: Scalar
+  Assembly Code: $${VorticityVector}[0]
+  Definition: $${VorticityVector}[0]
+  Ignore Boundary Values: false
+      unity
+  Function Name: unity
+  Value Type: Scalar
+  Assembly Code: 1
+  Definition: 1.0
+  Ignore Boundary Values: false
+    Simulation Operations
+  Selected: []
+    Filters
+    Tags
+    Stages
+  Active Stage: []
+    Update Events
+  Event Count: 0
+    Time Scales
+
+--- Operations ---
+  Operations
+    subtract_wing_from_farfield
+  Link Output Part Name: false
+  Input Parts: [farfield_block, wing_solid]
+  Target Parts: [farfield_block]
+  Perform CAD Boolean: false
+  Output Parts: Manager
+      Remesh Intersection Curve
+  Remesh Intersection Curve: false
+    mesh_production
+  Per-Part Meshing: false
+  Mesher Execution Mode: Serial
+  Input Parts: [fluid_domain]
+  Perform Local Meshing: false
+  Preserve Surface Perimeters: None
+  Verbose Output: false
+    Meshers
+      Surface Remesher
+  Meshing Method: Triangle
+  Perform Curvature Refinement: true
+  Perform Proximity Refinement: false
+  Perform Compatibility Refinement: false
+  Create Aligned Meshes: true
+  Minimum Face Quality: 0.05
+  Field Function based Refinement: []
+      Trimmed Cell Mesher
+  Core Cell Type: Hexahedra
+  Field Function based Refinement: []
+  Coordinate System: Laboratory
+  Perform Mesh Alignment: true
+  Size Dependent Growth Rates: All cells
+  Run Post Mesh Optimizer: true
+      Prism Layer Mesher
+  Stretching Function: Geometric Progression
+  Distribution Mode: Stretch Factor
+  Enhanced Quality Prisms: true
+    Default Controls
+      Base Size
+  Base Size: 0.08 m
+  Base Size: 0.08 m
+      CAD Projection
+  Project to CAD: true
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 100.0
+  Absolute Size: 0.08 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 12.5
+  Absolute Size: 0.01 m
+      Surface Curvature
+  Enable Curvature Deviation Distance: false
+  # Pts/circle: 36.0
+  Max # Pts/circle: 200.0
+  Curvature Deviation Distance: 0.01 m
+      Prism Layer Controls
+        Number of Prism Layers
+  Number of Prism Layers: 24
+        Prism Layer Stretching
+  Prism Layer Stretching: 1.25
+        Concave Angle Limit
+  Concave Angle Limit: 0.0 deg
+        Convex Angle Limit
+  Convex Angle Limit: 360.0 deg
+        Gap Fill Percentage
+  Gap Fill Percentage: 25.0
+        Minimum Thickness Percentage
+  Minimum Thickness Percentage: 10.0
+        Boundary March Angle
+  Boundary March Angle: 50.0 deg
+        Prism Layer Total Thickness
+  Size Type: Absolute
+  Percentage of Base: 25.0
+  Absolute Size: 0.02*${chord_root}
+      Surface Growth Rate
+  Surface Growth Rate: DEFAULT
+  User Specified Value: 1.3
+      Maximum Core/Prism Transition Ratio
+  Limit Cell Size by Prism Layer Thickness: false
+      Volume Growth Rate
+  Default Growth Rate: Medium
+  Surface Growth Rate: Disable
+      Maximum Cell Size
+  Size Type: Relative to base
+  Percentage of Base: 1600.0
+  Absolute Size: 1.28 m
+      Mesh Alignment Location
+  Location: [0.0, 0.0, 0.0] m
+      Post Mesh Optimization
+  Optimize Boundary Vertices: true
+  Optimize Cell Topology: true
+    Custom Controls
+    curve_control_wing_edges
+  Enable Control: true
+  Controls Display Mode: All
+  Part Curves: [fluid_domain.wing_solid.apice, fluid_domain.wing_solid.arista1_suction, fluid_domain.wing_solid.arista2_suction]
+      Controls
+        Target Surface Size
+  Target Surface Size: Custom
+        Minimum Surface Size
+  Minimum Surface Size: Custom
+        Anisotropic Surface Size
+  Specify anisotropic surface size settings: false
+  Specify anisotropic mesh distribution between close Part Curves: false
+        Remesher Wake Refinement
+  Specify wake refinement options: false
+        Trimmer Wake Refinement
+  Specify Trimmer Wake Refinement Options: false
+      Values
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 3.125
+  Absolute Size: 0.0025 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 1.5625
+  Absolute Size: 0.00125 m
+    surface_control_farfield_noprism
+  Enable Control: true
+  Controls Display Mode: All
+  Part Surfaces: [fluid_domain.farfield_block.freestream_inlet, fluid_domain.farfield_block.pressure_outlet]
+  Apply Only to Contacting Area: false
+      Controls
+        Target Surface Size
+  Target Surface Size: Custom
+        Minimum Surface Size
+  Minimum Surface Size: Custom
+        Surface Curvature
+  Curvature: Parent
+        Surface Proximity
+  Proximity: Parent
+        Edge Proximity
+  Proximity: Parent
+        Surface Growth Rate
+  Surface Growth Rate: Parent
+        Surface Remeshing
+  Surface Remeshing: Enable
+        Meshing Method
+  Meshing Method: Parent
+        Prism Layers
+  Prism Layers: Disable
+        Trimmer Surface Growth Rate
+  Trimmer Surface Growth Rate: Parent
+        Remesher Wake Refinement
+  Specify wake refinement options: false
+        Trimmer Wake Refinement
+  Specify Trimmer Wake Refinement Options: false
+      Values
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 1600.0
+  Absolute Size: 1.28 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 1600.0
+  Absolute Size: 1.28 m
+    surface_control_wing_faces
+  Enable Control: true
+  Controls Display Mode: All
+  Part Surfaces: [fluid_domain.wing_solid.wing_suction, fluid_domain.wing_solid.wing_pressure]
+  Apply Only to Contacting Area: false
+      Controls
+        Target Surface Size
+  Target Surface Size: Custom
+        Minimum Surface Size
+  Minimum Surface Size: Custom
+        Surface Curvature
+  Curvature: Parent
+        Surface Proximity
+  Proximity: Parent
+        Edge Proximity
+  Proximity: Parent
+        Surface Growth Rate
+  Surface Growth Rate: Parent
+        Surface Remeshing
+  Surface Remeshing: Parent
+        Meshing Method
+  Meshing Method: Parent
+        Prism Layers
+  Prism Layers: Parent
+        Trimmer Surface Growth Rate
+  Trimmer Surface Growth Rate: Parent
+        Remesher Wake Refinement
+  Specify wake refinement options: false
+        Trimmer Wake Refinement
+  Specify Trimmer Wake Refinement Options: false
+      Values
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 6.25
+  Absolute Size: 0.005 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 3.125
+  Absolute Size: 0.0025 m
+    surface_control_wing_te
+  Enable Control: true
+  Controls Display Mode: All
+  Part Surfaces: [fluid_domain.wing_solid.wing_te]
+  Apply Only to Contacting Area: false
+      Controls
+        Target Surface Size
+  Target Surface Size: Custom
+        Minimum Surface Size
+  Minimum Surface Size: Custom
+        Surface Curvature
+  Curvature: Parent
+        Surface Proximity
+  Proximity: Parent
+        Edge Proximity
+  Proximity: Parent
+        Surface Growth Rate
+  Surface Growth Rate: Parent
+        Surface Remeshing
+  Surface Remeshing: Parent
+        Meshing Method
+  Meshing Method: Parent
+        Prism Layers
+  Prism Layers: Custom
+          Customize
+  Customize Number of Layers: true
+  Customize Total Thickness: true
+  Customize Distribution: false
+  Override Boundary Defaults: false
+  Customize Layer Reduction Percentage: false
+  Customize Limit Aspect Ratio: false
+  Customize Minimum Thickness Percentage: false
+  Customize Boundary March Angle: false
+  Customize Concave Angle Limit: false
+  Customize Convex Angle Limit: false
+  Customize Core Layer Aspect Ratio: false
+  Customize Gap Fill Percentage: false
+        Trimmer Surface Growth Rate
+  Trimmer Surface Growth Rate: Parent
+        Remesher Wake Refinement
+  Specify wake refinement options: false
+        Trimmer Wake Refinement
+  Specify Trimmer Wake Refinement Options: false
+      Values
+      Target Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 3.125
+  Absolute Size: 0.0025 m
+      Custom Prism Values
+        Number of Prism Layers
+  Number of Prism Layers: 14
+        Prism Layer Total Thickness
+  Size Type: Absolute
+  Percentage of Base: 2.57875
+  Absolute Size: 0.002063 m
+      Minimum Surface Size
+  Size Type: Relative to base
+  Percentage of Base: 3.125
+  Absolute Size: 0.0025 m
+    volume_control_refinement_cones
+  Enable Control: true
+  Controls Display Mode: All
+  Parts: [refinement_cone_port, refinement_cone_starboard]
+      Controls
+        Surface Remesher
+  Customize Size: false
+        Prism Layer Mesher
+  Customize Number of Layers: false
+  Customize Total Thickness: false
+  Customize Stretching: false
+  Customize Layer Reduction Percentage: false
+  Customize Limit Aspect Ratio: false
+  Customize Minimum Thickness Percentage: false
+  Customize Boundary March Angle: false
+  Customize Concave Angle Limit: false
+  Customize Convex Angle Limit: false
+  Customize Core Layer Aspect Ratio: false
+  Customize Gap Fill Percentage: false
+        Trimmer
+  Customize Isotropic Size: true
+  Customize Anisotropic Size: false
+      Values
+      Custom Size
+  Size Type: Relative to base
+  Percentage of Base: 6.25
+  Absolute Size: 0.005 m
+    volume_control_vortex_frustum
+  Enable Control: true
+  Controls Display Mode: All
+  Parts: [refinement_frustum_port, refinement_frustum_starboard]
+    Controls
+      Surface Remesher
+  Customize Size: false
+      Prism Layer Mesher
+  Customize Number of Layers: false
+  Customize Total Thickness: false
+  Customize Stretching: false
+  Customize Layer Reduction Percentage: false
+  Customize Limit Aspect Ratio: false
+  Customize Minimum Thickness Percentage: false
+  Customize Boundary March Angle: false
+  Customize Concave Angle Limit: false
+  Customize Convex Angle Limit: false
+  Customize Core Layer Aspect Ratio: false
+  Customize Gap Fill Percentage: false
+      Trimmer
+  Customize Isotropic Size: true
+  Customize Anisotropic Size: false
+    Values
+    Custom Size
+  Size Type: Relative to base
+  Percentage of Base: 3.125
+  Absolute Size: 0.0025 m
+
+--- Motions ---
+  Motions
+  Motion Preview Time: 0.0 s
+  Motion Preview Parts: []
+    Stationary
+
+--- Reference Frames ---
+  Reference Frames
+    Lab Reference Frame
+
+--- Derived Parts ---
+  Derived Parts
+  Derived Parts: 16
+    iso_q_floor
+  Parts: [fluid_domain]
+  Scalar Field: Q-Criterion
+  Mode: ISOVALUE_SINGLE
+      Value
+  Isovalue: $q_floor
+    iso_vel
+  Parts: [fluid_domain]
+  Scalar Field: Velocity: Magnitude
+  Mode: ISOVALUE_SINGLE
+      Value
+  Isovalue: 1.189 m/s
+    plane_x03
+  Origin: [0.3, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid_domain, fluid_domain: freestream_inlet, fluid_domain: pressure_outlet, fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    plane_x06
+  Origin: [0.6, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid_domain, fluid_domain: freestream_inlet, fluid_domain: pressure_outlet, fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    plane_x09
+  Origin: [0.9, 0.0, 0.0] m,m,m
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid_domain, fluid_domain: freestream_inlet, fluid_domain: pressure_outlet, fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    point_core_port
+  Parts: [fluid_domain]
+  Point: [0.6, -0.168, 0.072] m,m,m
+  Coordinate System: Laboratory
+  Follow Motion: false
+  Highlight Input Coordinates: false
+    point_core_starboard
+  Parts: [fluid_domain]
+  Point: [0.6, 0.168, 0.072] m,m,m
+  Coordinate System: Laboratory
+  Follow Motion: false
+  Highlight Input Coordinates: false
+    probe_core_x06
+  Parts: [fluid_domain]
+  Scalar Field: dist_to_core_x06
+  Range: [0.0075, 1.0] m
+  Mode: BELOW_TAG
+    probe_core_x09
+  Parts: [fluid_domain]
+  Scalar Field: dist_to_core_x09
+  Range: [0.0075, 1.0] m
+  Mode: BELOW_TAG
+    section_x06
+  Origin: [$chord_root*0.6, 0, 0]
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid_domain]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    section_x06_wing_suction
+  Origin: [$chord_root*0.6, 0, 0]
+  Coordinate System: Laboratory
+  Normal: [1.0, 0.0, 0.0] m,m,m
+  Parts: [fluid_domain: wing_suction]
+  Section Mode: SINGLE
+  Displayed Index: -1
+      Single Section
+  Offset: 0.0 m
+    threshold_box_flag_x06
+  Parts: [fluid_domain]
+  Scalar Field: box_flag_x06
+  Range: [0.5, 1.0E12]
+  Mode: BETWEEN_TAG
+    threshold_box_x06
+  Parts: [section_x06]
+  Scalar Field: box_flag_x06
+  Range: [1.0, 1.0]
+  Mode: BETWEEN_TAG
+    threshold_box_x06_port
+  Parts: [threshold_box_x06]
+  Scalar Field: Position[Y]
+  Range: [0.0, 1.0] m
+  Mode: BELOW_TAG
+    threshold_box_x06_starboard
+  Parts: [threshold_box_x06]
+  Scalar Field: Position[Y]
+  Range: [-1.0, 0.0] m
+  Mode: ABOVE_TAG
+    threshold_q_floor
+  Parts: [fluid_domain]
+  Scalar Field: Q-Criterion
+  Range: [0.0, 100.0] /s^2
+  Mode: ABOVE_TAG
+
+--- Monitors ---
+  Monitors
+  Monitors: 24
+  Monitors To Print: [Continuity, X-momentum, Y-momentum, Z-momentum, Tke, Sdr, mdot_balance Monitor, u_ax_core_starboard Monitor, u_ax_core_port Monitor, c_l Monitor, c_d Monitor, c_my_apex Monitor, cp_min_x06 Monitor, gamma_starboard_x06 Monitor, gamma_port_x06 Monitor, cp_max_wing Monitor, cp_min_wing Monitor, y_plus_max Monitor, gamma_full_x06 Monitor, area_starboard_x06 Monitor, area_port_x06 Monitor, x_cp Monitor]
+  Output Direction: Horizontal
+  Heading Print Frequency: 10
+    area_port_x06 Monitor
+  Report: [area_port_x06]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    area_starboard_x06 Monitor
+  Report: [area_starboard_x06]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    c_d Monitor
+  Report: [c_d]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    c_l Monitor
+  Report: [c_l]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    c_my_apex Monitor
+  Report: [c_my_apex]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    cp_max_wing Monitor
+  Report: [cp_max_wing]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    cp_min_wing Monitor
+  Report: [cp_min_wing]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    cp_min_x06 Monitor
+  Report: [cp_min_x06]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    gamma_full_x06 Monitor
+  Report: [gamma_full_x06]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    gamma_port_x06 Monitor
+  Report: [gamma_port_x06]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    gamma_starboard_x06 Monitor
+  Report: [gamma_starboard_x06]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    Iteration
+    mdot_balance Monitor
+  Report: [mdot_balance]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    Physical Time
+    u_ax_core_port Monitor
+  Report: [u_ax_core_port]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    u_ax_core_starboard Monitor
+  Report: [u_ax_core_starboard]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    x_cp Monitor
+  Report: [x_cp]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+    y_plus_max Monitor
+  Report: [y_plus_max]
+  Enabled: true
+  Value Type: Total Value
+  Trigger: Iteration
+  Normalization Option: Off
+      Update
+  Enabled: true
+  Trigger: Iteration
+      Iteration Frequency
+  Iteration Frequency: 1
+  Start Iteration: 0
+  Enable Stop: false
+  Stop Iteration: 0
+
+--- Reports ---
+  Reports
+  Reports: 26
+  Report NaN Option: REPORT_NAN
+    area_port_x06
+  Units: m^2
+  Field Function: unity
+  Parts: [threshold_box_x06_port]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    area_starboard_x06
+  Units: m^2
+  Field Function: unity
+  Parts: [threshold_box_x06_starboard]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    c_d
+  Coordinate System: Laboratory
+  Direction: [cos($alpha_deg), 0, sin($alpha_deg)]
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: $rho_ref
+  Reference Velocity: $u_inf
+  Reference Area: $s_ref
+  Parts: [fluid_domain: wing_suction, fluid_domain: wing_pressure, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Account for Idealization: false
+    c_d_friction
+  Coordinate System: Laboratory
+  Direction: [cos($alpha_deg), 0, sin($alpha_deg)]
+  Force Option: Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: $rho_ref
+  Reference Velocity: $u_inf
+  Reference Area: $s_ref
+  Parts: [fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Account for Idealization: false
+    c_d_pressure
+  Coordinate System: Laboratory
+  Direction: [cos($alpha_deg), 0, sin($alpha_deg)]
+  Force Option: Pressure
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: $rho_ref
+  Reference Velocity: $u_inf
+  Reference Area: $s_ref
+  Parts: [fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Account for Idealization: false
+    c_l
+  Coordinate System: Laboratory
+  Direction: [-sin($alpha_deg), 0, cos($alpha_deg)]
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Number of Bands: 0
+  Reference Density: $rho_ref
+  Reference Velocity: $u_inf
+  Reference Area: $s_ref
+  Parts: [fluid_domain: wing_suction, fluid_domain: wing_pressure, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Account for Idealization: false
+    c_my_apex
+  Coordinate System: Laboratory
+  Force Option: Pressure + Shear
+  Reference Pressure: 0.0 Pa
+  Pressure Option: SP_UC
+  Axis: [0.0, 1.0, 0.0]
+  Number of Bands: 0
+  Axis Origin: [0.0, 0.0, 0.0] m
+  Reference Density: $rho_ref
+  Reference Velocity: $u_inf
+  Parts: [fluid_domain: wing_suction, fluid_domain: wing_pressure, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Reference Area: $s_ref
+  Account for Idealization: false
+  Reference Radius: $chord_root
+    check_sin_alpha
+  Definition: sin($alpha_deg)
+  Periodicity: Non-periodic
+  Delta Value: false
+    cp_max_wing
+  Field Function: Pressure Coefficient
+  Collocated Field Functions: []
+  Parts: [fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    cp_min_wing
+  Field Function: Pressure Coefficient
+  Collocated Field Functions: []
+  Parts: [fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    cp_min_x06
+  Field Function: Pressure Coefficient
+  Collocated Field Functions: []
+  Parts: [section_x06_wing_suction]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    gamma_full_x06
+  Units: m^2/s
+  Field Function: Vorticity[i]
+  Parts: [section_x06]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    gamma_port_x06
+  Units: m^2/s
+  Field Function: Vorticity[i]
+  Parts: [threshold_box_x06_port]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    gamma_starboard_x06
+  Units: m^2/s
+  Field Function: Vorticity[i]
+  Parts: [threshold_box_x06_starboard]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    h_max_x06
+  Units: m
+  Field Function: cell_h_est
+  Collocated Field Functions: []
+  Parts: [probe_core_x06]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    h_max_x09
+  Units: m
+  Field Function: cell_h_est
+  Collocated Field Functions: []
+  Parts: [probe_core_x09]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    h_min_x06
+  Units: m
+  Field Function: cell_h_est
+  Collocated Field Functions: []
+  Parts: [probe_core_x06]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    h_min_x09
+  Units: m
+  Field Function: cell_h_est
+  Collocated Field Functions: []
+  Parts: [probe_core_x09]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    mdot_balance
+  Definition: (${mdot_balance_inlet} + ${mdot_balance_outlet})/${mdot_balance_inlet}
+  Periodicity: Non-periodic
+  Delta Value: false
+    mdot_balance_inlet
+  Units: kg/s
+  Parts: [fluid_domain: freestream_inlet]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Account for Idealization: false
+    mdot_balance_outlet
+  Units: kg/s
+  Parts: [fluid_domain: pressure_outlet]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Account for Idealization: false
+    u_ax_core_port
+  Units: m/s
+  Field Function: Velocity[i]
+  Collocated Field Functions: []
+  Parts: [point_core_port]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    u_ax_core_starboard
+  Units: m/s
+  Field Function: Velocity[i]
+  Collocated Field Functions: []
+  Parts: [point_core_starboard]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+    x_cp
+  Definition: -(${c_my_apex})/(${c_l})
+  Periodicity: Non-periodic
+  Delta Value: false
+    y_plus_avg
+  Field Function: Wall Y+
+  Parts: [fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+  Weighting Function: &lt;Select Function&gt;
+    y_plus_max
+  Field Function: Wall Y+
+  Collocated Field Functions: []
+  Parts: [fluid_domain: wing_pressure, fluid_domain: wing_suction, fluid_domain: wing_te]
+  Representation: Latest Surface/Volume
+  Smooth Values: false
+
+--- Solvers ---
+  Solvers
+  Cache Solver Settings: true
+    Steady
+      Stopping Criteria
+  Verbose: false
+    Partitioning
+  Solver Frozen: false
+  Partitioning Method: Per-Continuum
+    Wall Distance
+  Solver Frozen: false
+  Verbosity: 0
+  Minimum Tree Size Threshold: 500000
+    Segregated Flow
+  Implicit Scheme: SIMPLE
+  Freeze Flow: false
+  Reconstruction Frozen: false
+  Reconstruction Zeroed: false
+  Enable Enhanced Stability Treatment: false
+  Temporary Storage Retained: false
+  Pressure Corrections: Bad Cell Minimum Scaling: 0.8
+  Pressure Corrections: Acceptable Cell Volume Change: 0.001
+  Velocity Corrections: Maximum Unlimited Velocity: 20.0 m/s
+  Velocity Corrections: Acceptable Velocity Increase Rate [&lt;1]: 0.15
+  Continuity Initialization: false
+      Velocity
+  Under-Relaxation Factor: 0.7
+  Dynamic Local Under-Relaxation: false
+        Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+        AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: Flex Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: None
+  Scaling: Disabled
+        Flex Cycle
+  Restriction Tolerance: 0.9
+  Prolongation Tolerance: 0.5
+  Sweeps: 1
+      Pressure
+  Number of Non-Orthogonality Correctors: 0
+  Under-Relaxation Factor: 0.3
+  Pressure Reference Location: Automatic Selection
+      Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+      AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: V Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: Conjugate Gradient
+  Scaling: Auto
+      V Cycle
+  Pre-Sweeps: 1
+  Post-Sweeps: 1
+  Max Levels: 50
+    K-Omega Turbulence
+  Solver Frozen: false
+  Reconstruction Frozen: false
+  Reconstruction Zeroed: false
+  Temporary Storage Retained: false
+  Under-Relaxation Factor: 0.8
+  Boundary Layer Initialization: false
+      Under-Relaxation Factor Ramp
+  Ramp Method: No Ramp
+      AMG Linear Solver
+  Max Cycles: 30
+  Verbosity: NONE
+  Enable Direct Solver: false
+  Maximum Direct Solver Equations: 32
+  Convergence Tolerance: 0.1
+  Epsilon: 0.0
+  Cycle Type: Flex Cycle
+  Group Size Control: Auto
+  Group Size: 4
+  Relaxation Scheme: Gauss-Seidel
+  Acceleration Method: None
+  Scaling: Disabled
+      Flex Cycle
+  Restriction Tolerance: 0.9
+  Prolongation Tolerance: 0.5
+  Sweeps: 1
+    K-Omega Turbulent Viscosity
+  Solver Frozen: false
+  Under-Relaxation Factor: 1.0
+  Maximum Ratio: 100000.0
+
+--- Stopping Criteria ---
+  Stopping Criteria
+  Verbose: false
+    c_d_asymptotic
+  Enabled: true
+  Monitor: c_d Monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 0.001
+  Number of Samples: 500
+  Normalized: true
+    c_l_asymptotic
+  Enabled: true
+  Monitor: c_l Monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 0.001
+  Number of Samples: 500
+  Normalized: true
+    gamma_starboard_x06_asymptotic
+  Enabled: true
+  Monitor: gamma_starboard_x06 Monitor
+  Criterion Option: Asymptotic
+  Logical Rule: And
+  Stop Inner Iterations: true
+  Criterion Satisfied: true
+      Asymptotic Limit
+  Refresh Sampling: false
+  |Max - Min|: 2.0E-4
+  Number of Samples: 500
+  Normalized: true
+    Maximum Steps
+  Enabled: true
+  Maximum Steps: 8000
+  Logical Rule: Or
+  Criterion Satisfied: false
+    Stop File
+  Enabled: true
+  Stop Inner Iterations: true
+  Path: ABORT
+  Logical Rule: Or
+  Criterion Satisfied: false
+
+============================================================
+SOLUTION
+============================================================
+Solution
+  Accumulated CPU Time over all processes (s): 118969.407096
+  Elapsed Time (s): 312.72050875199847
+  Iterations: 2696
