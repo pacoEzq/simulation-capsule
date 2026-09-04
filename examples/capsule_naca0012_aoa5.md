@@ -67,3 +67,32 @@ limit cycle, so every digit reported is meaningful.
 
 The simulation file is attached to the tutorial, not to this repository. See
 [SPEC.md](../SPEC.md) for why the capsule ships without it.
+
+## For `capsule_naca0012_aoa5.md`
+
+```markdown
+## Known issues
+
+Found by the [Part 2 probe test](../probes/part-2_naca0012_aoa5.md). The
+capsule passes `tools/check_capsule.py` without warnings. It is frozen, so
+these are recorded rather than patched.
+
+- **Two step limits contradict each other.** `setup.txt` carries Maximum Steps
+  3000 under the Steady solver and 5000 under Stopping Criteria. Neither fired,
+  since the run stopped at 2285 on the asymptotic criteria, but a capsule that
+  can hold two values for one setting lowers the trust owed to any single
+  sourced number in it.
+- **The angle of attack is not stated in `setup.txt`.** It appears only in
+  `summary.json`. The sole evidence inside the setup is the moment axis origin,
+  which reproduces the quarter chord rotated by 5 degrees to seven decimals.
+  Exact, and indirect.
+- **No geometry and no domain extents.** `farfield_radius_chords` exists only in
+  `summary.json`, so blockage and induced angle cannot be checked from the
+  capsule.
+- **The drag is a fully turbulent value and is not labelled as one.** No
+  transition model appears anywhere in `setup.txt`. It has to be inferred from
+  an absence.
+- **The fifth decimal of `cl` is inside the convergence band.** The run stopped
+  on a normalized band of 1.0E-4 over 500 samples. Quote four figures.
+```
+
