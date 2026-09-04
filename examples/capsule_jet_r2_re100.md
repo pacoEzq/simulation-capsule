@@ -72,3 +72,35 @@ Both are packaging slips rather than design decisions. The content is unchanged.
 
 The simulation file is attached to the tutorial, not to this repository. See
 [SPEC.md](../SPEC.md) for why the capsule ships without it.
+
+## For `capsule_jet_r2_re100.md`
+
+```markdown
+## Known issues
+
+Found by the [Part 4 probe test](../probes/part-4_jet_r2_re100.md) and by
+`tools/check_capsule.py`. Two defects the probe found have since been fixed in
+place; the rest are recorded rather than patched.
+
+- **The handedness of the coordinate triad is nowhere declared.** No image glyph
+  shows the third axis either, so the sign of the counter rotating pair
+  circulation is only interpretable by assuming a right handed system.
+- **The capsule contradicts itself about its own dimensional rule.**
+  `reference.note` calls itself the only dimensional block, while `performance`
+  carries a dimensional flag of its own and `jet/area_jet_inlet` is dimensional
+  with no flag at all. The validator warns on the third.
+- **`u_U` means two different things.** `setup.txt` defines it as the streamwise
+  velocity component; `summary.json` reports `u_U_at_5_0_2p5` built from
+  velocity magnitude. Disclosed in the files, and still a trap.
+- **The sample cannot be redrawn from the capsule alone.** Only the 800 winners
+  ship, not the per cell volumes and gradients they were drawn from, so
+  `coverage_prenormalization` cannot be checked here.
+- **This capsule is over budget.** 66,000 tokens against a target of 60,000, and
+  it got there by carrying a full plane set and an 800 point volume cloud at the
+  same time. See [token-ledger.md](token-ledger.md).
+- **Fixed since publication.** A trailing comma made `summary.json` fail strict
+  JSON, and the plane images did not share a root with their tables. The probe
+  reader named the first as the one packaging change it would make, and it
+  shipped anyway. Both are now checks in `tools/check_capsule.py`.
+```
+
