@@ -86,15 +86,20 @@ declared by where it lives and how it is named:
 ```
 
 Dimensionless groups such as `re_D` may sit in the same block and carry no suffix.
+Angles are groups already: `alpha_deg` declares the convention, not a dimension,
+and may appear anywhere in the capsule. Machine time, such as solver seconds,
+is not a flow quantity and belongs in `manifest.json` (4.8), not here.
 No other encoding is accepted: not a `{value, unit}` object, not a bare number with
 the unit in prose, not a separate map of units. The suffix is the one form that
 survives every place a key can end up, including a CSV header, a table in a report
 or a model quoting the key back.
 
-The capsules published with Parts 2 and 3 use an older object form for their
-reference quantities, and those published with Parts 5 and 6 carry bare numbers.
-The validator accepts both with a warning until Part 7 migrates them, and rejects
-them after.
+The capsules published with Parts 2 to 6 predate this rule: two use an object
+form for their reference quantities, three carry bare numbers. They are kept as
+published, byte for byte, under `examples/as-published/`, and the validator
+reports their form as a warning. Their migrated copies, derived by script and
+subject to `--strict`, are the ones under `examples/`. The pair is the record of
+how the format got here, and the transformation between them is reproducible.
 
 ### 3.2 Character set
 
@@ -307,4 +312,4 @@ run it on the expanded directory.
 | Version | Change |
 |---------|--------|
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
-| 0.2 | Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
+| 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
