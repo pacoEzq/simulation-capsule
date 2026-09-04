@@ -684,4 +684,81 @@ def report_text(root, checks, strict, verbose):
         for finding in check.findings:
             where = finding["path"] or name
             lines.append("           %-5s %s" % (finding["severity"], where))
-            lines.append("                 %s" % findi
+            lines.append("                 %s" % finding["message"])
+    total = len([c for c in checks if not c.skipped])
+    if failed:
+        lines.append("  RESULT: failed %d of %d checks in %d place(s): %s"
+                     % (len(failed), total, len(failed), ", ".join(failed)))
+    else:
+        warned = [c.id for c in checks if c.status(strict) == "WARN"]
+        suffix = " with warnings in %s" % ", ".join(warned) if warned else ""
+        lines.append("  RESULT: passed %d of %d checks%s"
+                     % (total - len(warned), total, suffix))
+    return "\n".join(lines), failed
+
+
+def report_json(root, checks, strict):
+    return {
+        "capsule": os.path.basename(os.path.normpath(root)),
+        "spec_version": SPEC_VERSION,
+        "tool_version": TOOL_VERSION,
+        "strict": strict,
+        "checks": [
+            {
+                "id": check.id,
+                "title": check.title,
+                "spec": check.spec_ref,
+                "status": check.status(strict),
+                "skip_reason": check.skip_reason or None,
+                "findings": check.findings,
+            }
+            for check in checks
+        ],
+        "failed": [c.id for c in checks if c.status(strict) == "FAIL"],
+    }
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Validate one or more Simulation Capsules against the "
+                    "SPEC.")
+    parser.add_argument("capsules", nargs="+",
+                        help="capsule directories to validate")
+    parser.add_argument("--strict", action="store_true",
+                        help="treat warnings as failures")
+    parser.add_argument("--json", action="store_true", dest="as_json",
+                        help="emit a machine readable report")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                        help="list passing and skipped checks too")
+    args = parser.parse_args(argv)
+
+    reports, any_failure = [], False
+    for root in args.capsules:
+        if not os.path.isdir(root):
+            sys.stderr.write("not a directory: %s\n" % root)
+            return 2
+        checks = validate(root)
+        if args.as_json:
+            payload = report_json(root, checks, args.strict)
+            reports.append(payload)
+            if payload["failed"]:
+                any_failure = True
+        else:
+            text, failed = report_text(root, checks, args.strict, args.verbose)
+            reports.append(text)
+            if failed:
+                any_failure = True
+
+    if args.as_json:
+        print(json.dumps(reports if len(reports) > 1 else reports[0],
+                         indent=2))
+    else:
+        print("\n\n".join(reports))
+    return 1 if any_failure else 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except BrokenPipeError:  # piping into head is normal usage
+        os._exit(0)
