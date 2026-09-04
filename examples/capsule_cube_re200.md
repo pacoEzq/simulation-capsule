@@ -56,3 +56,35 @@ is better than a key filled with a placeholder.
 
 The simulation file is attached to the tutorial, not to this repository. See
 [SPEC.md](../SPEC.md) for why the capsule ships without it.
+
+## For `capsule_cube_re200.md`
+
+```markdown
+## Known issues
+
+Found by the [Part 3 probe test](../probes/part-3_cube_re200.md). The capsule
+passes `tools/check_capsule.py` on all fourteen checks. It is frozen, so these
+are recorded rather than patched.
+
+- **The transverse plane images carry no spatial anchor.** No geometry and no
+  axes in frame, so their window cannot be verified against the tables. The
+  `y0` view is calibratable from the cube; the other two are not. This is the
+  finding that produced the declared camera rule of the Part 6 view contract.
+- **The trimmed setup states no domain extents and no cube coordinates.** The
+  cube at the origin is inferred from a report definition and the mesh
+  alignment point.
+- **`x_reattach` is unguarded.** It takes the extreme x over every reversed cell
+  in the domain, so a stray reversed cell near the outlet would inflate it
+  silently. The value is sound here because the plane data agrees to half a
+  wake cell, but the derived part should have been restricted to a wake box.
+- **One node is missing from the `y0` grid** and its mirror is present. Harmless
+  and asymmetric.
+- **An orphan derived part rides along** in `setup.txt`, a Plane Section near
+  x = 5 duplicating the `y0` orientation.
+- **`cp_base` is presumably a face average** and the trim does not name the
+  report type. The base centre node reads a different value.
+- **The material is labelled Air** while density is 1 and viscosity is set from
+  the Reynolds number. It is a nondimensionalization device, not a physical air
+  test at 1 m/s.
+```
+
