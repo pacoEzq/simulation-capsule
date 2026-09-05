@@ -1,4 +1,4 @@
-# plane x_cr = 0.60 | grid 33 x 13, y [-0.35,0.35] z [-0.03,0.16], bin-averaged from 19982 vertices | fields %.3f | nondimensional
+# plane x_cr = 0.60 | grid 33 x 13, spacing 0.0219 x 0.0158 c_r | 405 of 429 nodes | y [-0.35,0.35] z [-0.03,0.16], bin-averaged from 19982 vertices | fields %.3f | nondimensional
 y_cr,z_cr,u_U,v_U,w_U,cp,omega_x,q_star
 -0.339,-0.023,0.906,-0.116,0.357,0.039,-0.031,-4.208
 -0.318,-0.023,0.875,-0.177,0.374,0.062,-0.103,-11.395
