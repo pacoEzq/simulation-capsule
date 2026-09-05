@@ -34,7 +34,7 @@ import re
 import sys
 
 SPEC_VERSION = "0.2"
-TOOL_VERSION = "1.2"
+TOOL_VERSION = "1.3"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -561,7 +561,8 @@ def check_dimensional_flags(root, entries):
                 continue
             if any(t.lower() in LEGACY_UNIT_KEYS for t in trail):
                 continue  # the leaf inside a legacy object, reported above
-            if is_reference_root(lowered) and not has_suffix:
+            if (in_reference or in_legacy) and is_reference_root(lowered) \
+            and not has_suffix:
                 legacy += 1
                 check.warn("reference quantity carries no unit suffix: %s"
                            % where, rel)
