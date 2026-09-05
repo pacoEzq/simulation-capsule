@@ -4,7 +4,6 @@
   "alias": "capsule_jet_r2_re100",
   "nondimensional": true,
   "reference": {
-    "unit_flag": "dimensional",
     "length_scale_D_m": 1.0,
     "velocity_scale_U_m_s": 1.0,
     "density_rho_kg_m3": 1.0,
@@ -35,9 +34,24 @@
     "note": "Law of the samples.csv draw: weight = cell volume x importance field ^ alpha, drawn without replacement. Reproducible from these four values plus the case; same law declared in the samples.csv header."
   },
   "planes": {
-    "grid_y0": {"held_constant": "y_D = 0", "spacing_x_D": 0.5, "spacing_z_D": 0.25, "nodes": [29, 25]},
-    "grid_x5": {"held_constant": "x_D = 5", "spacing_y_D": 0.25, "spacing_z_D": 0.25, "nodes": [25, 25]},
-    "grid_x10": {"held_constant": "x_D = 10", "spacing_y_D": 0.25, "spacing_z_D": 0.25, "nodes": [25, 25]},
+    "grid_y0": {
+      "held_constant": "y_D = 0",
+      "spacing_x_D": 0.5,
+      "spacing_z_D": 0.25,
+      "nodes": [29, 25]
+    },
+    "grid_x5": {
+      "held_constant": "x_D = 5",
+      "spacing_y_D": 0.25,
+      "spacing_z_D": 0.25,
+      "nodes": [25, 25]
+    },
+    "grid_x10": {
+      "held_constant": "x_D = 10",
+      "spacing_y_D": 0.25,
+      "spacing_z_D": 0.25,
+      "nodes": [25, 25]
+    },
     "note": "Sampling grids of the planes/ layer, not the mesh. The trajectory plane is deliberately anisotropic: 0.5 D along the streamwise direction it spans (14 D) and 0.25 D in height. The two crossflow planes are isotropic at 0.25 D. Grid spacing is the tables' dial only; the PNG scenes are rendered at full mesh resolution."
   },
   "jet": {
@@ -108,7 +122,6 @@
     "note": "Trim mesh, hex core. Cell sizes are the isotropic Custom Size of the two volumetric controls in setup.txt: vc_orifice on the orifice cylinder at 0.0625 D (= D/16) and vc_trajectory on the jet-path box at 0.125 D (= base/4). Prism total thickness lowered to 0.1 D (deliberate deviation from the 0.15 D guide). The orifice refinement and the thinner prism stack are the hexagon-saga cure."
   },
   "performance": {
-    "unit_flag": "dimensional",
     "solver_cpu_time_s": 1077.774,
     "solver_elapsed_time_s": 1077.753,
     "partitions": 1
