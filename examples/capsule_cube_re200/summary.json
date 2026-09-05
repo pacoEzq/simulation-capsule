@@ -7,11 +7,13 @@
     "note": "not applicable: constant-density solve, no sound speed defined"
   },
   "reference": {
-    "side":      {"value": 1.0,   "unit_flag": "m"},
-    "velocity":  {"value": 1.0,   "unit_flag": "m/s"},
-    "density":   {"value": 1.0,   "unit_flag": "kg/m3"},
-    "viscosity": {"value": 0.005, "unit_flag": "Pa-s", "note": "rho*U*D/Re"},
-    "area":      {"value": 1.0,   "unit_flag": "m2", "note": "frontal, D^2"}
+    "side_m": 1.0,
+    "velocity_m_s": 1.0,
+    "density_kg_m3": 1.0,
+    "viscosity_Pa_s": 0.005,
+    "viscosity_note": "rho*U*D/Re",
+    "area_m2": 1.0,
+    "area_note": "frontal, D^2"
   },
   "forces": {
     "cd": 0.9669,
@@ -31,12 +33,24 @@
     "recirculation_length_D": 2.156,
     "note": "measured from the rear face, threshold u_U < 0"
   },
-  "conservation": {"mass_imbalance_fraction": 1.4e-16},
+  "conservation": {
+    "mass_imbalance_fraction": 1.4e-16
+  },
   "convergence": {
     "iterations": 4708,
     "monitors_flat": true,
-    "residuals": {"continuity": 1.0e-12, "x_momentum": 1.0e-12, "y_momentum": 1.0e-12, "z_momentum": 1.0e-12}
+    "residuals": {
+      "continuity": 1.0e-12,
+      "x_momentum": 1.0e-12,
+      "y_momentum": 1.0e-12,
+      "z_momentum": 1.0e-12
+    }
   },
-  "mesh": {"cell_count": 405673, "dimension": "3D", "domain_extents_D": "x -5 to 15, y and z -5 to 5", "prism_layers": 2},
+  "mesh": {
+    "cell_count": 405673,
+    "dimension": "3D",
+    "domain_extents_D": "x -5 to 15, y and z -5 to 5",
+    "prism_layers": 2
+  },
   "note_wall": "no wall block: laminar solve, no turbulence model or y+ to audit"
 }
