@@ -5,12 +5,13 @@
   "physics": "steady RANS, k-omega SST, segregated, incompressible",
   "nondimensional": true,
   "reference": {
-    "length_L": 1.0,
-    "velocity_U": 1.0,
-    "density_rho": 1.0,
-    "viscosity_mu": 1e-06,
+    "length_L_m": 1.0,
+    "velocity_U_m_s": 1.0,
+    "density_rho_kg_m3": 1.0,
+    "viscosity_mu_Pa_s": 1e-06,
     "reynolds_L": 1000000.0,
-    "frontal_area": 0.1027881946
+    "frontal_area": 0.1027881946,
+    "frontal_area_note": "A/L^2, nondimensional; the dimensional area is frontal_area times length_L_m squared"
   },
   "geometry": {
     "width_W": 0.37261,
