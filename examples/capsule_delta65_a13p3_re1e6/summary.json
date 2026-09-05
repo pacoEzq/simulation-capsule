@@ -1,81 +1,74 @@
 {
- "case": {
-  "alias": "delta65_a13p3_re1e6",
-  "geometry": {
-   "type": "sharp-edged delta wing",
-   "sweep_le_deg": 65.0,
-   "chord_root": 1.0,
-   "span_b": 0.9326,
-   "s_ref": 0.4663,
-   "aspect_ratio": 1.865,
-   "moment_reference": "apex"
+  "case": {
+    "alias": "delta65_a13p3_re1e6",
+    "geometry": {
+      "type": "sharp-edged delta wing",
+      "sweep_le_deg": 65.0,
+      "span_b": 0.9326,
+      "s_ref": 0.4663,
+      "aspect_ratio": 1.865
+    },
+    "flow": {
+      "alpha_deg": 13.3,
+      "re_cr": 1000000.0,
+      "mach_number": 0.0,
+      "regime": "incompressible"
+    },
+    "model": {
+      "equations": "RANS, segregated, steady",
+      "turbulence": "k-omega SST",
+      "wall_treatment": "all y+"
+    },
+    "mesh": {
+      "tag": "run4",
+      "cells": 6491106,
+      "type": "trimmed hexahedral with prism layers"
+    },
+    "solver": {
+      "name": "Simcenter STAR-CCM+",
+      "version": "2602",
+      "build": "21.02.008"
+    }
   },
-  "flow": {
-   "alpha_deg": 13.3,
-   "re_cr": 1000000.0,
-   "mach_number": 0.0,
-   "regime": "incompressible"
+  "reference": {
+    "chord_root_m": 1.0,
+    "u_inf_m_s": 1.0,
+    "rho_ref_kg_m3": 1.0,
+    "mu_ref_Pa_s": 1e-06,
+    "q_inf_Pa": 0.5,
+    "moment_reference": "apex",
+    "convention": "rho_ref = u_inf = chord_root = 1; every scalar below is nondimensional as reported"
   },
-  "model": {
-   "equations": "RANS, segregated, steady",
-   "turbulence": "k-omega SST",
-   "wall_treatment": "all y+"
+  "scalars": {
+    "c_l": 0.616839,
+    "c_d": 0.18974,
+    "c_d_pressure": 0.180537,
+    "c_d_friction": 0.009203,
+    "c_my_apex": -0.373925,
+    "x_cp": 0.606195,
+    "cp_max_wing": 1.30213,
+    "cp_min_wing": -3.095626,
+    "cp_min_x06": -1.503777,
+    "gamma_starboard_x06": 0.2641414,
+    "gamma_port_x06": -0.2637699,
+    "gamma_full_x06": -0.000118,
+    "u_ax_core_starboard": 1.307898,
+    "u_ax_core_port": 1.307609,
+    "y_plus_max": 2.385634,
+    "y_plus_avg": 0.689156,
+    "mdot_balance": -8.42e-11
   },
-  "mesh": {
-   "tag": "run4",
-   "cells": 6491106,
-   "type": "trimmed hexahedral with prism layers"
+  "flags": {
+    "cp_max_wing": "exceeds the incompressible stagnation bound of 1; sharp leading-edge singularity, known limitation of the case, not a convergence defect"
   },
-  "solver": {
-   "name": "Simcenter STAR-CCM+",
-   "version": "2602",
-   "build": "21.02.008"
+  "convergence": {
+    "iterations": 2696,
+    "stopping_criteria": ["c_l_asymptotic", "c_d_asymptotic", "gamma_starboard_x06_asymptotic"],
+    "mass_balance": -8.42e-11
+  },
+  "provenance": {
+    "report_mapping": "every key in scalars is the STAR-CCM+ report of the same name",
+    "generated": "2026-08-04",
+    "series_part": "T2 schema, delta instance for T5"
   }
- },
- "nondimensionalization": {
-  "convention": "rho_ref = u_inf = chord_root = 1; every scalar below is nondimensional as reported",
-  "reference_quantities": {
-   "u_inf": 1.0,
-   "chord_root": 1.0,
-   "rho_ref": 1.0,
-   "mu_ref": 1e-06,
-   "q_inf": 0.5
-  }
- },
- "scalars": {
-  "c_l": 0.616839,
-  "c_d": 0.18974,
-  "c_d_pressure": 0.180537,
-  "c_d_friction": 0.009203,
-  "c_my_apex": -0.373925,
-  "x_cp": 0.606195,
-  "cp_max_wing": 1.30213,
-  "cp_min_wing": -3.095626,
-  "cp_min_x06": -1.503777,
-  "gamma_starboard_x06": 0.2641414,
-  "gamma_port_x06": -0.2637699,
-  "gamma_full_x06": -0.000118,
-  "u_ax_core_starboard": 1.307898,
-  "u_ax_core_port": 1.307609,
-  "y_plus_max": 2.385634,
-  "y_plus_avg": 0.689156,
-  "mdot_balance": -8.42e-11
- },
- "flags": {
-  "cp_max_wing": "exceeds the incompressible stagnation bound of 1; sharp leading-edge singularity, known limitation of the case, not a convergence defect"
- },
- "convergence": {
-  "iterations": 2696,
-  "stopping_criteria": [
-   "c_l_asymptotic",
-   "c_d_asymptotic",
-   "gamma_starboard_x06_asymptotic"
-  ],
-  "mass_balance": -8.42e-11
- },
- "provenance": {
-  "report_mapping": "every key in scalars is the STAR-CCM+ report of the same name",
-  "generated": "2026-08-04",
-  "series_part": "T2 schema, delta instance for T5"
- }
 }
