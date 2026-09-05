@@ -7,23 +7,46 @@
     "turbulence_model": "SST (Menter) K-Omega"
   },
   "reference": {
-    "chord":     {"value": 1.0,     "unit_flag": "m"},
-    "velocity":  {"value": 15.0,    "unit_flag": "m/s"},
-    "density":   {"value": 1.18,    "unit_flag": "kg/m3"},
-    "viscosity": {"value": 1.77e-5, "unit_flag": "Pa-s"},
-    "area":      {"value": 1.0,     "unit_flag": "m2", "note": "chord x unit depth"}
+    "chord_m": 1.0,
+    "velocity_m_s": 15.0,
+    "density_kg_m3": 1.18,
+    "viscosity_Pa_s": 1.77e-5,
+    "area_m2": 1.0,
+    "area_note": "chord x unit depth"
   },
   "forces": {
-    "cl": 0.52776, "cd": 0.012305,
-    "cd_pressure": 0.0042204, "cd_friction": 0.0080843,
-    "cm_quarter_chord": -0.0042827, "lift_to_drag": 42.89
+    "cl": 0.52776,
+    "cd": 0.012305,
+    "cd_pressure": 0.0042204,
+    "cd_friction": 0.0080843,
+    "cm_quarter_chord": -0.0042827,
+    "lift_to_drag": 42.89
   },
-  "surface": {"cp_stagnation": 0.99901, "cp_min": -1.8065},
-  "wall": {"yplus_max": 1.3368, "yplus_avg": 0.51152},
-  "conservation": {"mass_imbalance_fraction": 5.0e-13},
+  "surface": {
+    "cp_stagnation": 0.99901,
+    "cp_min": -1.8065
+  },
+  "wall": {
+    "yplus_max": 1.3368,
+    "yplus_avg": 0.51152
+  },
+  "conservation": {
+    "mass_imbalance_fraction": 5.0e-13
+  },
   "convergence": {
-    "iterations": 2285, "monitors_flat": true,
-    "residuals": {"continuity": 3.97e-7, "x_momentum": 2.62e-6, "y_momentum": 2.05e-7, "tke": 3.79e-11, "sdr": 2.00e-11}
+    "iterations": 2285,
+    "monitors_flat": true,
+    "residuals": {
+      "continuity": 3.97e-7,
+      "x_momentum": 2.62e-6,
+      "y_momentum": 2.05e-7,
+      "tke": 3.79e-11,
+      "sdr": 2.00e-11
+    }
   },
-  "mesh": {"cell_count": 65885, "dimension": "2D", "farfield_radius_chords": 50}
+  "mesh": {
+    "cell_count": 65885,
+    "dimension": "2D",
+    "farfield_radius_chords": 50
+  }
 }
