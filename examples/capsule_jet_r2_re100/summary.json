@@ -121,11 +121,6 @@
     "trajectory_cell_size_D": 0.125,
     "note": "Trim mesh, hex core. Cell sizes are the isotropic Custom Size of the two volumetric controls in setup.txt: vc_orifice on the orifice cylinder at 0.0625 D (= D/16) and vc_trajectory on the jet-path box at 0.125 D (= base/4). Prism total thickness lowered to 0.1 D (deliberate deviation from the 0.15 D guide). The orifice refinement and the thinner prism stack are the hexagon-saga cure."
   },
-  "performance": {
-    "solver_cpu_time_s": 1077.774,
-    "solver_elapsed_time_s": 1077.753,
-    "partitions": 1
-  },
   "provenance": {
     "starccm_version": "2602 (21.02.007)",
     "run_mode": "serial",
