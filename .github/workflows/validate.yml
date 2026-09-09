@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: "3.12"
       # The validator has to prove it can still fail before its passes mean
-      # anything. This asserts the jet regression and that all fourteen checks
+      # anything. This asserts the jet regression and that all seventeen checks
       # fire on at least one fixture.
       - name: Self test the validator
         run: python3 tools/test_check_capsule.py

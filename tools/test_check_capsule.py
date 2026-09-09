@@ -17,6 +17,13 @@ Three things are proved here.
    reference, an angle in degrees anywhere, and a key named after a symbol
    such as width_W fire nothing.
 
+4. The diff extension of SPEC 3.4 and 4.7. A capsule that declares 'diff'
+   and carries both artifacts passes; either one without the other fails,
+   in whichever direction the mismatch runs. An instrument directory fails
+   whether or not anything is declared. Inside diff.json, a comparison sign
+   the SPEC does not allow is an error and a measured colormap that is not
+   grayscale is a warning.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -147,6 +154,105 @@ def build_legacy(root):
     }, indent=2))
 
 
+def diff_manifest(**overrides):
+    """A diff.json that satisfies SPEC 4.7, before the overrides a fixture
+    applies to break exactly one thing."""
+    manifest = {
+        "schema_version": "0.3",
+        "base": {
+            "alias": "naca0012_aoa5",
+            "repo": "https://github.com/example/simulation-capsule",
+            "commit": "9a805f3",
+            "path": "examples/capsule_naca0012_aoa5",
+            "frozen_copy_path": "examples/as-published/capsule_naca0012_aoa5",
+        },
+        "variant": {"capsule": "capsule_naca0012_aoa8", "case": "aoa 8 deg"},
+        "difference": {
+            "parameter": "angle_of_attack",
+            "base_value_deg": 5.0,
+            "variant_value_deg": 8.0,
+            "delta_deg": 3.0,
+            "implementation": "inlet direction rotated",
+            "mesh_identical": True,
+        },
+        "view_contract": {
+            "camera": "nearfield",
+            "width_px": 1024,
+            "export_height_px": 576,
+            "artifact_height_px": 576,
+            "crop_rows_top": 48,
+            "colorbar_levels": 256,
+            "contour_style": "banded",
+            "body_fill": "magenta",
+            "colormap_published": "viridis",
+            "colormap_measured": "grayscale",
+            "colorbar": {"cp": [-2.0, 1.0], "u_over_u": [0.0, 1.6]},
+        },
+        "pipeline": {
+            "order": "crop_then_mask_then_diff",
+            "body_dilation_px": 3,
+            "colorbar_box_excluded_px": 8200,
+            "pixels_evaluated": 512000,
+            "tool": "diff_capsule.py",
+            "tool_version": "1.0",
+        },
+        "pairs": [{
+            "name": "cp_nearfield",
+            "question": "where does the suction peak move?",
+            "base_view": "view_cp_nearfield.png",
+            "variant_view": "view_cp_nearfield.png",
+            "output": "diff_cp_nearfield.png",
+            "threshold_physical": 0.05,
+            "threshold_comparison": ">=",
+            "threshold_levels": 4,
+            "level_size": 0.0117,
+            "changed_pixel_fraction": 0.081,
+            "max_delta_levels": 71,
+            "max_delta_physical": 0.83,
+        }],
+        "scalar_deltas": {
+            "delta_cl": {"base": 0.55, "variant": 0.88, "relative": 0.6},
+            "delta_cm_quarter_chord": {"base": -0.003, "variant": -0.004},
+        },
+        "known_differences": ["render date", "solver build"],
+    }
+    manifest.update(overrides)
+    return manifest
+
+
+def build_variant(root, declare=True, manifest=True, images=True,
+                  instrument=False, overrides=None):
+    """A section 4 capsule that also carries the diff extension. Each flag
+    removes one half of the contract so a fixture can break it."""
+    write(os.path.join(root, "setup.txt"), "Case: naca0012_aoa8\n")
+    summary = {
+        "case": "naca0012_aoa8",
+        "reference": {"chord_m": 1.0, "re_c": 1.0e6},
+        "forces": {"cl": 0.88, "cd": 0.0141},
+    }
+    if declare:
+        summary["extensions"] = ["diff"]
+    write(os.path.join(root, "summary.json"), json.dumps(summary, indent=2))
+    os.makedirs(os.path.join(root, "views"), exist_ok=True)
+    write_png(os.path.join(root, "views", "view_cp_nearfield.png"))
+    if images:
+        os.makedirs(os.path.join(root, "diff"), exist_ok=True)
+        write_png(os.path.join(root, "diff", "diff_cp_nearfield.png"))
+    if manifest:
+        write(os.path.join(root, "diff.json"),
+              json.dumps(diff_manifest(**(overrides or {})), indent=2))
+    if instrument:
+        os.makedirs(os.path.join(root, "diffsrc"), exist_ok=True)
+        write_png(os.path.join(root, "diffsrc", "gray_cp_nearfield.png"))
+
+
+def status_of(root, check_id, strict=False):
+    for check in check_capsule.validate(root):
+        if check.id == check_id:
+            return check.status(strict)
+    return None
+
+
 def failed_checks(root, strict=False):
     checks = check_capsule.validate(root)
     return {c.id for c in checks if c.status(strict) == "FAIL"}
@@ -171,6 +277,13 @@ def main():
         badname = os.path.join(workspace, "jet_capsule_backup")
         legacy = os.path.join(workspace, "capsule_legacy")
         angles_ok = os.path.join(workspace, "capsule_angles")
+        variant_ok = os.path.join(workspace, "capsule_naca0012_aoa8")
+        undeclared = os.path.join(workspace, "capsule_undeclared")
+        promised = os.path.join(workspace, "capsule_promised")
+        instrument = os.path.join(workspace, "capsule_instrument")
+        bad_sign = os.path.join(workspace, "capsule_bad_sign")
+        bad_colormap = os.path.join(workspace, "capsule_bad_colormap")
+        zero_base = os.path.join(workspace, "capsule_zero_base")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -180,6 +293,21 @@ def main():
         build_bad_name(badname)
         build_legacy(legacy)
         build_angles(angles_ok)
+        build_variant(variant_ok)
+        build_variant(undeclared, declare=False)
+        build_variant(promised, manifest=False)
+        build_variant(instrument, declare=False, manifest=False,
+                      images=False, instrument=True)
+        contract = diff_manifest()["view_contract"]
+        pair = dict(diff_manifest()["pairs"][0])
+        pair["threshold_comparison"] = "approx"
+        build_variant(bad_sign, overrides={"pairs": [pair]})
+        build_variant(bad_colormap, overrides={
+            "view_contract": dict(contract, colormap_measured="viridis")})
+        build_variant(zero_base, overrides={"scalar_deltas": {
+            "delta_cl": {"base": 0.55, "variant": 0.88, "relative": 0.6},
+            "delta_cm_quarter_chord": {"base": 0.0, "variant": 0.004,
+                                       "relative": 4.0e6}}})
 
         # 1. The jet regression.
         got = failed_checks(jet_bad)
@@ -200,7 +328,9 @@ def main():
 
         # 2. Coverage.
         fired = set()
-        for root in (jet_bad, torture, anchorless, blind, badname, legacy):
+        for root in (jet_bad, torture, anchorless, blind, badname, legacy,
+                     undeclared, promised, instrument, bad_sign,
+                     bad_colormap):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -242,6 +372,97 @@ def main():
             failures.append("dimensionless group inside reference fired")
         else:
             print("PASS  dimensionless groups inside reference stay silent")
+
+        # 4. The diff extension.
+        got = failed_checks(variant_ok)
+        if got:
+            failures.append("a declared and complete diff extension should "
+                            "pass, failed %s" % sorted(got))
+        else:
+            print("PASS  declared and complete diff extension passes")
+
+        # The fixture is not a git checkout, so the base commit cannot be
+        # resolved here. SPEC 4.7 asks for a warning and not an error: an
+        # unreachable base repository is the normal case for a capsule that
+        # travels, and a validator that fails on it fails on every copy.
+        left = [f for f in findings(variant_ok, "diff_manifest")]
+        unresolved = [f for f in left if "could not be resolved" in
+                      f["message"]]
+        if len(left) != len(unresolved) or not unresolved:
+            failures.append("a complete manifest should leave only the "
+                            "unresolved base commit: %s"
+                            % [f["message"] for f in left])
+        elif unresolved[0]["severity"] != check_capsule.WARN:
+            failures.append("an unreachable base repository should warn, "
+                            "not error")
+        else:
+            print("PASS  an unreachable base repository warns, never errors")
+
+        if "extensions" not in failed_checks(undeclared):
+            failures.append("diff/ and diff.json without the declaration "
+                            "should fail the extensions check")
+        else:
+            print("PASS  diff artifacts without the declaration fail")
+
+        if "extensions" not in failed_checks(promised):
+            failures.append("'diff' declared without diff.json should fail "
+                            "the extensions check")
+        elif status_of(promised, "diff_manifest") != "SKIP":
+            failures.append("diff_manifest should skip when the manifest is "
+                            "missing: the extensions check owns that finding")
+        else:
+            print("PASS  'diff' declared without diff.json fails in one "
+                  "place")
+
+        got = failed_checks(instrument)
+        if "no_instrument_dir" not in got:
+            failures.append("diffsrc/ inside a capsule should fail")
+        elif status_of(instrument, "no_instrument_dir") == "SKIP":
+            failures.append("no_instrument_dir should never skip")
+        elif "declared_files" in got:
+            failures.append("diffsrc/ should fail in one place, not two: %s"
+                            % sorted(got))
+        else:
+            print("PASS  diffsrc/ fails with nothing declared, one place")
+
+        if status_of(jet_ok, "no_instrument_dir") == "SKIP":
+            failures.append("no_instrument_dir skipped on a clean capsule")
+        else:
+            print("PASS  no_instrument_dir never skips")
+
+        if "diff_manifest" not in failed_checks(bad_sign):
+            failures.append("threshold_comparison 'approx' should fail")
+        else:
+            print("PASS  a comparison sign outside >= and > fails")
+
+        colormap = [f for f in findings(bad_colormap, "diff_manifest")
+                    if "colormap_measured" in f["message"]]
+        if not colormap or colormap[0]["severity"] != check_capsule.WARN:
+            failures.append("colormap_measured other than grayscale should "
+                            "warn, got %s" % colormap)
+        elif "diff_manifest" in failed_checks(bad_colormap):
+            failures.append("colormap_measured should warn, not fail")
+        else:
+            print("PASS  colormap_measured not grayscale warns, fails strict")
+
+        zero = [f for f in findings(zero_base, "diff_manifest")
+                if "practically zero" in f["message"]]
+        if not zero or zero[0]["severity"] != check_capsule.WARN:
+            failures.append("a relative delta against a zero base should "
+                            "warn, got %s" % zero)
+        elif any("delta_cl" in f["message"] for f in zero):
+            failures.append("a relative delta against a real base fired")
+        else:
+            print("PASS  relative delta against a zero base warns, only it")
+
+        if status_of(jet_ok, "extensions") != "SKIP":
+            failures.append("extensions should skip on a capsule that "
+                            "declares none and carries none")
+        elif status_of(jet_ok, "diff_manifest") != "SKIP":
+            failures.append("diff_manifest should skip when 'diff' is not "
+                            "declared")
+        else:
+            print("PASS  a 0.2 capsule skips both diff checks, unchanged")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

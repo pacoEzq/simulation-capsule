@@ -31,10 +31,11 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 
-SPEC_VERSION = "0.2"
-TOOL_VERSION = "1.3"
+SPEC_VERSION = "0.3"
+TOOL_VERSION = "1.4"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -49,6 +50,7 @@ ROOT_FILES = {
     "run_macro.java": "T7",
     "manifest.json": "T7",
     "disclosure.json": "T10",
+    "diff.json": "T6",
 }
 
 # Subdirectories allowed, and the filename patterns allowed inside each.
@@ -59,7 +61,10 @@ ROOT_FILES = {
 SUBDIRS = {
     "planes": [r"^.+\.(csv|png)$"],
     "views": [r"^[a-z0-9_]+\.png$"],
-    "diff": [r"^[a-z0-9_]+\.png$", r"^diff\.json$"],
+    # diff/ holds the published difference images and nothing else. The
+    # manifest that describes them is diff.json at the root, per SPEC 4.7,
+    # so the pattern here is as strict as the one for views/.
+    "diff": [r"^[a-z0-9_]+\.png$"],
     "signals": [r"^(signal|spectra)_[A-Za-z0-9_]+\.csv$"],
     "modes": [r"^mode_[A-Za-z0-9_]+\.(csv|png)$", r"^modal_summary\.json$"],
     "snapshots": [r"^[a-z0-9_]+\.png$"],
@@ -112,6 +117,46 @@ ANGLE_SUFFIX = re.compile(r"_(deg|rad)$")
 
 # Keys that mark the pre v0.2 object form {value, unit_flag}.
 LEGACY_UNIT_KEYS = ("unit", "units", "unit_flag", "dimensional", "flag")
+
+# Extensions SPEC 3.4 defines. An extension is additive: what it adds is
+# checked only when summary.json declares it.
+KNOWN_EXTENSIONS = {"diff": "SPEC 4.7"}
+
+# SPEC 4.7. The grayscale renders the measurement runs on are the
+# instrument, not the result, and stay outside the capsule.
+INSTRUMENT_DIR = "diffsrc"
+
+# Top level keys diff.json carries. The schema below them is case driven in
+# the same way summary.json is, so only the frame is fixed here.
+DIFF_REQUIRED_KEYS = ("schema_version", "base", "variant", "difference",
+                      "view_contract", "pipeline", "pairs", "scalar_deltas",
+                      "known_differences")
+
+# The base is declared by alias, repository, commit and path, and carries a
+# pointer to the as-published copy it was measured against.
+DIFF_BASE_KEYS = ("repo", "commit", "path", "frozen_copy_path")
+
+# A commit is named by its SHA. Short forms are legal, seven characters is
+# where git stops being ambiguous in practice.
+COMMIT_SHA = re.compile(r"^[0-9a-f]{7,40}$")
+
+# SPEC 4.7: a pixel distance is a field distance only when the render is
+# quantized to the levels the PNG carries.
+COLORBAR_LEVELS = 256
+MEASURED_COLORMAP = "grayscale"
+
+# The comparison sign is not cosmetic: '>' cuts at the next level up and
+# roughly halves the reported fraction.
+THRESHOLD_COMPARISONS = (">=", ">")
+
+# Below this a base value is practically zero and a relative delta computed
+# against it reports the divisor, not the difference.
+PRACTICALLY_ZERO = 1e-9
+
+# How a key announces that it holds a relative quantity, and how the entry it
+# is measured against announces itself.
+RELATIVE_MARKERS = ("relative", "_rel", "percent", "pct", "_frac")
+BASE_VALUE_KEYS = ("base", "base_value", "value_base", "reference")
 
 
 class Check:
@@ -253,6 +298,8 @@ def check_declared_files(root, entries):
                   "Every file is an artifact the SPEC defines", "SPEC 2")
     for rel in entries:
         parts = rel.replace("\\", "/").split("/")
+        if INSTRUMENT_DIR in parts:
+            continue  # owned by no_instrument_dir, reported in one place
         if len(parts) == 1:
             if parts[0] not in ROOT_FILES:
                 check.error("file not declared by the SPEC at capsule root",
@@ -573,6 +620,321 @@ def check_dimensional_flags(root, entries):
     return check
 
 
+def load_json(root, rel):
+    """Return the parsed artifact, or None when it is absent or broken.
+    A parse failure is the json_parses check's finding, not this one's."""
+    path = os.path.join(root, rel)
+    try:
+        text, _ = read_text(path)
+        return json.loads(text)
+    except (ValueError, OSError):
+        return None
+
+
+def declared_extensions(root, entries):
+    """Return the extensions summary.json declares, SPEC 3.4. The
+    declaration lives in that file and nowhere else: a validator reads it
+    first, and discovery cannot depend on the file being discovered."""
+    if "summary.json" not in entries:
+        return []
+    data = load_json(root, "summary.json")
+    if not isinstance(data, dict):
+        return []
+    declared = data.get("extensions")
+    if not isinstance(declared, list):
+        return []
+    return declared
+
+
+def diff_artifacts(entries):
+    """Return (has_manifest, diff_members) for the diff extension."""
+    normalised = [e.replace("\\", "/") for e in entries]
+    return ("diff.json" in normalised,
+            [e for e in normalised if e.startswith("diff/")])
+
+
+def check_extensions(root, entries):
+    check = Check("extensions", "Extensions are declared in summary.json and "
+                  "match what the capsule carries", "SPEC 3.4")
+    declared = declared_extensions(root, entries)
+    has_manifest, members = diff_artifacts(entries)
+
+    data = load_json(root, "summary.json") if "summary.json" in entries \
+        else None
+    raw = data.get("extensions") if isinstance(data, dict) else None
+    if raw is not None and not isinstance(raw, list):
+        check.error("'extensions' is not an array of names", "summary.json")
+        raw = None
+    for name in declared:
+        if not isinstance(name, str):
+            check.error("extension name is not a string: %r" % (name,),
+                        "summary.json")
+        elif name not in KNOWN_EXTENSIONS:
+            check.error("unknown extension '%s': the SPEC defines %s"
+                        % (name, ", ".join(sorted(KNOWN_EXTENSIONS))),
+                        "summary.json")
+
+    names = [n for n in declared if isinstance(n, str)]
+    if len(set(names)) != len(names):
+        check.error("an extension is declared more than once", "summary.json")
+
+    if "diff" in names:
+        if not has_manifest:
+            check.error("extension 'diff' is declared and diff.json is "
+                        "missing: the declaration promises the manifest",
+                        "summary.json")
+        if not members:
+            check.error("extension 'diff' is declared and diff/ is missing: "
+                        "the manifest describes images nobody receives",
+                        "summary.json")
+    else:
+        if has_manifest:
+            check.error("diff.json is present and 'diff' is not declared in "
+                        "summary.json: an undeclared artifact is invisible "
+                        "to a reader who starts at the anchor", "diff.json")
+        if members:
+            check.error("diff/ is present and 'diff' is not declared in "
+                        "summary.json", "diff")
+
+    if raw is None and not has_manifest and not members:
+        check.skip("no extensions declared and none carried")
+    return check
+
+
+def check_no_instrument_dir(root, entries):
+    check = Check("no_instrument_dir", "The instrument does not travel: no "
+                  "diffsrc/ inside a capsule", "SPEC 4.7")
+    # Never skips. The grayscale renders are the measurement rig, and SPEC
+    # 4.7 refuses them whether or not the extension is declared: a capsule
+    # that declares nothing is exactly where they would go unnoticed.
+    seen = set()
+    for rel in entries:
+        parts = rel.replace("\\", "/").split("/")
+        if INSTRUMENT_DIR not in parts:
+            continue
+        cut = parts.index(INSTRUMENT_DIR)
+        seen.add("/".join(parts[:cut + 1]))
+        check.error("the measurement renders live outside the capsule; "
+                    "diff.json declares the recipe to regenerate them", rel)
+    # An emptied instrument directory is still one. walk_capsule lists files,
+    # so the directory itself is looked for here.
+    for dirpath, dirnames, _ in os.walk(root):
+        for name in sorted(dirnames):
+            if name != INSTRUMENT_DIR:
+                continue
+            where = os.path.relpath(os.path.join(dirpath, name),
+                                    root).replace("\\", "/")
+            if where not in seen:
+                check.error("instrument directory present, empty or not: it "
+                            "is working state and never ships", where)
+    return check
+
+
+def practically_zero(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) \
+        and abs(value) < PRACTICALLY_ZERO
+
+
+def is_relative_key(key):
+    lowered = key.lower()
+    return any(marker in lowered for marker in RELATIVE_MARKERS)
+
+
+def relative_against_zero(node, trail=()):
+    """Return the paths of relative deltas whose base value is practically
+    zero, SPEC 4.7: absolute always, relative only where the base is not
+    practically zero. Two shapes are read, the entry object that carries its
+    own base and the flat key that names a sibling."""
+    hits = []
+    if isinstance(node, dict):
+        bases = {k.lower(): v for k, v in node.items()
+                 if k.lower() in BASE_VALUE_KEYS or k.lower().endswith("_base")
+                 or k.lower().startswith("base_")}
+        zero_base = any(practically_zero(v) for v in bases.values())
+        for key, value in node.items():
+            here = trail + (key,)
+            if isinstance(value, (dict, list)):
+                hits.extend(relative_against_zero(value, here))
+                continue
+            if zero_base and is_relative_key(key) and value is not None:
+                hits.append("/".join(here))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            hits.extend(relative_against_zero(value, trail + (str(index),)))
+    return hits
+
+
+def resolve_commit(root, repo, sha):
+    """Return 'known', 'unknown' or 'unavailable' for a base commit.
+
+    Unavailable is the common case and never an error: the base lives in
+    another repository, or this copy was unpacked from an archive with no
+    git objects at all.
+    """
+    try:
+        remotes = subprocess.run(
+            ["git", "-C", root, "remote", "-v"],
+            capture_output=True, text=True, timeout=10)
+        if remotes.returncode != 0:
+            return "unavailable"
+        here = remotes.stdout.lower()
+        stem = str(repo).lower().rstrip("/").removesuffix(".git")
+        stem = stem.split("//")[-1]
+        if not stem or stem not in here:
+            return "unavailable"  # this is not the repository base names
+        found = subprocess.run(
+            ["git", "-C", root, "cat-file", "-e", "%s^{commit}" % sha],
+            capture_output=True, text=True, timeout=10)
+        return "known" if found.returncode == 0 else "unknown"
+    except (OSError, subprocess.SubprocessError):
+        return "unavailable"
+
+
+def check_diff_manifest(root, entries):
+    check = Check("diff_manifest", "diff.json describes a measurable "
+                  "relation between two capsules", "SPEC 4.7")
+    if "diff" not in declared_extensions(root, entries):
+        check.skip("extension 'diff' not declared")
+        return check
+    if "diff.json" not in [e.replace("\\", "/") for e in entries]:
+        check.skip("no diff.json: see the extensions check")
+        return check
+    data = load_json(root, "diff.json")
+    if not isinstance(data, dict):
+        check.skip("diff.json does not parse: see the json_parses check")
+        return check
+    rel = "diff.json"
+
+    for key in DIFF_REQUIRED_KEYS:
+        if key not in data:
+            check.error("required key missing: %s" % key, rel)
+
+    # The base is never edited, so it has to be nameable: alias, repository,
+    # commit and path, plus the as-published copy it was measured against.
+    base = data.get("base")
+    if not isinstance(base, dict):
+        if "base" in data:
+            check.error("'base' is not an object", rel)
+    else:
+        if not (base.get("alias") or base.get("capsule")):
+            check.error("base names neither 'alias' nor 'capsule'", rel)
+        for key in DIFF_BASE_KEYS:
+            if not base.get(key):
+                check.error("base/%s is missing: the base has to be "
+                            "retrievable, not remembered" % key, rel)
+        sha = base.get("commit")
+        if isinstance(sha, str) and sha:
+            if not COMMIT_SHA.match(sha.strip().lower()):
+                check.error("base/commit does not look like a commit SHA, "
+                            "7 to 40 hex characters: %s" % sha, rel)
+            else:
+                state = resolve_commit(root, base.get("repo", ""), sha.strip())
+                if state == "unknown":
+                    check.error("base/commit %s is not in this repository, "
+                                "which base/repo names" % sha, rel)
+                elif state == "unavailable":
+                    check.warn("base/commit %s could not be resolved here: "
+                               "the base repository is not available" % sha,
+                               rel)
+
+    # The shared view contract. Without it the difference measures the
+    # renderer and not the flow.
+    contract = data.get("view_contract")
+    if not isinstance(contract, dict):
+        if "view_contract" in data:
+            check.error("'view_contract' is not an object", rel)
+        contract = {}
+    levels = contract.get("colorbar_levels")
+    if levels is None:
+        check.error("view_contract/colorbar_levels is missing: a pixel "
+                    "distance is a field distance only when the quantization "
+                    "is declared", rel)
+    elif levels != COLORBAR_LEVELS:
+        check.error("view_contract/colorbar_levels is %r, the PNG carries %d"
+                    % (levels, COLORBAR_LEVELS), rel)
+    measured = contract.get("colormap_measured")
+    if measured != MEASURED_COLORMAP:
+        check.warn("view_contract/colormap_measured is %r: the comparison "
+                   "runs on a %s render, so a pixel distance is a field "
+                   "distance" % (measured, MEASURED_COLORMAP), rel)
+
+    pipeline = data.get("pipeline")
+    if not isinstance(pipeline, dict):
+        if "pipeline" in data:
+            check.error("'pipeline' is not an object", rel)
+        pipeline = {}
+    evaluated = pipeline.get("pixels_evaluated")
+    if evaluated is None:
+        check.error("pipeline/pixels_evaluated is missing: a changed "
+                    "fraction without its denominator cannot be checked", rel)
+    elif not isinstance(evaluated, (int, float)) or isinstance(evaluated,
+                                                               bool):
+        check.error("pipeline/pixels_evaluated is not a number: %r"
+                    % (evaluated,), rel)
+
+    published = {e.replace("\\", "/").split("/", 1)[1]
+                 for e in entries if e.replace("\\", "/").startswith("diff/")}
+    pairs = data.get("pairs")
+    if pairs is not None and not isinstance(pairs, list):
+        check.error("'pairs' is not an array", rel)
+        pairs = []
+    for index, pair in enumerate(pairs or []):
+        where = "pairs/%d" % index
+        if not isinstance(pair, dict):
+            check.error("%s is not an object" % where, rel)
+            continue
+        threshold = pair.get("threshold_physical")
+        if not isinstance(threshold, (int, float)) \
+                or isinstance(threshold, bool):
+            check.error("%s/threshold_physical is not a number: a threshold "
+                        "in RGB describes the instrument, not the flow: %r"
+                        % (where, threshold), rel)
+        comparison = pair.get("threshold_comparison")
+        if comparison not in THRESHOLD_COMPARISONS:
+            check.error("%s/threshold_comparison is %r, the SPEC allows %s: "
+                        "the sign is not cosmetic, '>' cuts at the next "
+                        "level up" % (where, comparison,
+                                      " or ".join(THRESHOLD_COMPARISONS)),
+                        rel)
+        output = pair.get("output")
+        if not isinstance(output, str) or not output:
+            check.error("%s/output does not name a file" % where, rel)
+        else:
+            name = output.replace("\\", "/")
+            name = name.split("/", 1)[1] if name.startswith("diff/") else name
+            if "/" in name:
+                check.error("%s/output points outside diff/: %s"
+                            % (where, output), rel)
+            elif name not in published:
+                check.error("%s/output is not in diff/: %s" % (where, output),
+                            rel)
+        for side in ("base_view", "variant_view"):
+            value = pair.get(side)
+            if not isinstance(value, str) or not value:
+                check.error("%s/%s does not name a view" % (where, side), rel)
+            elif "/" in value.replace("\\", "/"):
+                check.error("%s/%s is a path, the contract says both capsules "
+                            "use the same filename in their views/: %s"
+                            % (where, side, value), rel)
+            elif not re.match(r"^[a-z0-9_]+\.png$", value):
+                check.error("%s/%s is not a snake_case PNG filename: %s"
+                            % (where, side, value), rel)
+
+    deltas = data.get("scalar_deltas")
+    if deltas is not None and not isinstance(deltas, (dict, list)):
+        check.error("'scalar_deltas' is not an object", rel)
+    else:
+        for path in relative_against_zero(deltas or {}):
+            check.warn("relative delta against a base that is practically "
+                       "zero: scalar_deltas/%s reports the divisor, not the "
+                       "difference" % path, rel)
+
+    known = data.get("known_differences")
+    if known is not None and not isinstance(known, list):
+        check.error("'known_differences' is not an array", rel)
+    return check
+
+
 def check_publication_residue(root, entries):
     check = Check("publication_residue", "No working state left in a "
                   "published capsule", "SPEC 2")
@@ -660,6 +1022,9 @@ CHECKS = [
     check_png_metadata,
     check_reference_block,
     check_dimensional_flags,
+    check_extensions,
+    check_no_instrument_dir,
+    check_diff_manifest,
     check_publication_residue,
     check_punctuation,
 ]
