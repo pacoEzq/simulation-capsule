@@ -132,6 +132,25 @@ Colorbar ranges are fixed and declared, never autoscaled per image. Two images o
 the same field with different autoscaled ranges cannot be compared, and a model has
 no way to detect the mismatch.
 
+### 3.4 Declared extensions
+
+Some capsules carry an artifact that describes something other than their own case.
+A capsule declares those with `extensions`, an array of names in `summary.json`:
+
+```json
+"extensions": ["diff"]
+```
+
+The declaration lives in `summary.json` and nowhere else. A validator reads that
+file first, and discovery cannot depend on the file being discovered.
+
+An extension is optional and additive. A capsule that declares none is a capsule of
+section 4, unchanged, and every capsule valid under 0.2 is valid under 0.3. What an
+extension adds is checked only when it is declared, with one exception stated in
+4.7: an instrument directory is refused whether or not anything is declared.
+
+Defined so far: `diff` (4.7).
+
 ---
 
 ## 4. Artifacts
@@ -238,24 +257,83 @@ The view contract, in full:
 When a view exists to be compared against another capsule, its colorbar range is the
 union of both cases, fixed before either is rendered.
 
-### 4.7 `diff/` (provisional)
+### 4.7 `diff/` and `diff.json` (settled, extension `diff`)
 
-Image differences between two capsules sharing a camera.
+A variant capsule answers what a single case cannot: what a parameter does. It is a
+capsule of section 4 — `setup.txt` and `summary.json` at minimum, plus `views/` —
+that also carries `diff/` and `diff.json`, and declares `extensions: ["diff"]` per
+section 3.4.
+
+`diff.json` describes a relation, not a case. `summary.json` still describes the
+variant's own case, and nothing moves out of it.
+
+The base is declared by alias, repository, commit and path, and is never edited. If
+the base needs a retrofit — `views/`, in this part — `base.commit` names the
+revision that carries it, and `frozen_copy_path` points at the as-published copy.
+
+**Shared view contract.** Both capsules render the same camera, the same fixed
+colorbar ranges, the same width, the same title band, and use the same filenames in
+their `views/`. Without this the difference measures the renderer.
 
 **Resize, then diff.** Diffing at full resolution and downsampling the result
 reports a number that describes an image nobody receives. The published figure has
 to describe the published image.
 
-Elements that change between the two renders for reasons other than the flow
-inflate the raw pixel count and must be cropped before measuring. The title band is
-one of them: it carries the span, and the span differs between two instants of the
-same run.
+**Crop before measuring.** Elements that change between the two renders for reasons
+other than the flow inflate the raw pixel count. The title band is one of them: it
+carries the span, and the span differs between two instants of the same run.
+
+**Measure on grayscale.** The comparison runs on a render of the field with a
+`grayscale` colormap quantized to the 256 levels of the PNG, so that a pixel
+distance is a field distance. `diff.json` names both the published colormap and the
+measured one.
+
+**Threshold in physical units.** The threshold is declared in the units of the field
+together with its comparison sign, `>=`, and the equivalent in levels is derived
+from it. A threshold expressed as a percentage of RGB describes the instrument, not
+the flow — and the sign is not cosmetic: the same pair measured with `>` cuts at the
+next level up and roughly halves the reported fraction.
+
+**Declared masks.** The solid body, filled with a colour outside the colormap and
+dilated by a declared number of pixels, and the colorbar box, declared in pixels.
+Publish `pixels_evaluated`.
+
+**Scalar deltas.** Absolute always; relative only where the base value is not
+practically zero.
+
+`known_differences[]` lists everything that differs between the two capsules and is
+not the parameter under study.
+
+**The instrument does not travel.** The grayscale renders live in `diffsrc/` while
+the measurement runs and stay outside the capsule; `diff.json` declares the recipe
+to regenerate them. A `diffsrc/` directory inside a capsule is an error whether or
+not `diff` is declared.
+
+Schema of `diff.json`:
+
+```
+schema_version
+base      { capsule, case, repo, commit, path, frozen_copy_path }
+variant   { capsule, case }
+difference { parameter, base_value_deg, variant_value_deg, delta_deg,
+             implementation, mesh_identical }
+view_contract { camera, width_px, export_height_px, artifact_height_px,
+                crop_rows_top, colorbar_levels, contour_style, body_fill,
+                colormap_published, colormap_measured, colorbar { cp, u_over_u } }
+pipeline  { order: "crop_then_mask_then_diff", body_dilation_px,
+            colorbar_box_excluded_px, pixels_evaluated, tool, tool_version }
+pairs[]   { name, question, base_view, variant_view, output,
+            threshold_physical, threshold_comparison: ">=", threshold_levels,
+            level_size, changed_pixel_fraction, max_delta_levels,
+            max_delta_physical }
+scalar_deltas { delta_cl, delta_cd, delta_cd_pressure, delta_cd_friction,
+                delta_cp_min, delta_cm_quarter_chord }
+known_differences[]
+```
 
 A worked baseline: for a converged case with a limit cycle, 0.135 percent of pixels
-changed between two instants, which is the noise floor against which a real
-difference has to stand out.
-
-Full schema pending publication of the corresponding part.
+changed between two instants of the same run. That is the noise floor a real
+difference has to stand out against.
 
 ### 4.8 `run_macro.java` and `manifest.json` (provisional)
 
@@ -313,3 +391,4 @@ run it on the expanded directory.
 |---------|--------|
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
+| 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
