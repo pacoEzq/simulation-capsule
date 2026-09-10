@@ -1,7 +1,24 @@
 {
   "case": "naca0012_aoa5",
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2602",
+    "build": "21.02.007",
+    "platform": "win64",
+    "precision": "double",
+    "renders": {
+      "scope": [
+        "views/"
+      ],
+      "version": "2606",
+      "build": "21.04.007",
+      "platform": "linux-x86_64-2.28",
+      "precision": "double",
+      "note": "reproduces the published run exactly: same 2285 iterations, five residuals matching"
+    }
+  },
   "regime": {
-    "reynolds_number": 1.0e6,
+    "reynolds_number": 1000000.0,
     "mach_number": 0.043,
     "angle_of_attack_deg": 5.0,
     "turbulence_model": "SST (Menter) K-Omega"
@@ -10,7 +27,7 @@
     "chord_m": 1.0,
     "velocity_m_s": 15.0,
     "density_kg_m3": 1.18,
-    "viscosity_Pa_s": 1.77e-5,
+    "viscosity_Pa_s": 1.77e-05,
     "area_m2": 1.0,
     "area_note": "chord x unit depth"
   },
@@ -31,17 +48,17 @@
     "yplus_avg": 0.51152
   },
   "conservation": {
-    "mass_imbalance_fraction": 5.0e-13
+    "mass_imbalance_fraction": 5e-13
   },
   "convergence": {
     "iterations": 2285,
     "monitors_flat": true,
     "residuals": {
-      "continuity": 3.97e-7,
-      "x_momentum": 2.62e-6,
-      "y_momentum": 2.05e-7,
+      "continuity": 3.97e-07,
+      "x_momentum": 2.62e-06,
+      "y_momentum": 2.05e-07,
       "tke": 3.79e-11,
-      "sdr": 2.00e-11
+      "sdr": 2e-11
     }
   },
   "mesh": {
