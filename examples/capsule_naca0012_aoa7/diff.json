@@ -1,0 +1,112 @@
+{
+  "schema_version": "diff/2",
+  "base": {
+    "capsule": "capsule_naca0012_aoa5",
+    "case": "naca0012_aoa5",
+    "repo": "simulation-capsule",
+    "path": "examples/capsule_naca0012_aoa5",
+    "frozen_copy_path": "examples/as-published/capsule_naca0012_aoa5",
+    "commit": "d4219d1",
+    "commit_note": "the commit that gave the base its views/; the diff is measured against that state"
+  },
+  "variant": {
+    "capsule": "capsule_naca0012_aoa7",
+    "case": "naca0012_aoa7"
+  },
+  "difference": {
+    "parameter": "angle_of_attack_deg",
+    "base_value_deg": 5.0,
+    "variant_value_deg": 7.0,
+    "delta_deg": 2.0,
+    "implementation": "freestream_direction",
+    "implementation_note": "the inlet velocity vector is rotated 2 deg; the geometry and the mesh are untouched, so every changed pixel is flow and not silhouette",
+    "mesh_identical": true
+  },
+  "view_contract": {
+    "camera": "cam_z0_nearfield",
+    "projection": "parallel, normal z",
+    "frame_x_over_c": [
+      -0.5,
+      2.5
+    ],
+    "frame_y_over_c": [
+      -1.0,
+      1.0
+    ],
+    "width_px": 1024,
+    "view_height_px": 739,
+    "measured_height_px": 683,
+    "crop_rows_top": 56,
+    "colorbar_levels": 256,
+    "contour_style": "Smooth Filled",
+    "colormap_published": "blue-red uniform perception",
+    "colormap_measured": "grayscale",
+    "body_fill": "magenta solid, a colour the colormap cannot produce",
+    "range_cp": [
+      -3.0,
+      1.0
+    ],
+    "range_u_over_u": [
+      -0.3,
+      1.7
+    ],
+    "range_note": "union over both cases, not the range of either alone, and clamped rather than clipped"
+  },
+  "pipeline": {
+    "order": "crop_then_mask_then_diff",
+    "crop": "the top 56 rows carry the burned title, which differs between cases",
+    "mask": "every non grey pixel in either frame, which removes the magenta body and its antialiased edge",
+    "pixels_evaluated": 690125,
+    "pixels_excluded": 9267,
+    "tool": "tools/diff_capsule_views.py 1.2",
+    "instrument_recipe": "the grayscale renders are the instrument and stay outside the capsule, SPEC 4.7. Regenerate them by re-exporting each view with colormap grayscale and every other setting of view_contract unchanged, then crop 56 rows.",
+    "output_gain": 6
+  },
+  "pairs": [
+    {
+      "name": "diff_cp_nearfield",
+      "question": "where does the pressure field change with two degrees more incidence",
+      "base_view": "view_cp_nearfield.png",
+      "variant_view": "view_cp_nearfield.png",
+      "output": "diff/diff_cp_nearfield.png",
+      "level_size": 0.015625,
+      "threshold_levels": 3,
+      "threshold_comparison": ">=",
+      "threshold_physical": 0.0469,
+      "changed_pixel_fraction": 0.0617,
+      "max_delta_levels": 61,
+      "max_delta_physical": 0.953
+    },
+    {
+      "name": "diff_u_over_u_wake",
+      "question": "where does the velocity field change and how far downstream does it persist",
+      "base_view": "view_u_over_u_wake.png",
+      "variant_view": "view_u_over_u_wake.png",
+      "output": "diff/diff_u_over_u_wake.png",
+      "level_size": 0.0078125,
+      "threshold_levels": 3,
+      "threshold_comparison": ">=",
+      "threshold_physical": 0.0234,
+      "changed_pixel_fraction": 0.0588,
+      "max_delta_levels": 26,
+      "max_delta_physical": 0.203
+    }
+  ],
+  "scalar_deltas": {
+    "delta_cl": 0.2049151,
+    "delta_cd": 0.0018878,
+    "delta_cd_pressure": 0.0021592,
+    "delta_cd_friction": -0.0002714,
+    "delta_cm_quarter_chord": -0.0021206,
+    "delta_cp_min": -1.120435,
+    "delta_lift_to_drag": 8.733,
+    "note": "two degrees raise total drag by 15 percent, pressure drag by 51 percent, and lower friction drag by 3 percent. A single drag scalar would hide that split."
+  },
+  "known_differences": [
+    "the far field partition of the variant is rotated 2 deg with the freestream, so that the inlet and outlet halves stay aligned with the flow. Leaving it perpendicular admitted inflow through the pressure outlet and moved pressure drag by 8 percent without any monitor complaining.",
+    "wake_refine is aligned with the wake of the base, so the wake of the variant leaves that refined band further downstream",
+    "cp_stagnation of the variant is 1.00071, above the incompressible bound of 1. Measured at residuals of 2.5e-9, so it is structural and not convergence noise. 26 percent is attributed to the pressure datum measured at the inlet, 0.0249 Pa; the remainder is unattributed between discrete stagnation point resolution and finite domain.",
+    "the base ran 2285 iterations and the variant 2567. Both stopped on the asymptotic monitor criteria, not on an iteration cap.",
+    "both cases ran in double precision on 2606. An earlier pass in single precision gave changed pixel fractions of 6.47 and 6.14 percent: the rounding floor pushed pixels just past the threshold."
+  ]
+}
