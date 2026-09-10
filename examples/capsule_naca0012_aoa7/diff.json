@@ -1,4 +1,4 @@
-{
+﻿{
   "schema_version": "diff/2",
   "base": {
     "capsule": "capsule_naca0012_aoa5",
@@ -6,7 +6,7 @@
     "repo": "simulation-capsule",
     "path": "examples/capsule_naca0012_aoa5",
     "frozen_copy_path": "examples/as-published/capsule_naca0012_aoa5",
-    "commit": "d4219d1",
+    "commit": "3b434e7",
     "commit_note": "the commit that gave the base its views/; the diff is measured against that state"
   },
   "variant": {
@@ -60,7 +60,9 @@
     "pixels_excluded": 9267,
     "tool": "tools/diff_capsule_views.py 1.2",
     "instrument_recipe": "the grayscale renders are the instrument and stay outside the capsule, SPEC 4.7. Regenerate them by re-exporting each view with colormap grayscale and every other setting of view_contract unchanged, then crop 56 rows.",
-    "output_gain": 6
+    "output_gain": 6,
+    "instrument_root": "diffsrc",
+    "integrity": "the chain is view then grayscale frame then diff. All four hashes are checked before measuring and a mismatch stops the run: a stale number returned in silence is the failure this closes."
   },
   "pairs": [
     {
@@ -68,6 +70,14 @@
       "question": "where does the pressure field change with two degrees more incidence",
       "base_view": "view_cp_nearfield.png",
       "variant_view": "view_cp_nearfield.png",
+      "source_sha256": {
+        "base_view": "f9f2f6942514464f7d5f183c6d34b1789f237702b00f2cf3679be05a89ea192a",
+        "variant_view": "512a1ba5f6ab0a43438f577fdcacbc00f780f962f09e93d68773dd694c251d76"
+      },
+      "instrument_sha256": {
+        "base_frame": "99101b8592e0ca9afd238f17d983a0c859bf8afeb1d354f88404899b024380c3",
+        "variant_frame": "ed39958a2b6f3dd72d9a04bdb46a39b8535f1b52f019833b8a95464f657dcddb"
+      },
       "output": "diff/diff_cp_nearfield.png",
       "level_size": 0.015625,
       "threshold_levels": 3,
@@ -82,6 +92,14 @@
       "question": "where does the velocity field change and how far downstream does it persist",
       "base_view": "view_u_over_u_wake.png",
       "variant_view": "view_u_over_u_wake.png",
+      "source_sha256": {
+        "base_view": "329bbdcef92b93b0babc6255b5e697eda65f745d389c79fb8224ee68c164026e",
+        "variant_view": "dfee56a2e5e47fa2dbaf431cb97bb347f03a2187b7e2f92a6e16afd21e512648"
+      },
+      "instrument_sha256": {
+        "base_frame": "b0da3e9052904f1a193a8b71384e1a312b735e14946850c1e9c21079d20b5cba",
+        "variant_frame": "859a1d7eeafd3c5d561783303ddeb18f6a4f1d588cb3d9b190dab7873564fc71"
+      },
       "output": "diff/diff_u_over_u_wake.png",
       "level_size": 0.0078125,
       "threshold_levels": 3,
@@ -110,3 +128,4 @@
     "both cases ran in double precision on 2606. An earlier pass in single precision gave changed pixel fractions of 6.47 and 6.14 percent: the rounding floor pushed pixels just past the threshold."
   ]
 }
+
