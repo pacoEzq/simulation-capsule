@@ -29,6 +29,7 @@ only printed, so a run can never quietly rewrite a manifest.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -36,9 +37,9 @@ import sys
 import numpy as np
 from PIL import Image
 
-VERSION = "2.0"
+VERSION = "2.2"
 
-DEFAULT_SRC = os.path.join("tools", "diffsrc")
+DEFAULT_SRC = "diffsrc"
 
 # Gain for the output picture when diff.json does not declare one. Fixed
 # and printed, never automatic: an auto level would make two diffs of
@@ -54,6 +55,32 @@ def need(mapping, key, where):
     if key not in mapping:
         die("%s has no '%s'" % (where, key))
     return mapping[key]
+
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(65536), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def verify(path, expected, label, name):
+    """Stop on a mismatch. The chain is view, then grayscale frame, then
+    diff: a view re-exported without regenerating its frame would leave
+    the frame hash intact and the run would return the previous number
+    with nothing to show for it."""
+    if not os.path.isfile(path):
+        die("%s: missing %s: %s" % (name, label, path))
+    if expected is None:
+        die("%s: no recorded sha256 for %s; SPEC 4.7 asks for all four"
+            % (name, label))
+    got = sha256(path)
+    if got != expected.lower():
+        die("%s: %s does not match its recorded sha256\n"
+            "  file     %s\n  recorded %s\n  actual   %s\n"
+            "Re-export or regenerate what is stale, then update diff.json."
+            % (name, label, path, expected.lower(), got))
 
 
 def load_frame(path, crop_rows):
@@ -98,7 +125,9 @@ def main():
     with open(manifest_path, encoding="utf-8") as handle:
         manifest = json.load(handle)
 
-    base_capsule = need(need(manifest, "base", "diff.json"), "capsule", "base")
+    base_block = need(manifest, "base", "diff.json")
+    base_capsule = need(base_block, "capsule", "base")
+    base_root = base_block.get("path", os.path.join("examples", base_capsule))
     var_capsule = need(need(manifest, "variant", "diff.json"), "capsule",
                        "variant")
     contract = need(manifest, "view_contract", "diff.json")
@@ -106,10 +135,6 @@ def main():
     pairs = need(manifest, "pairs", "diff.json")
 
     crop_rows = contract.get("crop_rows_top", 0)
-    comparison = pipeline.get("threshold_comparison", ">=")
-    if comparison not in (">=", ">"):
-        die("pipeline.threshold_comparison is %r, expected '>=' or '>'"
-            % comparison)
     gain = pipeline.get("output_gain", FALLBACK_GAIN)
 
     out_dir = os.path.join(args.capsule_dir, "diff")
@@ -120,17 +145,32 @@ def main():
     print("source   %s" % os.path.abspath(args.src))
     print("base     %s" % base_capsule)
     print("variant  %s" % var_capsule)
-    print("crop %d rows, threshold %s, gain x%d"
-          % (crop_rows, comparison, gain))
+    print("crop %d rows, gain x%d" % (crop_rows, gain))
 
     for pair in pairs:
         name = need(pair, "name", "a pair")
         level = float(need(pair, "level_size", name))
         levels = int(need(pair, "threshold_levels", name))
-        base_path = frame_path(args.src, base_capsule,
-                               need(pair, "base_view", name))
-        var_path = frame_path(args.src, var_capsule,
-                              need(pair, "variant_view", name))
+        # SPEC keeps the sign per pair: two fields may be counted
+        # differently, and a reader must not look elsewhere to learn how
+        # the number in front of them was counted.
+        comparison = need(pair, "threshold_comparison", name)
+        if comparison not in (">=", ">"):
+            die("%s: threshold_comparison is %r, expected '>=' or '>'"
+                % (name, comparison))
+        base_file = need(pair, "base_view", name)
+        var_file = need(pair, "variant_view", name)
+        base_path = frame_path(args.src, base_capsule, base_file)
+        var_path = frame_path(args.src, var_capsule, var_file)
+
+        source = need(pair, "source_sha256", name)
+        instrument = need(pair, "instrument_sha256", name)
+        verify(os.path.join(base_root, "views", base_file),
+               source.get("base_view"), "base view", name)
+        verify(os.path.join(args.capsule_dir, "views", var_file),
+               source.get("variant_view"), "variant view", name)
+        verify(base_path, instrument.get("base_frame"), "base frame", name)
+        verify(var_path, instrument.get("variant_frame"), "variant frame", name)
 
         base = load_frame(base_path, crop_rows)
         var = load_frame(var_path, crop_rows)
