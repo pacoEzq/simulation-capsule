@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.2. Draft.**
+**Version 0.3. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
