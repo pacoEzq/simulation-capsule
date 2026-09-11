@@ -57,6 +57,7 @@ capsule_<alias>/
 ├── features.json       named flow features with their properties
 ├── views/              renders, each answering a declared question
 │   └── *.png
+├── diff.json           what was compared, and against what
 ├── diff/               image differences between capsules
 │   └── *.png
 ├── run_macro.java      reproduction
@@ -70,6 +71,10 @@ capsule_<alias>/
 Not every case needs every layer. A steady RANS case has no `signals/`. The layers
 that are present must follow [SPEC.md](SPEC.md).
 
+`diff.json` and `diff/` are an extension rather than a layer: they describe a
+relation to another capsule, not the case itself. A capsule that carries them
+declares `"extensions": ["diff"]` in its `summary.json`.
+
 ## The tutorial series
 
 The capsule is developed one layer at a time in **Preparing CFD Output for Large
@@ -82,12 +87,16 @@ model-agnostic; nothing here depends on a particular frontier model.
 
 The series starts here: [Part 1, What does an LLM consume well?](https://community.sw.siemens.com/s/question/0D5Vb00001OziUAKAZ/preparing-cfd-output-for-large-language-models-110-what-does-an-llm-consume-well)
 
+Part 6b runs alongside Part 6 rather than after it, and introduces the `diff`
+extension: [Part 6b, Case comparison via image differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing)
+
 ## Repository contents
 
 | Path | What it holds |
 |------|---------------|
 | `SPEC.md` | The capsule contract: directory layout, per-artifact rules, naming |
 | `examples/` | Complete capsules from the series reference cases |
+| `diffsrc/` | Grayscale frames the published image diffs were measured from |
 | `probes/` | Probe test records: what models could and could not read from each capsule |
 | `tools/` | Python for building and checking capsule artifacts |
 | `macros/` | Java macros for Simcenter STAR-CCM+ export |
@@ -127,9 +136,10 @@ are left visible rather than patched.
 ## Status
 
 The specification tracks the series and is incomplete by design: layers are
-specified as their tutorial publishes. Parts 1 to 6 are out, so everything from
-`setup.txt` through `views/` is settled. The transient layers and the disclosure
-audit are still moving.
+specified as their tutorial publishes. Parts 1 to 6 are out, and Part 6b with
+them, so everything from `setup.txt` through `views/` is settled, and so is the
+`diff` extension of 4.7. The transient layers and the disclosure audit are still
+moving.
 
 Breaking changes to settled layers get a version bump and a note in `SPEC.md`.
 
