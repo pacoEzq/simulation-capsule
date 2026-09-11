@@ -12,16 +12,26 @@ Scalars**.
 ```
 capsule_naca0012_aoa5/
 ├── setup.txt        trimmed solver setup report
-└── summary.json     global scalars
+├── summary.json     global scalars, environment
+└── views/           two renders under the shared view contract
 ```
 
-Nothing else. This is the capsule at its smallest, and deliberately so: the part it
-belongs to introduces the idea that a case can be anchored in scalars before any
-field data is shipped. Twenty-eight kilobytes describe a converged aerofoil run well
-enough to argue about.
+Two files at first, and deliberately so: the part it belongs to introduces the idea
+that a case can be anchored in scalars before any field data is shipped.
+Twenty-eight kilobytes describe a converged aerofoil run well enough to argue about.
+
+`views/` arrived later. Part 6b needed a base to compare against, and a comparison
+needs two renders made under one view contract, so the two views were added here and
+an `environment` block was added to `summary.json`. Neither changes what the capsule
+says about the run: the scalars are the ones published with Part 2, and the renders
+come from that same solution. What changed is what the capsule declares about itself.
 
 Read next to `capsule_ahmed25_re1e6`, which carries six views and a caveats block,
 it shows how much the format grew over four parts.
+
+It is also the base of the first comparable pair in the repository.
+`capsule_naca0012_aoa7` is the same case at 7 degrees, rendered under the same view
+contract, and its `diff.json` measures the two against each other.
 
 ## The capsule checks itself
 
