@@ -107,8 +107,10 @@ extension: [Part 6b, Case comparison via image differencing](https://community.s
 A capsule gets checked twice, by a program and by a reader.
 
 The program is [`tools/check_capsule.py`](tools/check_capsule.py), which turns the
-mechanical parts of the SPEC into fourteen checks: standard library only, nothing to
-install. Every capsule in `examples/` runs through it on every push.
+mechanical parts of the SPEC into fifteen checks: standard library only, nothing to
+install. A capsule runs the checks its layers call for, thirteen without plane
+sections and fifteen with them. Every capsule in `examples/` runs through it on
+every push.
 
 ```bash
 python3 tools/check_capsule.py examples/*/          # errors fail, warnings show
@@ -128,10 +130,10 @@ checked against the files. [`probes/`](probes/README.md) holds those sessions an
 the nine capsule defects they caught, including the one that this validator now
 catches automatically.
 
-The published capsules pass with warnings. Those warnings are schema divergence
-across capsules written before the schema was closed, listed in
-[`examples/README.md`](examples/README.md) and settled by the automation part. They
-are left visible rather than patched.
+The published capsules pass clean, `--strict` included. They did not always: the
+schema divergence between capsules written before the schema was closed is recorded
+in [`examples/README.md`](examples/README.md), and it was settled before the first
+comparable pair went out.
 
 ## Status
 

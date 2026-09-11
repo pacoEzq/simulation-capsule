@@ -25,42 +25,37 @@ could not yet answer is exactly what the later layers were built for.
 
 | Capsule | Case | Layers present | From | Probe record |
 |---------|------|----------------|------|--------------|
-| `capsule_naca0012_aoa5` | NACA 0012, 5 degrees, Re 1e6 | `setup.txt`, `summary.json` | [Part 2](capsule_naca0012_aoa5.md) | [read](../probes/part-2_naca0012_aoa5.md) |
+| `capsule_naca0012_aoa5` | NACA 0012, 5 degrees, Re 1e6 | `setup.txt`, `summary.json`, `views/` | [Part 2](capsule_naca0012_aoa5.md) | [read](../probes/part-2_naca0012_aoa5.md) |
 | `capsule_cube_re200` | Cube, Re 200, laminar | `+ planes/` | [Part 3](capsule_cube_re200.md) | [read](../probes/part-3_cube_re200.md) |
 | `capsule_jet_r2_re100` | Jet in crossflow, r = 2, Re 100 | `+ samples.csv` | [Part 4](capsule_jet_r2_re100.md) | [read](../probes/part-4_jet_r2_re100.md) |
 | `capsule_delta65_a13p3_re1e6` | Delta wing, 65 degrees, alpha 13.3 | `+ features.json` | [Part 5](capsule_delta65_a13p3_re1e6.md) | [read](../probes/part-5_delta65_a13p3_re1e6.md) |
 | `capsule_ahmed25_re1e6` | Ahmed body, 25 degree slant, Re 1e6 | `setup.txt`, `summary.json`, `views/` | [Part 6](capsule_ahmed25_re1e6.md) | [read](../probes/part-6_ahmed25_re1e6.md) |
+| `capsule_naca0012_aoa7` | NACA 0012, 7 degrees, Re 1e6 | `+ diff.json`, `diff/` | [Part 6b](capsule_naca0012_aoa7.md) | not yet |
 
 Read down the table and the format assembles itself: scalars, then sections, then a
-volume sample, then named features, then curated views.
+volume sample, then named features, then curated views, then a comparison
+between two of them.
 
-Every capsule here was handed whole to a language model and questioned about its
-own case before it was published. The probe records hold the questions, the answers
+Every capsule here but the newest was handed whole to a language model and
+questioned about its own case before it was published. The probe records hold
+the questions, the answers
 and what the reader got wrong, and [`probes/README.md`](../probes/README.md) lists
 the nine capsule defects those sessions caught.
 
-## What they do not yet agree on
+## What they agreed on in the end
 
-The five capsules declare their reference quantities three different ways. Two carry
-`{value, unit_flag}` objects, one folds the unit into the key name, and two ship
-bare numbers with no unit anywhere. They also disagree about where the block lives:
-four use a `reference` object, while the delta wing splits its quantities between
-`case/geometry` and `nondimensionalization/reference_quantities` and declares the
-root chord in both.
+For most of the series these capsules declared their reference quantities three
+different ways, and their plane CSV headers disagreed too. That is closed. They now
+declare those quantities the same way, and `tools/check_capsule.py` run over this
+directory in `--strict` reports nothing at all.
 
-The plane CSV header diverges too. The cube and the jet declare grid, spacing, nodes
-returned over nodes requested, precision and the word nondimensional. The delta wing
-omits the spacing and the node counts.
+The divergence was invisible until several capsules sat side by side, which is a
+decent argument for publishing them together. What made it urgent was the comparable
+pair: two capsules that answer a question about each other cannot disagree about
+what their numbers are scaled by.
 
-The specification says keys are stable across cases where the quantity is the same,
-so these are divergences rather than variations, and they are left visible here on
-purpose. They are also invisible until several capsules sit side by side, which is a
-decent argument for publishing them together. The automation part is where it gets
-settled; the jet capsule already carries the `schema` key that will do it.
-
-The counts above are measured rather than eyeballed. Run
-[`tools/check_capsule.py`](../tools/check_capsule.py) over this directory and it
-reports each divergence as a warning, with the file and the key.
+The claim is measured, not eyeballed. Run the validator over the directory yourself;
+silence is the whole of it.
 
 Each capsule has a case card beside it, `<capsule_name>.md`, describing the run and
 what the capsule is honest about. The card sits outside the capsule directory on
@@ -70,7 +65,7 @@ format.
 
 ## What they cost
 
-Between 5,900 and 66,000 tokens, measured per artifact in
+Between 8,400 and 65,000 tokens, measured per artifact in
 [token-ledger.md](token-ledger.md).
 
 The headline is not the one most people expect. Images are cheap: they account for
