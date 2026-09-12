@@ -85,10 +85,22 @@ technique reveals something the case would not otherwise show.
 Recipes are written for Simcenter STAR-CCM+. The principles are solver-agnostic and
 model-agnostic; nothing here depends on a particular frontier model.
 
-The series starts here: [Part 1, What does an LLM consume well?](https://community.sw.siemens.com/s/question/0D5Vb00001OziUAKAZ/preparing-cfd-output-for-large-language-models-110-what-does-an-llm-consume-well)
+| # | Part | Capsule layer |
+|---|------|---------------|
+| 1 | [What Does an LLM Consume Well?](https://community.sw.siemens.com/s/question/0D5Vb00001OziUAKAZ/preparing-cfd-output-for-large-language-models-110-what-does-an-llm-consume-well) | `setup.txt` |
+| 2 | [Global Anchoring, the Case Summary in 50 Scalars](https://community.sw.siemens.com/s/question/0D5Vb00001Q4J4rKAF/preparing-cfd-output-for-large-language-models-210-global-anchoring-the-case-summary-in-50-scalars) | `summary.json` |
+| 3 | [Sections and Planes, the CSV plus Image Pair](https://community.sw.siemens.com/s/question/0D5Vb00001QuRzDKAV/preparing-cfd-output-for-large-language-models-310-sections-and-planes-the-csv-plus-image-pair) | `planes/` |
+| 4 | [Volumetric Importance-Based Sampling](https://community.sw.siemens.com/s/question/0D5Vb00001RmgOaKAJ/preparing-cfd-output-for-large-language-models-410-volumetric-importancebased-sampling) | `samples.csv` |
+| 5 | [Semantic Feature Extraction](https://community.sw.siemens.com/s/question/0D5Vb00001SkKCtKAN/preparing-cfd-output-for-large-language-models-510-semantic-feature-extraction) | `features.json` |
+| 6 | [Visualizations Designed for LLMs](https://community.sw.siemens.com/s/question/0D5Vb00001WjpY0KAJ/preparing-cfd-output-for-large-language-models-610-visualizations-designed-for-llms) | `views/` |
+| 6b | [Case Comparison via Image Differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing) | `diff.json`, `diff/` |
+| 7 | Automation: the reproducible capsule (not yet) | `run_macro.java`, `manifest.json` |
+| 8 | Transient fields I: time as statistics (not yet) | `signals/` |
+| 9 | Transient fields II: modes (not yet) | `modes/`, `snapshots/` |
+| 10 | Confidentiality: what leaves the building (not yet) | `disclosure.json` |
 
 Part 6b runs alongside Part 6 rather than after it, and introduces the `diff`
-extension: [Part 6b, Case comparison via image differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing)
+extension.
 
 ## Repository contents
 
