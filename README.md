@@ -139,7 +139,7 @@ verified, it has only been quiet.
 The reader is a language model. Before a capsule is published it is handed whole to
 one, in a fresh conversation, and asked narrow questions whose answers can be
 checked against the files. [`probes/`](probes/README.md) holds those sessions and
-the nine capsule defects they caught, including the one that this validator now
+the fourteen capsule defects they caught, including the one that this validator now
 catches automatically.
 
 The published capsules pass clean, `--strict` included. They did not always: the
