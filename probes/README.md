@@ -58,12 +58,7 @@ became visible only after the fact.
 | 4 | `+ samples.csv` | 1 | [part-4_jet_r2_re100.md](part-4_jet_r2_re100.md) |
 | 5 | `+ features.json` | 1 | [part-5_delta65_a13p3_re1e6.md](part-5_delta65_a13p3_re1e6.md) |
 | 6 | `+ views/` | 4 | [part-6_ahmed25_re1e6.md](part-6_ahmed25_re1e6.md) |
-| 6b, run 1 | `+ diff.json`, `diff/` | 1, A | [part-6b_naca0012_aoa5_aoa7.md](part-6b_naca0012_aoa5_aoa7.md) |
-| 6b, run 2 | `+ diff.json`, `diff/` | 1, B | [part-6b_naca0012_aoa5_aoa7.md](part-6b_naca0012_aoa5_aoa7.md) |
-
-Part 6b has one row per run. Its two runs were made on different days and at
-different effort settings, medium for A and Expert for B, so the record is not
-a head to head. A run in A's family at high effort is pending.
+| 6b | `+ diff.json`, `diff/` | 2 | [part-6b_naca0012_aoa5_aoa7.md](part-6b_naca0012_aoa5_aoa7.md) |
 
 Records are named `part-<N>_<case>.md`, one file per part; a part that compares
 two cases names the pair in full. The dated `2026-09-02_ahmed25_re1e6.md` was
