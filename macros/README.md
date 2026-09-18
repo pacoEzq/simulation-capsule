@@ -37,3 +37,14 @@ Usage notes:
 Origin: published with
 [Making AI Understand Your Simulations](https://community.sw.siemens.com/s/question/0D5Vb0000181bwjKAA/making-ai-understand-your-simulations)
 and attached to Part 1 of the series.
+
+---
+
+## Terms
+
+The macros in this directory ask you to operate Simcenter STAR-CCM+, and they
+were produced by pointing an AI tool at Siemens documentation. Readers who set
+this up with their own AI tooling are responsible for their own plan and
+settings.
+
+Use of Siemens documentation and AI tools remains subject to your applicable Siemens terms.
