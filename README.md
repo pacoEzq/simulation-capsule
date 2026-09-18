@@ -7,6 +7,10 @@ simulation case, designed to be consumed by a language model.**
 
 A Simulation Capsule is to a CFD case what `llms.txt` is to a website.
 
+The format is defined by a tutorial series published on the Siemens Simcenter
+community forum. The forum renders client side and is hard to index; this README
+is the indexable table of contents, and the series table sits below.
+
 ---
 
 ## The problem

@@ -1,0 +1,26 @@
+# Simulation Capsule
+
+> A Simulation Capsule is a self-contained, token-budgeted distillation of a simulation case, designed to be consumed by a language model. A Simulation Capsule is to a CFD case what llms.txt is to a website.
+
+The format is defined by a tutorial series published on the Siemens Simcenter community forum. The forum renders client side and is hard to index, so this file and the repository README are the machine-readable entry points to the series.
+
+## Format
+
+- [SPEC.md](https://github.com/pacoEzq/simulation-capsule/blob/main/SPEC.md): the capsule specification, one section per artifact.
+- [README.md](https://github.com/pacoEzq/simulation-capsule/blob/main/README.md): what a capsule is, what it is for, and the index of the series.
+
+## Tutorial series
+
+- [1. What Does an LLM Consume Well?](https://community.sw.siemens.com/s/question/0D5Vb00001OziUAKAZ/preparing-cfd-output-for-large-language-models-110-what-does-an-llm-consume-well): framing and `setup.txt`.
+- [2. Global Anchoring, the Case Summary in 50 Scalars](https://community.sw.siemens.com/s/question/0D5Vb00001Q4J4rKAF/preparing-cfd-output-for-large-language-models-210-global-anchoring-the-case-summary-in-50-scalars): `summary.json`.
+- [3. Sections and Planes, the CSV plus Image Pair](https://community.sw.siemens.com/s/question/0D5Vb00001QuRzDKAV/preparing-cfd-output-for-large-language-models-310-sections-and-planes-the-csv-plus-image-pair): `planes/`.
+- [4. Volumetric Importance-Based Sampling](https://community.sw.siemens.com/s/question/0D5Vb00001RmgOaKAJ/preparing-cfd-output-for-large-language-models-410-volumetric-importancebased-sampling): `samples.csv`.
+- [5. Semantic Feature Extraction](https://community.sw.siemens.com/s/question/0D5Vb00001SkKCtKAN/preparing-cfd-output-for-large-language-models-510-semantic-feature-extraction): `features.json`.
+- [6. Visualizations Designed for LLMs](https://community.sw.siemens.com/s/question/0D5Vb00001WjpY0KAJ/preparing-cfd-output-for-large-language-models-610-visualizations-designed-for-llms): `views/`.
+- [6b. Case Comparison via Image Differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing): `diff.json` and `diff/`.
+
+## Optional
+
+- [examples/](https://github.com/pacoEzq/simulation-capsule/tree/main/examples): example capsules.
+- [macros/](https://github.com/pacoEzq/simulation-capsule/tree/main/macros): Simcenter STAR-CCM+ macros that produce capsule artifacts.
+- [tools/](https://github.com/pacoEzq/simulation-capsule/tree/main/tools): scripts that build and check a capsule.
