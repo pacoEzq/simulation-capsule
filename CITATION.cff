@@ -12,9 +12,16 @@ abstract: >-
   be consumed by a language model.
 keywords:
   - cfd
+  - context-engineering
+  - file-format
   - large-language-models
+  - llms-txt
   - postprocessing
+  - scientific-visualization
   - simulation
   - star-ccm-plus
-license: CC-BY-4.0
-version: 0.1
+  - tokenization
+license:
+  - MIT
+  - CC-BY-4.0
+version: 0.3
