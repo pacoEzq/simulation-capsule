@@ -161,6 +161,10 @@ moving.
 
 Breaking changes to settled layers get a version bump and a note in `SPEC.md`.
 
+## Related
+
+[starccm-javadoc-mcp](https://github.com/pacoEzq/starccm-javadoc-mcp) (same author) is the other half of the idea: that repository teaches a model to write a simulation, this one teaches it to read the results.
+
 ## Contributing
 
 Issues are welcome, particularly ports to other solvers and cases where the format
