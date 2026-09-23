@@ -8,9 +8,9 @@
   },
   "reference": {
     "side_m": 1.0,
-    "velocity_m_s": 1.0,
-    "density_kg_m3": 1.0,
-    "viscosity_Pa_s": 0.005,
+    "velocity_m_per_s": 1.0,
+    "density_kg_per_m3": 1.0,
+    "viscosity_pa_s": 0.005,
     "viscosity_note": "rho*U*D/Re",
     "area_m2": 1.0,
     "area_note": "frontal, D^2"
