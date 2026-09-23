@@ -129,9 +129,9 @@ sections and fifteen with them. Every capsule in `examples/` runs through it on
 every push.
 
 ```bash
-python3 tools/check_capsule.py examples/*/          # errors fail, warnings show
-python3 tools/check_capsule.py examples/*/ --strict # warnings fail too
-python3 tools/capsule_ledger.py examples/*/ --markdown
+python3 tools/check_capsule.py examples/capsule_*/          # errors fail, warnings show
+python3 tools/check_capsule.py examples/capsule_*/ --strict # warnings fail too
+python3 tools/capsule_ledger.py examples/capsule_*/ --markdown
 ```
 
 The validator carries its own regression test.
@@ -146,10 +146,13 @@ checked against the files. [`probes/`](probes/README.md) holds those sessions an
 the fourteen capsule defects they caught, including the one that this validator now
 catches automatically.
 
-The published capsules pass clean, `--strict` included. They did not always: the
+The current capsules, `examples/capsule_*/`, pass clean, `--strict` included. They did not always: the
 schema divergence between capsules written before the schema was closed is recorded
 in [`examples/README.md`](examples/README.md), and it was settled before the first
-comparable pair went out.
+comparable pair went out. The capsules as the posts shipped them are kept byte for byte
+under `examples/as-published/`, and there the validator still warns about the old
+form. That is the record, not a regression, and it is why the commands above name
+`capsule_*/` and not `*/`.
 
 ## Status
 

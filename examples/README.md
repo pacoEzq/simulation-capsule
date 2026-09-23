@@ -46,16 +46,24 @@ the nine capsule defects those sessions caught.
 
 For most of the series these capsules declared their reference quantities three
 different ways, and their plane CSV headers disagreed too. That is closed. They now
-declare those quantities the same way, and `tools/check_capsule.py` run over this
-directory in `--strict` reports nothing at all.
+declare those quantities the same way, and `tools/check_capsule.py` run over the six
+of them in `--strict` reports no error and no warning.
 
 The divergence was invisible until several capsules sat side by side, which is a
 decent argument for publishing them together. What made it urgent was the comparable
 pair: two capsules that answer a question about each other cannot disagree about
 what their numbers are scaled by.
 
-The claim is measured, not eyeballed. Run the validator over the directory yourself;
-silence is the whole of it.
+The claim is measured, not eyeballed. Run the validator yourself, from the
+repository root:
+
+```bash
+python3 tools/check_capsule.py examples/capsule_*/ --strict
+```
+
+Six capsules, six passes, exit code 0. Point it at `examples/*/` instead and it also
+reads `as-published/` as if it were one capsule, and fails: that directory holds the
+capsules exactly as the posts shipped them, frozen, old forms included.
 
 Each capsule has a case card beside it, `<capsule_name>.md`, describing the run and
 what the capsule is honest about. The card sits outside the capsule directory on
