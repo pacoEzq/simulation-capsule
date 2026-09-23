@@ -126,6 +126,23 @@ def build_bad_name(root):
     }, indent=2))
 
 
+def build_suffix_grammar(root, wrong):
+    """The suffixes migrate_reference 1.0 wrote, against the ones SPEC 3.1
+    asks for. velocity_m_s matches the unit pattern and is a product."""
+    write(os.path.join(root, "setup.txt"), "Case: suffixes\n")
+    if wrong:
+        reference = {"chord_m": 1.0, "velocity_m_s": 15.0,
+                     "density_kg_m3": 1.18, "viscosity_Pa_s": 1.77e-05,
+                     "q_inf_Pa": 0.5}
+    else:
+        reference = {"chord_m": 1.0, "velocity_m_per_s": 15.0,
+                     "density_kg_per_m3": 1.18, "viscosity_pa_s": 1.77e-05,
+                     "q_inf_pa": 0.5, "kinematic_viscosity_m2_per_s": 1.5e-05,
+                     "re_c": 1.0e6}
+    write(os.path.join(root, "summary.json"), json.dumps({
+        "case": "suffixes", "reference": reference}, indent=2))
+
+
 def build_angles(root):
     """What the Ahmed and NACA capsules taught: an angle in degrees is a
     group, a width named W is not a power, and a units line is not an
@@ -284,6 +301,8 @@ def main():
         bad_sign = os.path.join(workspace, "capsule_bad_sign")
         bad_colormap = os.path.join(workspace, "capsule_bad_colormap")
         zero_base = os.path.join(workspace, "capsule_zero_base")
+        suffix_bad = os.path.join(workspace, "capsule_suffix_bad")
+        suffix_ok = os.path.join(workspace, "capsule_suffix_ok")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -293,6 +312,8 @@ def main():
         build_bad_name(badname)
         build_legacy(legacy)
         build_angles(angles_ok)
+        build_suffix_grammar(suffix_bad, True)
+        build_suffix_grammar(suffix_ok, False)
         build_variant(variant_ok)
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
@@ -372,6 +393,23 @@ def main():
             failures.append("dimensionless group inside reference fired")
         else:
             print("PASS  dimensionless groups inside reference stay silent")
+
+        msgs = [f["message"] for f in findings(suffix_bad, "dimensional_flags")]
+        wrong = ("velocity_m_s", "density_kg_m3", "viscosity_Pa_s", "q_inf_Pa")
+        missed = [k for k in wrong if not any(k in m for m in msgs)]
+        if missed:
+            failures.append("suffix grammar not reported for %s" % missed)
+        elif "dimensional_flags" in failed_checks(suffix_bad):
+            failures.append("suffix grammar should warn, not fail, in normal mode")
+        elif "dimensional_flags" not in failed_checks(suffix_bad, strict=True):
+            failures.append("suffix grammar should fail under --strict")
+        else:
+            print("PASS  products for quotients and capital units warn, fail strict")
+        msgs = [f["message"] for f in findings(suffix_ok, "dimensional_flags")]
+        if msgs:
+            failures.append("grammatical suffixes fired: %s" % msgs)
+        else:
+            print("PASS  _m_per_s, _kg_per_m3, _pa_s and kinematic viscosity stay silent")
 
         # 4. The diff extension.
         got = failed_checks(variant_ok)

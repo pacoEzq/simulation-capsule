@@ -35,7 +35,7 @@ import subprocess
 import sys
 
 SPEC_VERSION = "0.3"
-TOOL_VERSION = "1.4"
+TOOL_VERSION = "1.4.1"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -110,6 +110,22 @@ NONDIM_MARKERS = ("ratio", "number", "coefficient", "coeff", "fraction",
 # Matched on the key as written: width_W is a width named W, not watts.
 _UNIT = r"(?:m|mm|s|kg|pa|k|n|j|w|hz)\d?"
 UNIT_SUFFIX = re.compile(r"(?:_%s)+(?:_per(?:_%s)+)?$" % (_UNIT, _UNIT))
+
+# The suffix grammar reads a bare underscore as a product, so velocity_m_s is
+# metres times seconds and still matches UNIT_SUFFIX. A suffix can be well
+# formed and dimensionally wrong. For the roots every capsule carries, the
+# dimension is known, and the suffix must be the one that states it. Kinematic
+# viscosity is a different quantity and is left alone.
+DIMENSION_SUFFIXES = (
+    (("velocity", "u_inf", "u_ref", "speed"), "_m_per_s"),
+    (("density", "rho"), "_kg_per_m3"),
+    (("dynamic_viscosity", "viscosity", "mu"), "_pa_s"),
+    (("pressure", "q_inf", "dynamic_pressure"), "_pa"),
+)
+
+# A unit written in its SI capitals. Only the symbols that cannot be a name:
+# a single capital such as W or N is how a width or a count is named.
+UPPERCASE_UNIT = re.compile(r"_(Pa|kPa|MPa|Hz|kHz)(?=_|\d|$)")
 
 # An angle is already dimensionless. _deg and _rad declare the convention,
 # not a dimension, and may appear anywhere in the capsule.
@@ -491,6 +507,18 @@ def is_reference_root(key):
             and not is_nondimensional_name(lowered))
 
 
+def expected_suffix(key):
+    """The suffix a reference key must end in, when its root fixes it."""
+    lowered = key.lower()
+    if "kinematic" in lowered or is_nondimensional_name(lowered):
+        return None
+    for roots, suffix in DIMENSION_SUFFIXES:
+        for root in roots:
+            if lowered == root or lowered.startswith(root + "_"):
+                return suffix
+    return None
+
+
 def is_legacy_object(value):
     """True for the pre v0.2 form {value, unit_flag}: a value key next to a
     unit key. A block that merely lists its units is not one."""
@@ -605,6 +633,23 @@ def check_dimensional_flags(root, entries):
 
             # Rule 3: a known reference quantity as a bare number is legacy.
             if not isinstance(value, (int, float)) or isinstance(value, bool):
+                continue
+
+            # Rule 4: the suffix follows the grammar of SPEC 3.1. Units in
+            # lowercase, _per_ for a quotient. Added in 1.4.1: the capsules
+            # migrated by migrate_reference 1.0 passed --strict with
+            # velocity_m_s, a product, because the tail matched a unit.
+            if in_reference and UPPERCASE_UNIT.search(key):
+                legacy += 1
+                check.warn("unit symbol in capitals, SPEC 3.1 writes units "
+                           "in lowercase: %s" % where, rel)
+                continue
+            want = expected_suffix(key) if in_reference else None
+            if want and (has_suffix or lowered.endswith(want)) \
+                    and not key.endswith(want):
+                legacy += 1
+                check.warn("suffix does not state the dimension of the "
+                           "quantity, expected %s: %s" % (want, where), rel)
                 continue
             if any(t.lower() in LEGACY_UNIT_KEYS for t in trail):
                 continue  # the leaf inside a legacy object, reported above
