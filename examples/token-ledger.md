@@ -2,12 +2,14 @@
 
 Measured on 2026-09-11 with `tools/capsule_ledger.py`, which shares its
 directory walk with `tools/check_capsule.py` so the two cannot disagree about
-what a capsule contains.
+what a capsule contains. The `summary.json` row was measured again on
+2026-09-24, after the reference keys were renamed to the suffix grammar of SPEC
+3.1; nothing else moved.
 
 Regenerate with:
 
 ```bash
-python3 tools/capsule_ledger.py examples/*/ --markdown
+python3 tools/capsule_ledger.py examples/capsule_*/ --markdown
 ```
 
 Character counts are exact. Tokens are a conversion, declared per artifact
@@ -24,7 +26,7 @@ counted.
 | Artifact | Part | ahmed25_re1e6 | cube_re200 | delta65_a13p3_re1e6 | jet_r2_re100 | naca0012_aoa5 | naca0012_aoa7 |
 |---|---|---|---|---|---|---|---|
 | `setup.txt` | T1 | 9,117 | 6,864 | 11,857 | 6,311 | 5,664 | 6,411 |
-| `summary.json` | T2 | 863 | 380 | 516 | 1,592 | 383 | 462 |
+| `summary.json` | T2 | 865 | 382 | 518 | 1,594 | 385 | 464 |
 | `planes/` | T3 |  | 19,211 | 29,056 | 38,171 |  |  |
 | `samples.csv` | T4 |  |  |  | 19,032 |  |  |
 | `features.json` | T5 |  |  | 7,864 |  |  |  |
