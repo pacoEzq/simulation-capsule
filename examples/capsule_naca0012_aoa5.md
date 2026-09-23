@@ -51,7 +51,13 @@ carrying the reference quantities rather than only the coefficients.
 ## Dimensional reference, nondimensional everything else
 
 The reference block is dimensional: chord in metres, velocity in metres per second,
-density and viscosity in SI. Each entry carries an explicit `unit_flag`.
+density and viscosity in SI. Each value is a bare number and the unit rides on the
+key: `chord_m`, `velocity_m_s`, `density_kg_m3`, `viscosity_Pa_s`, `area_m2`. The copy
+published with Part 2 wrapped each one in a `{value, unit_flag}` object; it is kept
+byte for byte under `as-published/`, and this one was derived from it by
+`tools/migrate_reference.py`. The suffixes do not yet follow the grammar of SPEC 3.1,
+under which `_m_s` reads as metres times seconds; a second migration will bring them
+to `velocity_m_per_s`, `density_kg_per_m3` and `viscosity_pa_s`.
 
 This is the exception the specification allows, and the reason for it. Coefficients,
 $c_p$, $y^+$ and the mass imbalance fraction are all dimensionless, as required. But
@@ -60,10 +66,10 @@ checks above can be run. A capsule that ships only coefficients is a capsule nob
 can audit.
 
 Note that `capsule_ahmed25_re1e6` solves the same problem the other way, by running
-nondimensional from the start with $\rho = U = L = 1$. Both satisfy the rule. The two
-capsules do not use the same key names for the reference block, which is a
-divergence the specification does not permit and the automation part is expected to
-settle.
+nondimensional from the start with $\rho = U = L = 1$. Both satisfy the rule, and
+both now write it the same way, unit on the key and number bare. The base names still
+follow each case, `chord_m` here and `length_L_m` there: the specification fixes how
+a unit is declared, not what a length is called.
 
 ## Convergence
 
