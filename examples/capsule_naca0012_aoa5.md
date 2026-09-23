@@ -52,12 +52,13 @@ carrying the reference quantities rather than only the coefficients.
 
 The reference block is dimensional: chord in metres, velocity in metres per second,
 density and viscosity in SI. Each value is a bare number and the unit rides on the
-key: `chord_m`, `velocity_m_s`, `density_kg_m3`, `viscosity_Pa_s`, `area_m2`. The copy
-published with Part 2 wrapped each one in a `{value, unit_flag}` object; it is kept
-byte for byte under `as-published/`, and this one was derived from it by
-`tools/migrate_reference.py`. The suffixes do not yet follow the grammar of SPEC 3.1,
-under which `_m_s` reads as metres times seconds; a second migration will bring them
-to `velocity_m_per_s`, `density_kg_per_m3` and `viscosity_pa_s`.
+key: `chord_m`, `velocity_m_per_s`, `density_kg_per_m3`, `viscosity_pa_s`, `area_m2`.
+The copy published with Part 2 wrapped each one in a `{value, unit_flag}` object; it
+is kept byte for byte under `as-published/`, and this one was derived from it by
+`tools/migrate_reference.py`. The first version of that script wrote `velocity_m_s`,
+which the grammar of SPEC 3.1 reads as metres times seconds. Version 1.1 fixed the
+suffixes, and the validator now checks that a velocity, a density, a viscosity and
+a pressure carry the one their dimension calls for.
 
 This is the exception the specification allows, and the reason for it. Coefficients,
 $c_p$, $y^+$ and the mass imbalance fraction are all dimensionless, as required. But

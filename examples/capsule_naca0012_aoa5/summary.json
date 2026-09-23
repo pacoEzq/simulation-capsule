@@ -25,9 +25,9 @@
   },
   "reference": {
     "chord_m": 1.0,
-    "velocity_m_s": 15.0,
-    "density_kg_m3": 1.18,
-    "viscosity_Pa_s": 1.77e-05,
+    "velocity_m_per_s": 15.0,
+    "density_kg_per_m3": 1.18,
+    "viscosity_pa_s": 1.77e-05,
     "area_m2": 1.0,
     "area_note": "chord x unit depth"
   },
