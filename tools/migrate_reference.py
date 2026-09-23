@@ -29,6 +29,14 @@ not survive as faithfully. Blocks written on one line in the source come back
 one key per line, and the written text is checked against the migrated data
 before the file is replaced.
 
+Version 1.1 fixes the suffixes 1.0 wrote. SPEC 3.1 joins units with
+underscores for a product and with _per_ for a quotient, all in lowercase, so
+the 1.0 output velocity_m_s read as metres times seconds and viscosity_Pa_s
+broke the case rule. Before any rule runs, the RESUFFIX table renames a 1.0 key
+to its 1.1 form, and the rule tables now write the 1.1 form directly. A capsule
+migrated by 1.0, one migrated by 1.1 and a published one all end in the same
+place.
+
 Standard library only. Python 3.8 or later.
 """
 
@@ -37,7 +45,7 @@ import copy
 import json
 import sys
 
-VERSION = "1.0"
+VERSION = "1.1"
 
 
 # ---------------------------------------------------------------------------
@@ -64,13 +72,13 @@ RULES = {
         ),
         "ops": [
             {"op": "rename", "path": "reference", "key": "length_L", "to": "length_L_m"},
-            {"op": "rename", "path": "reference", "key": "velocity_U", "to": "velocity_U_m_s"},
-            {"op": "rename", "path": "reference", "key": "density_rho", "to": "density_rho_kg_m3"},
-            {"op": "rename", "path": "reference", "key": "viscosity_mu", "to": "viscosity_mu_Pa_s"},
+            {"op": "rename", "path": "reference", "key": "velocity_U", "to": "velocity_U_m_per_s"},
+            {"op": "rename", "path": "reference", "key": "density_rho", "to": "density_rho_kg_per_m3"},
+            {"op": "rename", "path": "reference", "key": "viscosity_mu", "to": "viscosity_mu_pa_s"},
             {"op": "set", "path": "reference", "key": "frontal_area_note",
              "value": "A/L^2, nondimensional; the dimensional area is frontal_area times length_L_m squared"},
             {"op": "order", "path": "reference", "keys": [
-                "length_L_m", "velocity_U_m_s", "density_rho_kg_m3", "viscosity_mu_Pa_s",
+                "length_L_m", "velocity_U_m_per_s", "density_rho_kg_per_m3", "viscosity_mu_pa_s",
                 "reynolds_L", "frontal_area", "frontal_area_note",
             ]},
         ],
@@ -80,15 +88,15 @@ RULES = {
         "note": "Object form {value, unit_flag} on five keys. Notes are kept as <key>_note.",
         "ops": [
             {"op": "expand", "path": "reference", "key": "side", "to": "side_m"},
-            {"op": "expand", "path": "reference", "key": "velocity", "to": "velocity_m_s"},
-            {"op": "expand", "path": "reference", "key": "density", "to": "density_kg_m3"},
-            {"op": "expand", "path": "reference", "key": "viscosity", "to": "viscosity_Pa_s",
+            {"op": "expand", "path": "reference", "key": "velocity", "to": "velocity_m_per_s"},
+            {"op": "expand", "path": "reference", "key": "density", "to": "density_kg_per_m3"},
+            {"op": "expand", "path": "reference", "key": "viscosity", "to": "viscosity_pa_s",
              "note_to": "viscosity_note"},
             {"op": "expand", "path": "reference", "key": "area", "to": "area_m2",
              "note_to": "area_note"},
             {"op": "order", "path": "reference", "keys": [
-                "side_m", "velocity_m_s", "density_kg_m3",
-                "viscosity_Pa_s", "viscosity_note", "area_m2", "area_note",
+                "side_m", "velocity_m_per_s", "density_kg_per_m3",
+                "viscosity_pa_s", "viscosity_note", "area_m2", "area_note",
             ]},
         ],
     },
@@ -97,14 +105,14 @@ RULES = {
         "note": "Object form {value, unit_flag} on five keys. Same treatment as the cube.",
         "ops": [
             {"op": "expand", "path": "reference", "key": "chord", "to": "chord_m"},
-            {"op": "expand", "path": "reference", "key": "velocity", "to": "velocity_m_s"},
-            {"op": "expand", "path": "reference", "key": "density", "to": "density_kg_m3"},
-            {"op": "expand", "path": "reference", "key": "viscosity", "to": "viscosity_Pa_s"},
+            {"op": "expand", "path": "reference", "key": "velocity", "to": "velocity_m_per_s"},
+            {"op": "expand", "path": "reference", "key": "density", "to": "density_kg_per_m3"},
+            {"op": "expand", "path": "reference", "key": "viscosity", "to": "viscosity_pa_s"},
             {"op": "expand", "path": "reference", "key": "area", "to": "area_m2",
              "note_to": "area_note"},
             {"op": "order", "path": "reference", "keys": [
-                "chord_m", "velocity_m_s", "density_kg_m3",
-                "viscosity_Pa_s", "area_m2", "area_note",
+                "chord_m", "velocity_m_per_s", "density_kg_per_m3",
+                "viscosity_pa_s", "area_m2", "area_note",
             ]},
         ],
     },
@@ -122,13 +130,13 @@ RULES = {
             {"op": "move", "from_path": "nondimensionalization/reference_quantities",
              "key": "chord_root", "to_path": "reference", "to": "chord_root_m"},
             {"op": "move", "from_path": "nondimensionalization/reference_quantities",
-             "key": "u_inf", "to_path": "reference", "to": "u_inf_m_s"},
+             "key": "u_inf", "to_path": "reference", "to": "u_inf_m_per_s"},
             {"op": "move", "from_path": "nondimensionalization/reference_quantities",
-             "key": "rho_ref", "to_path": "reference", "to": "rho_ref_kg_m3"},
+             "key": "rho_ref", "to_path": "reference", "to": "rho_ref_kg_per_m3"},
             {"op": "move", "from_path": "nondimensionalization/reference_quantities",
-             "key": "mu_ref", "to_path": "reference", "to": "mu_ref_Pa_s"},
+             "key": "mu_ref", "to_path": "reference", "to": "mu_ref_pa_s"},
             {"op": "move", "from_path": "nondimensionalization/reference_quantities",
-             "key": "q_inf", "to_path": "reference", "to": "q_inf_Pa"},
+             "key": "q_inf", "to_path": "reference", "to": "q_inf_pa"},
             {"op": "move", "from_path": "nondimensionalization",
              "key": "convention", "to_path": "reference", "to": "convention"},
             {"op": "move", "from_path": "case/geometry",
@@ -137,8 +145,8 @@ RULES = {
             {"op": "drop_path", "path": "nondimensionalization/reference_quantities"},
             {"op": "drop_path", "path": "nondimensionalization"},
             {"op": "order", "path": "reference", "keys": [
-                "chord_root_m", "u_inf_m_s", "rho_ref_kg_m3", "mu_ref_Pa_s",
-                "q_inf_Pa", "moment_reference", "convention",
+                "chord_root_m", "u_inf_m_per_s", "rho_ref_kg_per_m3", "mu_ref_pa_s",
+                "q_inf_pa", "moment_reference", "convention",
             ]},
             {"op": "order", "path": "", "keys": ["case", "reference", "scalars"]},
         ],
@@ -155,12 +163,42 @@ RULES = {
             {"op": "drop", "path": "reference", "key": "unit_flag"},
             {"op": "drop", "path": "performance", "key": "unit_flag"},
             {"op": "order", "path": "reference", "keys": [
-                "length_scale_D_m", "velocity_scale_U_m_s", "density_rho_kg_m3",
-                "dynamic_viscosity_Pa_s", "reynolds_number", "note",
+                "length_scale_D_m", "velocity_scale_U_m_per_s", "density_rho_kg_per_m3",
+                "dynamic_viscosity_pa_s", "reynolds_number", "note",
+            ]},
+        ],
+    },
+    "naca0012_aoa7": {
+        "note": (
+            "Built for Part 6b after SPEC 0.2, so it never had a legacy form. "
+            "Only the suffix fix of 1.1 applies; the order matches aoa5, its pair."
+        ),
+        "ops": [
+            {"op": "order", "path": "reference", "keys": [
+                "chord_m", "velocity_m_per_s", "density_kg_per_m3",
+                "viscosity_pa_s", "area_m2", "area_note",
             ]},
         ],
     },
 }
+
+# Keys written by 1.0 against the SPEC 3.1 suffix grammar, and their 1.1 form.
+# Applied to the reference block before the rule of the case, and only where
+# the old key is present: a capsule 1.0 never touched has none of them.
+RESUFFIX = [
+    ("velocity_m_s", "velocity_m_per_s"),
+    ("velocity_U_m_s", "velocity_U_m_per_s"),
+    ("velocity_scale_U_m_s", "velocity_scale_U_m_per_s"),
+    ("u_inf_m_s", "u_inf_m_per_s"),
+    ("density_kg_m3", "density_kg_per_m3"),
+    ("density_rho_kg_m3", "density_rho_kg_per_m3"),
+    ("rho_ref_kg_m3", "rho_ref_kg_per_m3"),
+    ("viscosity_Pa_s", "viscosity_pa_s"),
+    ("viscosity_mu_Pa_s", "viscosity_mu_pa_s"),
+    ("dynamic_viscosity_Pa_s", "dynamic_viscosity_pa_s"),
+    ("mu_ref_Pa_s", "mu_ref_pa_s"),
+    ("q_inf_Pa", "q_inf_pa"),
+]
 
 # Directory name to rule key, for the cases whose alias is not the folder name.
 ALIASES = {
@@ -169,6 +207,7 @@ ALIASES = {
     "capsule_naca0012_aoa5": "naca0012_aoa5",
     "capsule_delta65_a13p3_re1e6": "delta65_a13p3_re1e6",
     "capsule_jet_r2_re100": "jet_r2_re100",
+    "capsule_naca0012_aoa7": "naca0012_aoa7",
 }
 
 
@@ -283,6 +322,41 @@ class Log:
         self.problems += 1
 
 
+def resuffix(data, log):
+    """Rename the 1.0 suffixes in the reference block, keeping each position.
+
+    Returns the (old, new) pairs renamed.
+    """
+    renamed = []
+    block = data.get("reference") if isinstance(data, dict) else None
+    if not isinstance(block, dict):
+        return renamed
+    for old, new in RESUFFIX:
+        if old not in block:
+            continue
+        if new in block:
+            log.problem("reference carries both %s and %s" % (old, new))
+            continue
+        rename_key(block, old, new)
+        renamed.append((old, new))
+        log.done("reference/%s -> %s (suffix grammar)" % (old, new))
+    return renamed
+
+
+def rename_in_text(text, renamed):
+    """Apply key renames to the source text, so its layout survives.
+
+    Each old key must appear exactly once as a key in the text, or None is
+    returned and the caller falls back to the writer.
+    """
+    for old, new in renamed:
+        needle = json.dumps(old) + ":"
+        if text.count(needle) != 1:
+            return None
+        text = text.replace(needle, json.dumps(new) + ":")
+    return text
+
+
 def op_ensure(data, op, log):
     block = get_block(data, op["path"])
     if block is not None:
@@ -360,7 +434,7 @@ def op_move(data, op, log):
 def op_drop(data, op, log):
     block = get_block(data, op["path"])
     if block is None:
-        log.problem("block %s missing" % op["path"])
+        log.already("block %s gone" % op["path"])
         return
     if op["key"] not in block:
         log.already("%s/%s gone" % (op["path"], op["key"]))
@@ -480,6 +554,8 @@ def migrate_file(path, write, quiet=False):
     rule = RULES[name]
     original = copy.deepcopy(data)
     log = Log()
+    renamed = resuffix(data, log)
+    after_resuffix = copy.deepcopy(data)
     for op in rule["ops"]:
         OPS[op["op"]](data, op, log)
 
@@ -496,7 +572,14 @@ def migrate_file(path, write, quiet=False):
         print("  no change, already migrated")
         return 0
 
-    out = dumps(data) + "\n"
+    # A key rename that is the only change is made in the text itself, so a
+    # block written by hand after 1.0 keeps its layout. Anything else goes
+    # through the writer.
+    out = None
+    if renamed and json.dumps(data) == json.dumps(after_resuffix):
+        out = rename_in_text(text, renamed)
+    if out is None:
+        out = dumps(data) + "\n"
     try:
         if json.loads(out) != json.loads(json.dumps(data)):
             print("  PROBLEM the written text does not reparse to the migrated data")
@@ -505,7 +588,7 @@ def migrate_file(path, write, quiet=False):
         print("  PROBLEM the written text is not valid JSON: %s" % error)
         return 1
     if write:
-        with open(path, "w", encoding="utf-8") as handle:
+        with open(path, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(out)
         print("  written, %d change(s)" % log.changes)
     else:
