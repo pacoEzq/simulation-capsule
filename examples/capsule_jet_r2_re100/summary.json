@@ -5,9 +5,9 @@
   "nondimensional": true,
   "reference": {
     "length_scale_D_m": 1.0,
-    "velocity_scale_U_m_s": 1.0,
-    "density_rho_kg_m3": 1.0,
-    "dynamic_viscosity_Pa_s": 0.01,
+    "velocity_scale_U_m_per_s": 1.0,
+    "density_rho_kg_per_m3": 1.0,
+    "dynamic_viscosity_pa_s": 0.01,
     "reynolds_number": 100,
     "note": "Air is a nondimensionalization device: rho=1, mu=1/Re, so Re = rho*U*D/mu = 100. Not a physical air test at 1 m/s. This is the only dimensional block; it is the disclosure surface for T10."
   },
