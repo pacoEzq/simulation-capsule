@@ -6,9 +6,9 @@
   "nondimensional": true,
   "reference": {
     "length_L_m": 1.0,
-    "velocity_U_m_s": 1.0,
-    "density_rho_kg_m3": 1.0,
-    "viscosity_mu_Pa_s": 1e-06,
+    "velocity_U_m_per_s": 1.0,
+    "density_rho_kg_per_m3": 1.0,
+    "viscosity_mu_pa_s": 1e-06,
     "reynolds_L": 1000000.0,
     "frontal_area": 0.1027881946,
     "frontal_area_note": "A/L^2, nondimensional; the dimensional area is frontal_area times length_L_m squared"
