@@ -32,10 +32,10 @@
   },
   "reference": {
     "chord_root_m": 1.0,
-    "u_inf_m_s": 1.0,
-    "rho_ref_kg_m3": 1.0,
-    "mu_ref_Pa_s": 1e-06,
-    "q_inf_Pa": 0.5,
+    "u_inf_m_per_s": 1.0,
+    "rho_ref_kg_per_m3": 1.0,
+    "mu_ref_pa_s": 1e-06,
+    "q_inf_pa": 0.5,
     "moment_reference": "apex",
     "convention": "rho_ref = u_inf = chord_root = 1; every scalar below is nondimensional as reported"
   },
