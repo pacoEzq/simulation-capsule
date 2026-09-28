@@ -155,7 +155,8 @@ def build_bad_name(root):
 
 def build_suffix_grammar(root, wrong):
     """The suffixes migrate_reference 1.0 wrote, against the ones SPEC 3.1
-    asks for. velocity_m_s matches the unit pattern and is a product."""
+    asks for. Units in capitals warn; inside reference, velocity_m_s and
+    density_kg_m3 are not checked against their dimension."""
     write(os.path.join(root, "setup.txt"), "Case: suffixes\n")
     if wrong:
         reference = {"chord_m": 1.0, "velocity_m_s": 15.0,
@@ -562,16 +563,22 @@ def main():
             print("PASS  dimensionless groups inside reference stay silent")
 
         msgs = [f["message"] for f in findings(suffix_bad, "dimensional_flags")]
-        wrong = ("velocity_m_s", "density_kg_m3", "viscosity_Pa_s", "q_inf_Pa")
+        wrong = ("viscosity_Pa_s", "q_inf_Pa")
+        exempt = ("velocity_m_s", "density_kg_m3")
         missed = [k for k in wrong if not any(k in m for m in msgs)]
+        fired = [k for k in exempt if any(k in m for m in msgs)]
         if missed:
-            failures.append("suffix grammar not reported for %s" % missed)
+            failures.append("capital units not reported for %s" % missed)
+        elif fired:
+            failures.append("reference is exempt from the dimension of the "
+                            "suffix, yet %s fired" % fired)
         elif "dimensional_flags" in failed_checks(suffix_bad):
             failures.append("suffix grammar should warn, not fail, in normal mode")
         elif "dimensional_flags" not in failed_checks(suffix_bad, strict=True):
             failures.append("suffix grammar should fail under --strict")
         else:
-            print("PASS  products for quotients and capital units warn, fail strict")
+            print("PASS  capital units warn, fail strict; _m_s inside "
+                  "reference stays silent")
         msgs = [f["message"] for f in findings(suffix_ok, "dimensional_flags")]
         if msgs:
             failures.append("grammatical suffixes fired: %s" % msgs)
