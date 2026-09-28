@@ -183,6 +183,38 @@ A single scalar that aggregates a worst case is an antipattern. Where a distribu
 matters, expose the distribution: a minimum cell quality alone says nothing useful
 without threshold counts at several levels.
 
+#### 4.2.1 `environment`
+
+A root block declaring the software and hardware the numbers came from. Two runs of
+the same case on two builds are two measurements, and the Part 6b pair showed how
+far apart they can land: the same comparison measured in single precision moved
+both changed pixel fractions by about 0.3 percentage points.
+
+```
+environment { solver, version, build, platform, precision,
+              renders { scope, version, build, platform, precision } }
+```
+
+- `solver`: the product, `Simcenter STAR-CCM+`.
+- `version`, `build`, `platform`: copied from the `Version:` line of `setup.txt`,
+  `PresentationVersion`, `ReleaseNumber` and `BuildArch` respectively.
+- `precision`: `single`, `double` or `mixed`.
+- `renders`: present only when the images were produced in another environment
+  than the run. `scope` lists the capsule directories whose files that environment
+  produced, `["views/"]` for instance, and every directory it names exists in the
+  capsule. The other keys repeat those of the render session; `solver` may be
+  omitted when it is the same product.
+
+**Precision is read, not remembered.** The same `Version:` line carries `BuildEnv`.
+A STAR-CCM+ build whose `BuildEnv` ends in `-r8` is double precision; without the
+suffix it is the mixed-precision default. `BuildEnv: clang20.1vc14.2-r8` is
+`double`, `BuildEnv: clang20.1` is `mixed`. `single` is kept for solvers that ship
+such a build.
+
+`environment` absorbs `numerics`. Precision is a property of the build, not of the
+discretization, so it has one place, and a `numerics` block at the root is reported
+as a leftover.
+
 ### 4.3 `planes/` (settled)
 
 Plane sections, exported as a CSV and PNG pair sharing a stem:
