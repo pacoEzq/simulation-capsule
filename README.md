@@ -123,9 +123,10 @@ extension.
 A capsule gets checked twice, by a program and by a reader.
 
 The program is [`tools/check_capsule.py`](tools/check_capsule.py), which turns the
-mechanical parts of the SPEC into fifteen checks: standard library only, nothing to
-install. A capsule runs the checks its layers call for, thirteen without plane
-sections and fifteen with them. Every capsule in `examples/` runs through it on
+mechanical parts of the SPEC into twenty checks: standard library only, nothing to
+install. A capsule runs the checks its layers call for: fifteen without plane
+sections or a comparison, seventeen with plane sections, eighteen with the `diff`
+extension and twenty with both. Every capsule in `examples/` runs through it on
 every push.
 
 ```bash
