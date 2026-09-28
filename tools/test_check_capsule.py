@@ -28,11 +28,16 @@ Three things are proved here.
    precision outside single, double and mixed or a render scope that names
    a directory the capsule does not carry fails under --strict.
 
+6. The hash chain of SPEC 4.7. A pair whose recorded sha256 matches the
+   views of both capsules passes; a mismatch is an error; a base that
+   cannot be reached from the variant is a warning.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
 """
 
+import hashlib
 import json
 import os
 import shutil
@@ -261,10 +266,27 @@ def diff_manifest(**overrides):
     return manifest
 
 
+def sha256_hex(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def build_base(workspace):
+    """The base capsule where diff_manifest()['base']['path'] says it is,
+    relative to the workspace, which stands in for the repository root."""
+    view = os.path.join(workspace, "examples", "capsule_naca0012_aoa5",
+                        "views", "view_cp_nearfield.png")
+    os.makedirs(os.path.dirname(view), exist_ok=True)
+    write_png(view, height=512)
+    return check_capsule.sha256_of(view)
+
+
 def build_variant(root, declare=True, manifest=True, images=True,
-                  instrument=False, overrides=None):
+                  instrument=False, overrides=None, base_sha=None,
+                  variant_sha=None):
     """A section 4 capsule that also carries the diff extension. Each flag
-    removes one half of the contract so a fixture can break it."""
+    removes one half of the contract so a fixture can break it. With
+    base_sha the pair records the four hashes of SPEC 4.7; variant_sha
+    replaces the one of its own view."""
     write(os.path.join(root, "setup.txt"), "Case: naca0012_aoa8\n")
     summary = {
         "case": "naca0012_aoa8",
@@ -280,8 +302,16 @@ def build_variant(root, declare=True, manifest=True, images=True,
         os.makedirs(os.path.join(root, "diff"), exist_ok=True)
         write_png(os.path.join(root, "diff", "diff_cp_nearfield.png"))
     if manifest:
-        write(os.path.join(root, "diff.json"),
-              json.dumps(diff_manifest(**(overrides or {})), indent=2))
+        data = diff_manifest(**(overrides or {}))
+        if base_sha:
+            own = check_capsule.sha256_of(
+                os.path.join(root, "views", "view_cp_nearfield.png"))
+            data["pairs"][0]["source_sha256"] = {
+                "base_view": base_sha, "variant_view": variant_sha or own}
+            data["pairs"][0]["instrument_sha256"] = {
+                "base_frame": sha256_hex(b"grayscale base frame"),
+                "variant_frame": sha256_hex(b"grayscale variant frame")}
+        write(os.path.join(root, "diff.json"), json.dumps(data, indent=2))
     if instrument:
         os.makedirs(os.path.join(root, "diffsrc"), exist_ok=True)
         write_png(os.path.join(root, "diffsrc", "gray_cp_nearfield.png"))
@@ -328,6 +358,8 @@ def main():
         suffix_bad = os.path.join(workspace, "capsule_suffix_bad")
         suffix_ok = os.path.join(workspace, "capsule_suffix_ok")
         environment = os.path.join(workspace, "capsule_environment")
+        bad_hash = os.path.join(workspace, "capsule_bad_hash")
+        far_base = os.path.join(workspace, "capsule_far_base")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -340,7 +372,11 @@ def main():
         build_suffix_grammar(suffix_bad, True)
         build_suffix_grammar(suffix_ok, False)
         build_environment(environment)
-        build_variant(variant_ok)
+        base_sha = build_base(workspace)
+        build_variant(variant_ok, base_sha=base_sha)
+        build_variant(bad_hash, base_sha=base_sha, variant_sha="0" * 64)
+        far = dict(diff_manifest()["base"], path="elsewhere/capsule_x")
+        build_variant(far_base, base_sha=base_sha, overrides={"base": far})
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -377,7 +413,7 @@ def main():
         fired = set()
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
-                     bad_colormap, environment):
+                     bad_colormap, environment, bad_hash):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -549,6 +585,27 @@ def main():
         else:
             print("PASS  bad precision, absent scope directory and numerics "
                   "warn, fail strict")
+
+        # 6. The hash chain.
+        if status_of(variant_ok, "diff_view_hashes") != "PASS":
+            failures.append("hashes matching both views should pass: %s"
+                            % findings(variant_ok, "diff_view_hashes"))
+        else:
+            print("PASS  recorded hashes that match both views pass")
+
+        wrong = findings(bad_hash, "diff_view_hashes")
+        if [f["severity"] for f in wrong] != [check_capsule.ERROR] \
+                or "variant_view" not in wrong[0]["message"]:
+            failures.append("a variant view that does not match its hash "
+                            "should be one error: %s" % wrong)
+        else:
+            print("PASS  a view that does not match its hash fails")
+
+        far = findings(far_base, "diff_view_hashes")
+        if [f["severity"] for f in far] != [check_capsule.WARN]:
+            failures.append("an unreachable base should warn once: %s" % far)
+        else:
+            print("PASS  an unreachable base warns, never errors")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

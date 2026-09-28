@@ -28,6 +28,7 @@ is a check to remove.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -160,6 +161,12 @@ DIFF_BASE_KEYS = ("repo", "commit", "path", "frozen_copy_path")
 # A commit is named by its SHA. Short forms are legal, seven characters is
 # where git stops being ambiguous in practice.
 COMMIT_SHA = re.compile(r"^[0-9a-f]{7,40}$")
+
+# SPEC 4.7: the chain is view, grayscale frame, diff, and every link carries
+# its sha256 in the pair that uses it.
+SOURCE_HASH_KEYS = ("base_view", "variant_view")
+INSTRUMENT_HASH_KEYS = ("base_frame", "variant_frame")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 # SPEC 4.7: a pixel distance is a field distance only when the render is
 # quantized to the levels the PNG carries.
@@ -1042,6 +1049,97 @@ def check_environment(root, entries):
     return check
 
 
+def sha256_of(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(65536), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def find_base_capsule(root, path):
+    """Return the directory base/path names, looked up from the capsule and
+    each of its parents, or None. base/path is relative to the repository
+    root, and a capsule checked out with its repository sits somewhere
+    below that root."""
+    if not isinstance(path, str) or not path or os.path.isabs(path):
+        return None
+    here = os.path.abspath(root)
+    while True:
+        candidate = os.path.join(here, path)
+        if os.path.isdir(candidate):
+            return candidate
+        parent = os.path.dirname(here)
+        if parent == here:
+            return None
+        here = parent
+
+
+def check_diff_view_hashes(root, entries):
+    check = Check("diff_view_hashes", "The views diff.json measured are the "
+                  "views both capsules carry", "SPEC 4.7")
+    if "diff" not in declared_extensions(root, entries):
+        check.skip("extension 'diff' not declared")
+        return check
+    if "diff.json" not in [e.replace("\\", "/") for e in entries]:
+        check.skip("no diff.json: see the extensions check")
+        return check
+    data = load_json(root, "diff.json")
+    if not isinstance(data, dict):
+        check.skip("diff.json does not parse: see the json_parses check")
+        return check
+    rel = "diff.json"
+    pairs = data.get("pairs")
+    if not isinstance(pairs, list) or not pairs:
+        check.skip("no pairs: see the diff_manifest check")
+        return check
+
+    base = data.get("base") if isinstance(data.get("base"), dict) else {}
+    base_dir = find_base_capsule(root, base.get("path"))
+    if base_dir is None:
+        # The capsule travels without its base: the same case as a base
+        # commit that cannot be resolved, a warning and never an error.
+        check.warn("base/path %r is not reachable from here: the base views "
+                   "were not hashed" % (base.get("path"),), rel)
+    sides = {"base_view": base_dir, "variant_view": os.path.abspath(root)}
+
+    for index, pair in enumerate(pairs):
+        where = "pairs/%d" % index
+        if not isinstance(pair, dict):
+            continue  # reported by diff_manifest
+        declared = {}
+        for block, keys in (("source_sha256", SOURCE_HASH_KEYS),
+                            ("instrument_sha256", INSTRUMENT_HASH_KEYS)):
+            hashes = pair.get(block)
+            if not isinstance(hashes, dict):
+                check.warn("%s/%s is missing: SPEC 4.7 hashes both views and "
+                           "both grayscale frames" % (where, block), rel)
+                continue
+            for key in keys:
+                value = hashes.get(key)
+                if not isinstance(value, str) \
+                        or not SHA256.match(value.lower()):
+                    check.warn("%s/%s/%s is not a sha256: %r"
+                               % (where, block, key, value), rel)
+                elif block == "source_sha256":
+                    declared[key] = value.lower()
+        for side, capsule_dir in sides.items():
+            name = pair.get(side)
+            if side not in declared or capsule_dir is None \
+                    or not isinstance(name, str) or "/" in name:
+                continue
+            view = os.path.join(capsule_dir, "views", name)
+            owner = "base" if side == "base_view" else "variant"
+            if not os.path.isfile(view):
+                check.error("%s/%s: %s is not in the views/ of the %s"
+                            % (where, side, name, owner), rel)
+            elif sha256_of(view) != declared[side]:
+                check.error("%s/%s: views/%s of the %s does not match its "
+                            "recorded sha256: the diff measured another image"
+                            % (where, side, name, owner), rel)
+    return check
+
+
 def check_publication_residue(root, entries):
     check = Check("publication_residue", "No working state left in a "
                   "published capsule", "SPEC 2")
@@ -1133,6 +1231,7 @@ CHECKS = [
     check_extensions,
     check_no_instrument_dir,
     check_diff_manifest,
+    check_diff_view_hashes,
     check_publication_residue,
     check_punctuation,
 ]
