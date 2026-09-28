@@ -215,6 +215,73 @@ such a build.
 discretization, so it has one place, and a `numerics` block at the root is reported
 as a leftover.
 
+#### 4.2.2 Window statistics
+
+A run that does not settle to a fixed point publishes statistics, not values, and a
+statistic without its window is a number nobody can check. Wherever
+`convergence.status` (4.2.3) is not `converged`, every published scalar in `forces`,
+`pressure`, `wake`, `probes` and `mass` carries its window with it, as a quintet:
+
+| Key | Holds |
+|-----|-------|
+| `<name>` | the published value |
+| `<name>_sd` | standard deviation of the sampled values over the span: the spread of the signal, not the uncertainty of the value |
+| `<name>_window_iterations` | iterations the statistic spans, all pooled windows together |
+| `<name>_n_windows` | number of windows pooled |
+| `<name>_statistic` | how the value was formed |
+
+`_statistic` takes one of five values:
+
+- `iteration_mean`: mean over the sampled iterations of the span.
+- `window_min`, `window_max`: the lowest or highest value reached at any sampled
+  iteration of the span.
+- `window_min_max`: both, as a `[min, max]` pair.
+- `instantaneous`: the value at the last iteration.
+
+Extremes carry no `_sd`: a minimum over a span has no spread of its own to report.
+The quintet of `cp_min` is therefore four keys:
+
+```json
+"cp_min": -2.029315009840153,
+"cp_min_window_iterations": 4000,
+"cp_min_n_windows": 2,
+"cp_min_statistic": "window_min"
+```
+
+`_window_iterations` counts the whole span, two windows of 2000 iterations give
+4000; `convergence.window_iterations` is the length of one window.
+
+**Probes.** `probes.<name>` is an object and carries the same keys unprefixed:
+`value`, `sd`, `window_iterations`, `n_windows`, `statistic`, next to `position_D`
+and the `report` it was read from.
+
+**Plane extremes.** `plane_extremes.<plane>.<field>` is a `[min, max]` pair, and the
+block carries `statistic`, `window_iterations` and `n_windows` once, for all of them.
+The plane keys follow the stems in `planes/`: `y0` for `plane_y0`.
+
+**Forces.** `forces` may carry `cd_pressure` and `cd_friction` next to `cd`, each
+with its own quintet.
+
+**Mass.** `mass` holds `mdot_in_over_rhoUD2` and `mdot_out_over_rhoUD2`, the mass
+flow through inlet and outlet over $\rho U D^2$, signed with the outward normal so
+that inflow is negative, and `mass_imbalance`, the net over the inflow. No
+dimensional mass flow key appears anywhere in `mass`.
+
+**Mesh.** `mesh.cells` is an integer. `mesh.designed_for_Re_range` is the pair of
+integers `[low, high]` the mesh was sized for, and replaces `designed_for_Re`.
+
+**Uncertainty.** A root block declares the uncertainty of the published values:
+
+```
+uncertainty { cd_relative, basis, source }
+```
+
+`cd_relative` is a fraction, `basis` says in one sentence how it was obtained, and
+`source` is `measured` when it comes from runs of this case, `declared` when it is
+taken from elsewhere. It is not the gate statistic of 4.2.3: the standard error
+between windows decides when to stop and says nothing about how far the published
+value sits from a second run of the same case.
+
 ### 4.3 `planes/` (settled)
 
 Plane sections, exported as a CSV and PNG pair sharing a stem:
@@ -448,7 +515,7 @@ run it on the expanded directory.
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
-| 0.4 | Root block `environment` (4.2.1), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
+| 0.4 | Root block `environment` (4.2.1), window statistics and `uncertainty` (4.2.2), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
 
 ### 0.3 → 0.4
 
@@ -459,5 +526,10 @@ run it on the expanded directory.
   every measured view and every grayscale frame, and the tool stops on a mismatch.
 - 4.7: `base.commit` is the full 40-character SHA, provisional while its history is
   only local, written or re-verified as the last step before the push.
+- 4.2.2: window statistics. Every published scalar of a run not `converged` carries
+  `_sd`, `_window_iterations`, `_n_windows` and `_statistic`; extremes carry no
+  `_sd`; probes and plane extremes carry the same keys. Root block `uncertainty`.
+  `mass` is nondimensional, `mesh.cells` an integer, `designed_for_Re_range`
+  replaces `designed_for_Re`.
 - Compatibility: a 0.3 capsule without `environment` now warns, and fails under
   `--strict`. Everything else a 0.3 capsule carries stays valid.
