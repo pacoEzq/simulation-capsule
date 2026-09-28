@@ -6,7 +6,7 @@
     "repo": "simulation-capsule",
     "path": "examples/capsule_naca0012_aoa5",
     "frozen_copy_path": "examples/as-published/capsule_naca0012_aoa5",
-    "commit": "3b434e7",
+    "commit": "3b434e762fd7025858be120d7bd04bd1cbb9cbab",
     "commit_note": "the commit that gave the base its views/; the diff is measured against that state"
   },
   "variant": {

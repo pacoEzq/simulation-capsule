@@ -303,6 +303,14 @@ The base is declared by alias, repository, commit and path, and is never edited.
 the base needs a retrofit — `views/`, in this part — `base.commit` names the
 revision that carries it, and `frozen_copy_path` points at the as-published copy.
 
+**The commit locates, `source_sha256` proves.** `base.commit` says where to find the
+base; the view hashes say that what was found is what was measured. `base.commit` is
+the full 40-character SHA, never an abbreviation: a short form that is unique today
+stops being unique as the history grows. It is provisional while the history that
+carries it is only local, because a rebase or an amend rewrites the SHA and leaves
+the hashes intact. So it is written, or re-verified against the pushed history, as
+the last step before the push.
+
 **Shared view contract.** Both capsules render the same camera, the same fixed
 colorbar ranges, the same width, the same title band, and use the same filenames in
 their `views/`. Without this the difference measures the renderer.
