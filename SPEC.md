@@ -282,6 +282,67 @@ taken from elsewhere. It is not the gate statistic of 4.2.3: the standard error
 between windows decides when to stop and says nothing about how far the published
 value sits from a second run of the same case.
 
+#### 4.2.3 `convergence`
+
+How the run was stopped, and on what evidence. A run judged by window statistics
+writes the block with the keys below and no others. Capsules published before 0.4
+carry a shorter block of iterations and residuals; it stays valid, and a block
+without `status` is read as predating this section.
+
+| Key | Holds |
+|-----|-------|
+| `solver` | solver mode as run, `steady segregated` |
+| `criterion` | name of the stopping criterion, `window_stationarity` |
+| `criterion_version` | integer version of that criterion |
+| `time_basis` | one sentence stating what an iteration mean is and is not |
+| `regime_expected` | `{ value, source, ref }`: the regime expected at this Reynolds number, `source` `declared` or `measured`, and the reference it comes from |
+| `status` | `converged`, `stationary` or `not_stationary` |
+| `stop_reason` | one sentence, template below |
+| `solver_regime_mismatch` | boolean verdict of the chain on the solver mode against the expected regime |
+| `iterations` | iterations run |
+| `discard_iterations` | initial iterations discarded before the first window |
+| `window_iterations` | length of one window |
+| `windows_closed` | windows completed |
+| `sampling_interval` | iterations between two samples |
+| `max_iterations` | iteration cap |
+| `k_gate` | gate on `drift_over_se` |
+| `k_sd` | factor of the tolerance on `sd_log_ratio_over_tol` |
+| `min_cycles` | fewest signal cycles a window must hold |
+| `quantities` | one entry per gated quantity, keys below |
+
+Each entry of `quantities`, named after the scalar it gates (`cd`, `cp_base`):
+
+| Key | Holds |
+|-----|-------|
+| `window_means`, `window_sds` | mean and standard deviation of each closed window, in order |
+| `n_cycles_last` | signal cycles counted in the last window |
+| `period_iterations_last` | `window_iterations` over `n_cycles_last` |
+| `drift_last` | last window mean minus the one before it |
+| `drift_over_se` | `drift_last` over the standard error of that difference |
+| `sd_log_ratio_over_tol` | absolute log ratio of the last two window standard deviations, over its tolerance |
+| `pass` | boolean, the entry met every gate |
+
+`status` is `converged` when the run reached a fixed point and its values are
+single values; `stationary` when every entry of `quantities` passes and the
+published values are window statistics (4.2.2); `not_stationary` when the run
+stopped at `max_iterations` before they did. `solver_regime_mismatch` is not a
+comparison of `solver` and `regime_expected`: the reference sample pairs a steady
+solver with an expected unsteady regime and writes `false`.
+
+`stop_reason` for `stationary`, with the gated names in the order of `quantities`,
+the two windows compared as iteration ranges, and the largest `drift_over_se`
+written in full:
+
+```
+Window statistics of <q1>, <q2>, ... stationary between iterations <a>-<b> and <c>-<d> (max drift/SE = <x>).
+```
+
+`Window statistics of cd, cl, cy, cp_base stationary between iterations 1000-3000
+and 3000-5000 (max drift/SE = 0.8749704041357005).`
+
+`uncertainty` is not a convergence key: it qualifies the published values, and lives
+at the root (4.2.2).
+
 ### 4.3 `planes/` (settled)
 
 Plane sections, exported as a CSV and PNG pair sharing a stem:
@@ -515,7 +576,7 @@ run it on the expanded directory.
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
-| 0.4 | Root block `environment` (4.2.1), window statistics and `uncertainty` (4.2.2), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
+| 0.4 | Root block `environment` (4.2.1), window statistics and `uncertainty` (4.2.2), `convergence` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
 
 ### 0.3 → 0.4
 
@@ -531,5 +592,8 @@ run it on the expanded directory.
   `_sd`; probes and plane extremes carry the same keys. Root block `uncertainty`.
   `mass` is nondimensional, `mesh.cells` an integer, `designed_for_Re_range`
   replaces `designed_for_Re`.
+- 4.2.3: block `convergence` for runs judged by window statistics: its keys,
+  `status` in `converged`, `stationary`, `not_stationary`, and the `stop_reason`
+  template.
 - Compatibility: a 0.3 capsule without `environment` now warns, and fails under
   `--strict`. Everything else a 0.3 capsule carries stays valid.
