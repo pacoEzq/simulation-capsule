@@ -36,6 +36,13 @@ Three things are proved here.
    shallow clone warns with its reason, where the same absence from a full
    clone is an error.
 
+8. Window statistics, SPEC 4.2.2 and 4.2.3. A stationary run whose scalars
+   carry their quintets passes, extremes without sd included; a quintet
+   missing, a statistic outside the enum, sd on an extreme, a dimensional
+   mass flow, a mesh count that is not an integer and a Reynolds range that
+   is not two integers warn, and fail under --strict. A block without
+   status predates 0.4 and asks for no quintet.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -202,6 +209,45 @@ def build_environment(root):
                             renders={"scope": ["views/"],
                                      "precision": "double"}),
     }, indent=2))
+
+
+def windowed_summary(**overrides):
+    """A summary.json in the shape the T7 chain writes, stationary run."""
+    def quintet(name, value, statistic="iteration_mean"):
+        out = {name: value, name + "_window_iterations": 4000,
+               name + "_n_windows": 2, name + "_statistic": statistic}
+        if statistic == "iteration_mean":
+            out[name + "_sd"] = 0.05
+        return out
+    summary = {
+        "case": "cube_re3000",
+        "environment": ENVIRONMENT,
+        "reference": {"side_m": 1.0, "re_D": 3000},
+        "mesh": {"cells": 501860, "designed_for_Re_range": [100, 3000]},
+        "convergence": {"status": "stationary", "iterations": 5000},
+        "uncertainty": {"cd_relative": 0.004, "source": "measured",
+                        "basis": "two independent runs of the same case"},
+        "forces": dict(quintet("cd", 1.12), **quintet("cd_pressure", 1.14)),
+        "pressure": dict(quintet("cp_base", -0.42),
+                         **quintet("cp_min", -2.03, "window_min")),
+        "wake": quintet("recirculation_length_D", 2.27),
+        "mass": dict(quintet("mdot_in_over_rhoUD2", -100.0),
+                     **quintet("mass_imbalance", 5.3e-06)),
+        "probes": {"u_over_U_axis_x2D": {
+            "value": 0.21, "sd": 0.20, "window_iterations": 4000,
+            "n_windows": 2, "statistic": "iteration_mean",
+            "position_D": [2.0, 0.0, 0.0]}},
+        "plane_extremes": {"y0": {"cp": [-1.79, 1.04]},
+                           "statistic": "window_min_max",
+                           "window_iterations": 4000, "n_windows": 2},
+    }
+    summary.update(overrides)
+    return summary
+
+
+def build_windowed(root, summary):
+    write(os.path.join(root, "setup.txt"), "Case: cube_re3000\n")
+    write(os.path.join(root, "summary.json"), json.dumps(summary, indent=2))
 
 
 def diff_manifest(**overrides):
@@ -397,6 +443,9 @@ def main():
         bad_hash = os.path.join(workspace, "capsule_bad_hash")
         far_base = os.path.join(workspace, "capsule_far_base")
         short_sha = os.path.join(workspace, "capsule_short_sha")
+        windowed_ok = os.path.join(workspace, "capsule_windowed_ok")
+        windowed_bad = os.path.join(workspace, "capsule_windowed_bad")
+        pre_status = os.path.join(workspace, "capsule_pre_status")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -416,6 +465,19 @@ def main():
         build_variant(far_base, base_sha=base_sha, overrides={"base": far})
         short = dict(diff_manifest()["base"], commit="9a805f3")
         build_variant(short_sha, base_sha=base_sha, overrides={"base": short})
+        build_windowed(windowed_ok, windowed_summary())
+        good = windowed_summary()
+        build_windowed(windowed_bad, windowed_summary(
+            forces={"cd": 1.12, "cd_statistic": "median", "cl": -0.006,
+                    "cl_statistic": "iteration_mean"},
+            pressure=dict(good["pressure"], cp_min_sd=0.1),
+            mass=dict(good["mass"], mdot_inlet=-6.0),
+            mesh={"cells": 501860.0, "designed_for_Re": 3000,
+                  "designed_for_Re_range": [3000]},
+            convergence={"status": "stationary",
+                         "uncertainty": good["uncertainty"]}))
+        build_windowed(pre_status, windowed_summary(
+            convergence={"iterations": 5000}, forces={"cd": 1.12}))
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -452,7 +514,7 @@ def main():
         fired = set()
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
-                     bad_colormap, environment, bad_hash):
+                     bad_colormap, environment, bad_hash, windowed_bad):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -664,6 +726,38 @@ def main():
         else:
             print("PASS  a missing commit is 'shallow' in a shallow clone, "
                   "'unknown' in a full one")
+
+        # 8. Window statistics.
+        got = failed_checks(windowed_ok, strict=True)
+        if got:
+            failures.append("a stationary run with its quintets should pass "
+                            "strict, failed %s: %s"
+                            % (sorted(got), findings(windowed_ok,
+                                                     "summary_blocks")))
+        else:
+            print("PASS  a stationary run with its quintets passes strict")
+
+        msgs = [f["message"] for f in findings(windowed_bad, "summary_blocks")]
+        wanted = ("cl_sd", "'median'", "no sd", "mdot_inlet", "mesh/cells",
+                  "designed_for_Re is replaced", "designed_for_Re_range is",
+                  "belongs at the root")
+        absent = [w for w in wanted if not any(w in m for m in msgs)]
+        if absent:
+            failures.append("summary_blocks missed %s: %s" % (absent, msgs))
+        elif "summary_blocks" in failed_checks(windowed_bad):
+            failures.append("summary_blocks should warn, not fail")
+        elif "summary_blocks" not in failed_checks(windowed_bad, strict=True):
+            failures.append("summary_blocks should fail under --strict")
+        else:
+            print("PASS  missing quintet, bad statistic, sd on an extreme, "
+                  "mdot, cells and Re range warn, fail strict")
+
+        if findings(pre_status, "summary_blocks"):
+            failures.append("a convergence block without status asks for no "
+                            "quintet: %s" % findings(pre_status,
+                                                     "summary_blocks"))
+        else:
+            print("PASS  a block without status predates 0.4, stays silent")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

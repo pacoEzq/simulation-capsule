@@ -140,6 +140,16 @@ ENVIRONMENT_BLOCK = "environment"
 ENVIRONMENT_KEYS = ("solver", "version", "build", "platform", "precision")
 PRECISIONS = ("single", "double", "mixed")
 
+# SPEC 4.2.2 and 4.2.3. A run judged by window statistics publishes each
+# scalar with its window. The value, then four companions.
+CONVERGENCE_STATUSES = ("converged", "stationary", "not_stationary")
+STATISTICS = ("iteration_mean", "window_min", "window_max",
+              "window_min_max", "instantaneous")
+EXTREME_STATISTICS = ("window_min", "window_max", "window_min_max")
+QUINTET_SUFFIXES = ("_sd", "_window_iterations", "_n_windows", "_statistic")
+WINDOWED_BLOCKS = ("forces", "pressure", "wake", "mass")
+UNCERTAINTY_SOURCES = ("measured", "declared")
+
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
 KNOWN_EXTENSIONS = {"diff": "SPEC 4.7"}
@@ -1161,6 +1171,137 @@ def check_diff_view_hashes(root, entries):
     return check
 
 
+def is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def is_integer(value):
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def check_window_entry(check, rel, where, entry, prefix, windowed):
+    """One published scalar and its companions. With prefix the keys are
+    <name>_sd and so on inside a block; without, sd and so on inside the
+    scalar's own object, which is how probes carry them."""
+    def key(suffix):
+        return prefix + suffix if prefix else suffix.lstrip("_")
+    statistic = entry.get(key("_statistic"))
+    if key("_statistic") in entry and statistic not in STATISTICS:
+        check.warn("%s: statistic %r is not one of %s"
+                   % (where, statistic, ", ".join(STATISTICS)), rel)
+    if statistic in EXTREME_STATISTICS and key("_sd") in entry:
+        check.warn("%s: an extreme carries no sd, a minimum over a span has "
+                   "no spread of its own" % where, rel)
+    if not windowed:
+        return
+    missing = [key(s) for s in QUINTET_SUFFIXES[1:] if key(s) not in entry]
+    if statistic == "iteration_mean" and key("_sd") not in entry:
+        missing.insert(0, key("_sd"))
+    if missing:
+        check.warn("%s: a windowed value without %s cannot be checked"
+                   % (where, ", ".join(missing)), rel)
+
+
+def check_summary_blocks(root, entries):
+    check = Check("summary_blocks", "Windowed scalars carry their window, "
+                  "mass and mesh their 0.4 form", "SPEC 4.2.2, 4.2.3")
+    if "summary.json" not in entries:
+        check.skip("no summary.json")
+        return check
+    data = load_json(root, "summary.json")
+    if not isinstance(data, dict):
+        check.skip("summary.json does not parse: see the json_parses check")
+        return check
+    rel = "summary.json"
+    # New in SPEC 0.4: warnings, failures under --strict.
+
+    convergence = data.get("convergence")
+    convergence = convergence if isinstance(convergence, dict) else {}
+    status = convergence.get("status")
+    if "status" in convergence and status not in CONVERGENCE_STATUSES:
+        check.warn("convergence/status is %r, the SPEC allows %s"
+                   % (status, ", ".join(CONVERGENCE_STATUSES)), rel)
+    # A block without status predates 4.2.3 and is read as it was written.
+    windowed = "status" in convergence and status != "converged"
+    if "uncertainty" in convergence:
+        check.warn("convergence/uncertainty belongs at the root: it qualifies "
+                   "the published values, not the stopping test", rel)
+
+    for block in WINDOWED_BLOCKS:
+        values = data.get(block)
+        if not isinstance(values, dict):
+            continue
+        for name, value in values.items():
+            if not is_number(value) or any(
+                    name.endswith(s) and name[:-len(s)] in values
+                    for s in QUINTET_SUFFIXES):
+                continue
+            check_window_entry(check, rel, "%s/%s" % (block, name), values,
+                               name, windowed)
+
+    probes = data.get("probes")
+    if isinstance(probes, dict):
+        for name, probe in probes.items():
+            if not isinstance(probe, dict):
+                continue
+            where = "probes/%s" % name
+            if windowed and "value" not in probe:
+                check.warn("%s: no value" % where, rel)
+            check_window_entry(check, rel, where, probe, "", windowed)
+
+    extremes = data.get("plane_extremes")
+    if isinstance(extremes, dict):
+        statistic = extremes.get("statistic")
+        if "statistic" in extremes and statistic not in STATISTICS:
+            check.warn("plane_extremes: statistic %r is not one of %s"
+                       % (statistic, ", ".join(STATISTICS)), rel)
+        missing = [k for k in ("statistic", "window_iterations", "n_windows")
+                   if k not in extremes]
+        if windowed and missing:
+            check.warn("plane_extremes: the block carries %s once for all "
+                       "planes" % ", ".join(missing), rel)
+
+    mass = data.get("mass")
+    if isinstance(mass, dict):
+        for name in mass:
+            lowered = name.lower()
+            if lowered.startswith("mdot") and "_over_" not in lowered:
+                check.warn("mass/%s: a dimensional mass flow, SPEC 4.2.2 "
+                           "writes mdot over rho U D^2" % name, rel)
+
+    mesh = data.get("mesh")
+    if isinstance(mesh, dict):
+        if "cells" in mesh and not is_integer(mesh["cells"]):
+            check.warn("mesh/cells is %r, not an integer" % (mesh["cells"],),
+                       rel)
+        if "designed_for_Re" in mesh:
+            check.warn("mesh/designed_for_Re is replaced by "
+                       "designed_for_Re_range, [low, high]", rel)
+        if "designed_for_Re_range" in mesh:
+            span = mesh["designed_for_Re_range"]
+            if not (isinstance(span, list) and len(span) == 2
+                    and all(is_integer(v) for v in span)
+                    and span[0] <= span[1]):
+                check.warn("mesh/designed_for_Re_range is %r, not two "
+                           "integers low then high" % (span,), rel)
+
+    uncertainty = data.get("uncertainty")
+    if "uncertainty" in data:
+        if not isinstance(uncertainty, dict):
+            check.warn("'uncertainty' is not an object", rel)
+        else:
+            if not is_number(uncertainty.get("cd_relative")):
+                check.warn("uncertainty/cd_relative is not a number", rel)
+            if not isinstance(uncertainty.get("basis"), str):
+                check.warn("uncertainty/basis does not say how it was "
+                           "obtained", rel)
+            if uncertainty.get("source") not in UNCERTAINTY_SOURCES:
+                check.warn("uncertainty/source is %r, the SPEC allows %s"
+                           % (uncertainty.get("source"),
+                              " or ".join(UNCERTAINTY_SOURCES)), rel)
+    return check
+
+
 def check_publication_residue(root, entries):
     check = Check("publication_residue", "No working state left in a "
                   "published capsule", "SPEC 2")
@@ -1243,6 +1384,7 @@ CHECKS = [
     check_encoding,
     check_json_parses,
     check_environment,
+    check_summary_blocks,
     check_plane_pairs,
     check_csv_header,
     check_png_geometry,
