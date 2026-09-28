@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.3. Draft.**
+**Version 0.4. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -448,3 +448,16 @@ run it on the expanded directory.
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
+| 0.4 | Root block `environment` (4.2.1), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
+
+### 0.3 → 0.4
+
+- 4.2.1: root block `environment` (`solver`, `version`, `build`, `platform`,
+  `precision`, `renders.scope`) absorbs `numerics`; precision is read from the
+  `BuildEnv` field of `setup.txt`.
+- 4.7: `diffsrc/` lives at the repository root; `diff.json` declares the sha256 of
+  every measured view and every grayscale frame, and the tool stops on a mismatch.
+- 4.7: `base.commit` is the full 40-character SHA, provisional while its history is
+  only local, written or re-verified as the last step before the push.
+- Compatibility: a 0.3 capsule without `environment` now warns, and fails under
+  `--strict`. Everything else a 0.3 capsule carries stays valid.

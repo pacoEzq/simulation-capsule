@@ -175,7 +175,7 @@ def diff_manifest(**overrides):
     """A diff.json that satisfies SPEC 4.7, before the overrides a fixture
     applies to break exactly one thing."""
     manifest = {
-        "schema_version": "0.3",
+        "schema_version": "0.4",
         "base": {
             "alias": "naca0012_aoa5",
             "repo": "https://github.com/example/simulation-capsule",
