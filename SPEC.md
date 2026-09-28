@@ -72,8 +72,11 @@ declared by where it lives and how it is named:
 - It lives in `reference`. A key with a unit suffix anywhere else in the capsule
   is an error.
 - The key carries the unit as a suffix: the SI symbol in lowercase, joined with
-  underscores, `_per_` for division and a trailing digit for a power. The value
-  is a bare number.
+  underscores, and a trailing digit for a power. The value is a bare number.
+- `_per_` for division is recommended, `velocity_m_per_s`, not required. Inside
+  `reference` a suffix is accepted as written, `velocity_m_s` and `density_kg_m3`
+  included: the block already declares its keys dimensional, and the root of the
+  key names the quantity.
 
 ```json
 "reference": {
@@ -575,7 +578,7 @@ run it on the expanded directory.
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
-| 0.4 | Root block `environment` (4.2.1), window statistics (4.2.2), `convergence` with its `uncertainty` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
+| 0.4 | Unit suffixes inside `reference` accepted as written, `_per_` recommended (3.1). Root block `environment` (4.2.1), window statistics (4.2.2), `convergence` with its `uncertainty` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
 
 ### 0.3 → 0.4
 
@@ -594,5 +597,7 @@ run it on the expanded directory.
 - 4.2.3: block `convergence` for runs judged by window statistics: its keys,
   `status` in `converged`, `stationary`, `not_stationary`, the `stop_reason`
   template, and `convergence.uncertainty`.
+- 3.1: inside `reference`, unit suffixes are accepted as written (`_m_s`,
+  `_kg_m3`); `_per_` for division is a recommendation, not a rule.
 - Compatibility: a 0.3 capsule without `environment` now warns, and fails under
   `--strict`. Everything else a 0.3 capsule carries stays valid.
