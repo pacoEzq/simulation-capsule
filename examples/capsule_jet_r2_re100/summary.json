@@ -2,6 +2,13 @@
   "schema": "simulation-capsule-summary/1",
   "case": "jet in crossflow, r=2, Re=100, laminar steady",
   "alias": "capsule_jet_r2_re100",
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2602",
+    "build": "21.02.007",
+    "platform": "win64",
+    "precision": "double"
+  },
   "nondimensional": true,
   "reference": {
     "length_scale_D_m": 1.0,

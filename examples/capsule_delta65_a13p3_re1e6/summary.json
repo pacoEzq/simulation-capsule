@@ -30,6 +30,13 @@
       "build": "21.02.008"
     }
   },
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2602.0001",
+    "build": "21.02.008",
+    "platform": "linux-x86_64-2.28",
+    "precision": "mixed"
+  },
   "reference": {
     "chord_root_m": 1.0,
     "u_inf_m_per_s": 1.0,

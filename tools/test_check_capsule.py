@@ -24,6 +24,10 @@ Three things are proved here.
    the SPEC does not allow is an error and a measured colormap that is not
    grayscale is a warning.
 
+5. The environment block of SPEC 4.2.1. A capsule without it warns, a
+   precision outside single, double and mixed or a render scope that names
+   a directory the capsule does not carry fails under --strict.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -68,6 +72,11 @@ def write(path, text, encoding="utf-8"):
         handle.write(text)
 
 
+ENVIRONMENT = {"solver": "Simcenter STAR-CCM+", "version": "2602",
+               "build": "21.02.007", "platform": "win64",
+               "precision": "double"}
+
+
 GOOD_HEADER = ("# plane y_D = 0 | grid 33 x 13, spacing 0.25 D | "
                "419 of 429 nodes | fields %.3f | nondimensional\n"
                "x_D,z_D,u_U,cp\n-2.000,-1.500,0.993,0.031\n")
@@ -78,8 +87,9 @@ def build_jet(root, defective):
     trailing = "," if defective else ""
     write(os.path.join(root, "summary.json"),
           '{\n  "case": "jet_r2_re100",\n'
+          '  "environment": %s,\n'
           '  "reference": {"length_scale_D_m": 2.0, "re_D": 100}%s\n}\n'
-          % trailing)
+          % (json.dumps(ENVIRONMENT), trailing))
     for tag in ("y0", "x5", "x10"):
         write(os.path.join(root, "planes", "plane_%s.csv" % tag), GOOD_HEADER)
         name = ("jet_r2_re100_scene_%s.png" % tag) if defective \
@@ -168,6 +178,20 @@ def build_legacy(root):
             "re_c": 1.0e6,
             "velocity_ratio": 2.0,
         },
+    }, indent=2))
+
+
+def build_environment(root):
+    """A precision the SPEC does not name, a render scope pointing at a
+    directory the capsule does not carry, and a numerics block left over."""
+    write(os.path.join(root, "setup.txt"), "Case: environment\n")
+    write(os.path.join(root, "summary.json"), json.dumps({
+        "case": "environment",
+        "reference": {"chord_m": 1.0, "re_c": 1.0e6},
+        "numerics": {"precision": "double"},
+        "environment": dict(ENVIRONMENT, precision="quad",
+                            renders={"scope": ["views/"],
+                                     "precision": "double"}),
     }, indent=2))
 
 
@@ -303,6 +327,7 @@ def main():
         zero_base = os.path.join(workspace, "capsule_zero_base")
         suffix_bad = os.path.join(workspace, "capsule_suffix_bad")
         suffix_ok = os.path.join(workspace, "capsule_suffix_ok")
+        environment = os.path.join(workspace, "capsule_environment")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -314,6 +339,7 @@ def main():
         build_angles(angles_ok)
         build_suffix_grammar(suffix_bad, True)
         build_suffix_grammar(suffix_ok, False)
+        build_environment(environment)
         build_variant(variant_ok)
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
@@ -351,7 +377,7 @@ def main():
         fired = set()
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
-                     bad_colormap):
+                     bad_colormap, environment):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -501,6 +527,28 @@ def main():
                             "declared")
         else:
             print("PASS  a 0.2 capsule skips both diff checks, unchanged")
+
+        # 5. The environment block.
+        missing = findings(legacy, "environment")
+        if not missing or missing[0]["severity"] != check_capsule.WARN:
+            failures.append("a capsule without environment should warn, got "
+                            "%s" % missing)
+        elif "environment" in failed_checks(legacy):
+            failures.append("a missing environment should warn, not fail")
+        else:
+            print("PASS  no environment block warns, fails strict")
+
+        msgs = [f["message"] for f in findings(environment, "environment")]
+        wanted = ("'quad'", "views/", "numerics")
+        absent = [w for w in wanted if not any(w in m for m in msgs)]
+        if absent:
+            failures.append("environment findings missing %s: %s"
+                            % (absent, msgs))
+        elif "environment" not in failed_checks(environment, strict=True):
+            failures.append("a bad environment should fail under --strict")
+        else:
+            print("PASS  bad precision, absent scope directory and numerics "
+                  "warn, fail strict")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

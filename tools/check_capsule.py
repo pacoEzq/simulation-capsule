@@ -134,6 +134,11 @@ ANGLE_SUFFIX = re.compile(r"_(deg|rad)$")
 # Keys that mark the pre v0.2 object form {value, unit_flag}.
 LEGACY_UNIT_KEYS = ("unit", "units", "unit_flag", "dimensional", "flag")
 
+# SPEC 4.2.1. The root block that says which build produced the numbers.
+ENVIRONMENT_BLOCK = "environment"
+ENVIRONMENT_KEYS = ("solver", "version", "build", "platform", "precision")
+PRECISIONS = ("single", "double", "mixed")
+
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
 KNOWN_EXTENSIONS = {"diff": "SPEC 4.7"}
@@ -980,6 +985,63 @@ def check_diff_manifest(root, entries):
     return check
 
 
+def check_environment(root, entries):
+    check = Check("environment", "summary.json declares the build the numbers "
+                  "came from", "SPEC 4.2.1")
+    if "summary.json" not in entries:
+        check.skip("no summary.json")
+        return check
+    data = load_json(root, "summary.json")
+    if not isinstance(data, dict):
+        check.skip("summary.json does not parse: see the json_parses check")
+        return check
+    rel = "summary.json"
+    # New in SPEC 0.4, so every finding is a warning: legal in a capsule
+    # written under 0.3, a failure under --strict.
+    if "numerics" in data:
+        check.warn("root block 'numerics' is absorbed by 'environment' in "
+                   "SPEC 0.4: precision is a property of the build", rel)
+    env = data.get(ENVIRONMENT_BLOCK)
+    if env is None:
+        check.warn("no 'environment' block: two builds of the same case are "
+                   "two measurements, and nothing says which one this is", rel)
+        return check
+    if not isinstance(env, dict):
+        check.warn("'environment' is not an object", rel)
+        return check
+    for key in ENVIRONMENT_KEYS:
+        if key not in env:
+            check.warn("environment/%s is missing" % key, rel)
+    precision = env.get("precision")
+    if "precision" in env and precision not in PRECISIONS:
+        check.warn("environment/precision is %r, the SPEC allows %s: read it "
+                   "from BuildEnv in setup.txt, -r8 is double"
+                   % (precision, ", ".join(PRECISIONS)), rel)
+    if "renders" not in env:
+        return check
+    renders = env["renders"]
+    if not isinstance(renders, dict):
+        check.warn("environment/renders is not an object", rel)
+        return check
+    if "precision" in renders and renders["precision"] not in PRECISIONS:
+        check.warn("environment/renders/precision is %r, the SPEC allows %s"
+                   % (renders["precision"], ", ".join(PRECISIONS)), rel)
+    scope = renders.get("scope")
+    if not isinstance(scope, list) or not scope:
+        check.warn("environment/renders/scope does not list the directories "
+                   "the render environment produced", rel)
+        return check
+    for name in scope:
+        folder = name.strip("/") if isinstance(name, str) else ""
+        if not folder or "/" in folder or ".." in folder:
+            check.warn("environment/renders/scope names %r, not a capsule "
+                       "directory" % (name,), rel)
+        elif not os.path.isdir(os.path.join(root, folder)):
+            check.warn("environment/renders/scope names %s, which is not in "
+                       "the capsule" % name, rel)
+    return check
+
+
 def check_publication_residue(root, entries):
     check = Check("publication_residue", "No working state left in a "
                   "published capsule", "SPEC 2")
@@ -1061,6 +1123,7 @@ CHECKS = [
     check_not_empty,
     check_encoding,
     check_json_parses,
+    check_environment,
     check_plane_pairs,
     check_csv_header,
     check_png_geometry,
