@@ -270,18 +270,6 @@ dimensional mass flow key appears anywhere in `mass`.
 **Mesh.** `mesh.cells` is an integer. `mesh.designed_for_Re_range` is the pair of
 integers `[low, high]` the mesh was sized for, and replaces `designed_for_Re`.
 
-**Uncertainty.** A root block declares the uncertainty of the published values:
-
-```
-uncertainty { cd_relative, basis, source }
-```
-
-`cd_relative` is a fraction, `basis` says in one sentence how it was obtained, and
-`source` is `measured` when it comes from runs of this case, `declared` when it is
-taken from elsewhere. It is not the gate statistic of 4.2.3: the standard error
-between windows decides when to stop and says nothing about how far the published
-value sits from a second run of the same case.
-
 #### 4.2.3 `convergence`
 
 How the run was stopped, and on what evidence. A run judged by window statistics
@@ -308,6 +296,7 @@ without `status` is read as predating this section.
 | `k_gate` | gate on `drift_over_se` |
 | `k_sd` | factor of the tolerance on `sd_log_ratio_over_tol` |
 | `min_cycles` | fewest signal cycles a window must hold |
+| `uncertainty` | `{ cd_relative, basis, source, note }`, below |
 | `quantities` | one entry per gated quantity, keys below |
 
 Each entry of `quantities`, named after the scalar it gates (`cd`, `cp_base`):
@@ -340,8 +329,18 @@ Window statistics of <q1>, <q2>, ... stationary between iterations <a>-<b> and <
 `Window statistics of cd, cl, cy, cp_base stationary between iterations 1000-3000
 and 3000-5000 (max drift/SE = 0.8749704041357005).`
 
-`uncertainty` is not a convergence key: it qualifies the published values, and lives
-at the root (4.2.2).
+**Uncertainty.** `convergence.uncertainty` declares the uncertainty of the
+published values:
+
+```
+uncertainty { cd_relative, basis, source, note }
+```
+
+`cd_relative` is a fraction, `basis` says in one sentence how it was obtained, and
+`source` is `measured` when it comes from runs of this case, `declared` when it is
+taken from elsewhere. `note` is optional. It is not the gate statistic: the
+standard error between windows decides when to stop and says nothing about how far
+the published value sits from a second run of the same case.
 
 ### 4.3 `planes/` (settled)
 
@@ -576,7 +575,7 @@ run it on the expanded directory.
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
-| 0.4 | Root block `environment` (4.2.1), window statistics and `uncertainty` (4.2.2), `convergence` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
+| 0.4 | Root block `environment` (4.2.1), window statistics (4.2.2), `convergence` with its `uncertainty` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
 
 ### 0.3 → 0.4
 
@@ -589,11 +588,11 @@ run it on the expanded directory.
   only local, written or re-verified as the last step before the push.
 - 4.2.2: window statistics. Every published scalar of a run not `converged` carries
   `_sd`, `_window_iterations`, `_n_windows` and `_statistic`; extremes carry no
-  `_sd`; probes and plane extremes carry the same keys. Root block `uncertainty`.
+  `_sd`; probes and plane extremes carry the same keys.
   `mass` is nondimensional, `mesh.cells` an integer, `designed_for_Re_range`
   replaces `designed_for_Re`.
 - 4.2.3: block `convergence` for runs judged by window statistics: its keys,
-  `status` in `converged`, `stationary`, `not_stationary`, and the `stop_reason`
-  template.
+  `status` in `converged`, `stationary`, `not_stationary`, the `stop_reason`
+  template, and `convergence.uncertainty`.
 - Compatibility: a 0.3 capsule without `environment` now warns, and fails under
   `--strict`. Everything else a 0.3 capsule carries stays valid.

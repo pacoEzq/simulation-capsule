@@ -1223,9 +1223,9 @@ def check_summary_blocks(root, entries):
                    % (status, ", ".join(CONVERGENCE_STATUSES)), rel)
     # A block without status predates 4.2.3 and is read as it was written.
     windowed = "status" in convergence and status != "converged"
-    if "uncertainty" in convergence:
-        check.warn("convergence/uncertainty belongs at the root: it qualifies "
-                   "the published values, not the stopping test", rel)
+    if "uncertainty" in data:
+        check.warn("root block 'uncertainty' belongs inside convergence, "
+                   "SPEC 4.2.3", rel)
 
     for block in WINDOWED_BLOCKS:
         values = data.get(block)
@@ -1285,18 +1285,20 @@ def check_summary_blocks(root, entries):
                 check.warn("mesh/designed_for_Re_range is %r, not two "
                            "integers low then high" % (span,), rel)
 
-    uncertainty = data.get("uncertainty")
-    if "uncertainty" in data:
+    uncertainty = convergence.get("uncertainty")
+    if "uncertainty" in convergence:
         if not isinstance(uncertainty, dict):
-            check.warn("'uncertainty' is not an object", rel)
+            check.warn("convergence/uncertainty is not an object", rel)
         else:
             if not is_number(uncertainty.get("cd_relative")):
-                check.warn("uncertainty/cd_relative is not a number", rel)
+                check.warn("convergence/uncertainty/cd_relative is not a "
+                           "number", rel)
             if not isinstance(uncertainty.get("basis"), str):
-                check.warn("uncertainty/basis does not say how it was "
-                           "obtained", rel)
+                check.warn("convergence/uncertainty/basis does not say how it "
+                           "was obtained", rel)
             if uncertainty.get("source") not in UNCERTAINTY_SOURCES:
-                check.warn("uncertainty/source is %r, the SPEC allows %s"
+                check.warn("convergence/uncertainty/source is %r, the SPEC "
+                           "allows %s"
                            % (uncertainty.get("source"),
                               " or ".join(UNCERTAINTY_SOURCES)), rel)
     return check

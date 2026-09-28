@@ -39,8 +39,9 @@ Three things are proved here.
 8. Window statistics, SPEC 4.2.2 and 4.2.3. A stationary run whose scalars
    carry their quintets passes, extremes without sd included; a quintet
    missing, a statistic outside the enum, sd on an extreme, a dimensional
-   mass flow, a mesh count that is not an integer and a Reynolds range that
-   is not two integers warn, and fail under --strict. A block without
+   mass flow, a mesh count that is not an integer, a Reynolds range that
+   is not two integers, an uncertainty at the root and one inside
+   convergence without its keys warn, and fail under --strict. A block without
    status predates 0.4 and asks for no quintet.
 
 Run: python test_check_capsule.py
@@ -224,9 +225,10 @@ def windowed_summary(**overrides):
         "environment": ENVIRONMENT,
         "reference": {"side_m": 1.0, "re_D": 3000},
         "mesh": {"cells": 501860, "designed_for_Re_range": [100, 3000]},
-        "convergence": {"status": "stationary", "iterations": 5000},
-        "uncertainty": {"cd_relative": 0.004, "source": "measured",
-                        "basis": "two independent runs of the same case"},
+        "convergence": {"status": "stationary", "iterations": 5000,
+                        "uncertainty": {
+                            "cd_relative": 0.004, "source": "measured",
+                            "basis": "two independent runs of the same case"}},
         "forces": dict(quintet("cd", 1.12), **quintet("cd_pressure", 1.14)),
         "pressure": dict(quintet("cp_base", -0.42),
                          **quintet("cp_min", -2.03, "window_min")),
@@ -474,8 +476,10 @@ def main():
             mass=dict(good["mass"], mdot_inlet=-6.0),
             mesh={"cells": 501860.0, "designed_for_Re": 3000,
                   "designed_for_Re_range": [3000]},
-            convergence={"status": "stationary",
-                         "uncertainty": good["uncertainty"]}))
+            uncertainty=good["convergence"]["uncertainty"],
+            convergence={"status": "stationary", "uncertainty": {
+                "cd_relative": "0.4 percent", "basis": "two runs",
+                "source": "guessed"}}))
         build_windowed(pre_status, windowed_summary(
             convergence={"iterations": 5000}, forces={"cd": 1.12}))
         build_variant(undeclared, declare=False)
@@ -740,7 +744,8 @@ def main():
         msgs = [f["message"] for f in findings(windowed_bad, "summary_blocks")]
         wanted = ("cl_sd", "'median'", "no sd", "mdot_inlet", "mesh/cells",
                   "designed_for_Re is replaced", "designed_for_Re_range is",
-                  "belongs at the root")
+                  "belongs inside convergence", "cd_relative is not",
+                  "'guessed'")
         absent = [w for w in wanted if not any(w in m for m in msgs)]
         if absent:
             failures.append("summary_blocks missed %s: %s" % (absent, msgs))
