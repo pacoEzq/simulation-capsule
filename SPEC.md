@@ -341,6 +341,19 @@ the measurement runs and stay outside the capsule; `diff.json` declares the reci
 to regenerate them. A `diffsrc/` directory inside a capsule is an error whether or
 not `diff` is declared.
 
+`diffsrc/` lives at the repository root, one subdirectory per capsule, and each
+frame keeps the filename of the view it was rendered from:
+`diffsrc/capsule_naca0012_aoa5/view_cp_nearfield.png`. `pipeline.instrument_root`
+names it.
+
+**Every link of the chain is hashed.** The chain runs view, grayscale frame, diff.
+For every pair, `diff.json` declares the sha256 of both measured views in
+`source_sha256 { base_view, variant_view }` and of both grayscale frames in
+`instrument_sha256 { base_frame, variant_frame }`. The tool hashes all four before
+measuring and stops if any one does not match. A view re-exported without
+regenerating its frame leaves the frame hash intact, and a run that checked only the
+frames would return the previous number in silence.
+
 Schema of `diff.json`:
 
 ```
@@ -353,8 +366,11 @@ view_contract { camera, width_px, export_height_px, artifact_height_px,
                 crop_rows_top, colorbar_levels, contour_style, body_fill,
                 colormap_published, colormap_measured, colorbar { cp, u_over_u } }
 pipeline  { order: "crop_then_mask_then_diff", body_dilation_px,
-            colorbar_box_excluded_px, pixels_evaluated, tool, tool_version }
-pairs[]   { name, question, base_view, variant_view, output,
+            colorbar_box_excluded_px, pixels_evaluated, tool, tool_version,
+            instrument_root: "diffsrc" }
+pairs[]   { name, question, base_view, variant_view,
+            source_sha256 { base_view, variant_view },
+            instrument_sha256 { base_frame, variant_frame }, output,
             threshold_physical, threshold_comparison: ">=", threshold_levels,
             level_size, changed_pixel_fraction, max_delta_levels,
             max_delta_physical }
