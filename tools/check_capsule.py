@@ -158,9 +158,11 @@ DIFF_REQUIRED_KEYS = ("schema_version", "base", "variant", "difference",
 # pointer to the as-published copy it was measured against.
 DIFF_BASE_KEYS = ("repo", "commit", "path", "frozen_copy_path")
 
-# A commit is named by its SHA. Short forms are legal, seven characters is
-# where git stops being ambiguous in practice.
+# A commit is named by its SHA. SPEC 0.4 asks for all 40 characters: a short
+# form unique today stops being unique as the history grows. Seven to 39
+# still reads as a SHA and warns; anything else is not a commit.
 COMMIT_SHA = re.compile(r"^[0-9a-f]{7,40}$")
+FULL_SHA_LENGTH = 40
 
 # SPEC 4.7: the chain is view, grayscale frame, diff, and every link carries
 # its sha256 in the pair that uses it.
@@ -822,11 +824,14 @@ def relative_against_zero(node, trail=()):
 
 
 def resolve_commit(root, repo, sha):
-    """Return 'known', 'unknown' or 'unavailable' for a base commit.
+    """Return 'known', 'unknown', 'shallow' or 'unavailable' for a base
+    commit.
 
     Unavailable is the common case and never an error: the base lives in
     another repository, or this copy was unpacked from an archive with no
-    git objects at all.
+    git objects at all. Shallow is a commit missing from a clone that was
+    cut at a fixed depth: absence proves nothing there, so it is a warning
+    with its reason and not the error of 'unknown'.
     """
     try:
         remotes = subprocess.run(
@@ -842,7 +847,14 @@ def resolve_commit(root, repo, sha):
         found = subprocess.run(
             ["git", "-C", root, "cat-file", "-e", "%s^{commit}" % sha],
             capture_output=True, text=True, timeout=10)
-        return "known" if found.returncode == 0 else "unknown"
+        if found.returncode == 0:
+            return "known"
+        shallow = subprocess.run(
+            ["git", "-C", root, "rev-parse", "--is-shallow-repository"],
+            capture_output=True, text=True, timeout=10)
+        if shallow.returncode == 0 and shallow.stdout.strip() == "true":
+            return "shallow"
+        return "unknown"
     except (OSError, subprocess.SubprocessError):
         return "unavailable"
 
@@ -885,10 +897,19 @@ def check_diff_manifest(root, entries):
                 check.error("base/commit does not look like a commit SHA, "
                             "7 to 40 hex characters: %s" % sha, rel)
             else:
+                if len(sha.strip()) < FULL_SHA_LENGTH:
+                    check.warn("base/commit %s is abbreviated: SPEC 4.7 asks "
+                               "for the full %d-character SHA"
+                               % (sha, FULL_SHA_LENGTH), rel)
                 state = resolve_commit(root, base.get("repo", ""), sha.strip())
                 if state == "unknown":
                     check.error("base/commit %s is not in this repository, "
                                 "which base/repo names" % sha, rel)
+                elif state == "shallow":
+                    check.warn("base/commit %s is not in this clone, which is "
+                               "shallow: the commit may lie beyond the "
+                               "fetched depth; fetch the full history to "
+                               "verify it" % sha, rel)
                 elif state == "unavailable":
                     check.warn("base/commit %s could not be resolved here: "
                                "the base repository is not available" % sha,

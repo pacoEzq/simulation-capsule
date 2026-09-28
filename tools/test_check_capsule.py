@@ -32,6 +32,10 @@ Three things are proved here.
    views of both capsules passes; a mismatch is an error; a base that
    cannot be reached from the variant is a warning.
 
+7. The base commit. An abbreviated SHA warns. A commit missing from a
+   shallow clone warns with its reason, where the same absence from a full
+   clone is an error.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -208,7 +212,7 @@ def diff_manifest(**overrides):
         "base": {
             "alias": "naca0012_aoa5",
             "repo": "https://github.com/example/simulation-capsule",
-            "commit": "9a805f3",
+            "commit": hashlib.sha1(b"fixture base commit").hexdigest(),
             "path": "examples/capsule_naca0012_aoa5",
             "frozen_copy_path": "examples/as-published/capsule_naca0012_aoa5",
         },
@@ -317,6 +321,38 @@ def build_variant(root, declare=True, manifest=True, images=True,
         write_png(os.path.join(root, "diffsrc", "gray_cp_nearfield.png"))
 
 
+class FakeGit:
+    """Stands in for subprocess.run: a repository whose remote names the
+    base, which does not hold the commit, shallow or not."""
+
+    def __init__(self, shallow):
+        self.shallow = shallow
+
+    def __call__(self, argv, **kwargs):
+        class Done:
+            returncode = 0
+            stdout = ""
+        done = Done()
+        if "remote" in argv:
+            done.stdout = "origin\thttps://github.com/example/simulation-capsule"
+        elif "cat-file" in argv:
+            done.returncode = 1
+        elif "--is-shallow-repository" in argv:
+            done.stdout = "true\n" if self.shallow else "false\n"
+        return done
+
+
+def resolve_with(fake):
+    real = check_capsule.subprocess.run
+    check_capsule.subprocess.run = fake
+    try:
+        return check_capsule.resolve_commit(
+            ".", "https://github.com/example/simulation-capsule",
+            hashlib.sha1(b"fixture base commit").hexdigest())
+    finally:
+        check_capsule.subprocess.run = real
+
+
 def status_of(root, check_id, strict=False):
     for check in check_capsule.validate(root):
         if check.id == check_id:
@@ -360,6 +396,7 @@ def main():
         environment = os.path.join(workspace, "capsule_environment")
         bad_hash = os.path.join(workspace, "capsule_bad_hash")
         far_base = os.path.join(workspace, "capsule_far_base")
+        short_sha = os.path.join(workspace, "capsule_short_sha")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -377,6 +414,8 @@ def main():
         build_variant(bad_hash, base_sha=base_sha, variant_sha="0" * 64)
         far = dict(diff_manifest()["base"], path="elsewhere/capsule_x")
         build_variant(far_base, base_sha=base_sha, overrides={"base": far})
+        short = dict(diff_manifest()["base"], commit="9a805f3")
+        build_variant(short_sha, base_sha=base_sha, overrides={"base": short})
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -606,6 +645,25 @@ def main():
             failures.append("an unreachable base should warn once: %s" % far)
         else:
             print("PASS  an unreachable base warns, never errors")
+
+        # 7. The base commit.
+        short = [f for f in findings(short_sha, "diff_manifest")
+                 if "abbreviated" in f["message"]]
+        if not short or short[0]["severity"] != check_capsule.WARN:
+            failures.append("an abbreviated base commit should warn: %s"
+                            % short)
+        else:
+            print("PASS  an abbreviated base commit warns, fails strict")
+
+        states = (resolve_with(FakeGit(shallow=True)),
+                  resolve_with(FakeGit(shallow=False)))
+        if states != ("shallow", "unknown"):
+            failures.append("a commit missing from a shallow clone should "
+                            "resolve 'shallow', from a full one 'unknown': "
+                            "got %s" % (states,))
+        else:
+            print("PASS  a missing commit is 'shallow' in a shallow clone, "
+                  "'unknown' in a full one")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
