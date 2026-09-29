@@ -34,6 +34,13 @@ Usage notes:
    API drifted between 2602 and 2606 in this project, and a macro that
    compiled against one build is not guaranteed against the next.
 
+5. Where a published `setup.txt` shows `<path>` and `<host>`, the report named
+   the folder of the `.sim` file and the machine that ran it. Both values were
+   removed by hand before publication. They are redactions, not placeholders
+   waiting for a value, and nothing else in the capsule depends on them.
+   This macro redacts nothing: on your own case it copies both as the report
+   gives them, so remove them before the capsule leaves your machine.
+
 Origin: published with
 [Making AI Understand Your Simulations](https://community.sw.siemens.com/s/question/0D5Vb0000181bwjKAA/making-ai-understand-your-simulations)
 and attached to Part 1 of the series.
