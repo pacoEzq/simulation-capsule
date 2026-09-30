@@ -28,14 +28,15 @@ is a check to remove.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import subprocess
 import sys
 
-SPEC_VERSION = "0.3"
-TOOL_VERSION = "1.4.1"
+SPEC_VERSION = "0.4"
+TOOL_VERSION = "1.5"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -111,17 +112,9 @@ NONDIM_MARKERS = ("ratio", "number", "coefficient", "coeff", "fraction",
 _UNIT = r"(?:m|mm|s|kg|pa|k|n|j|w|hz)\d?"
 UNIT_SUFFIX = re.compile(r"(?:_%s)+(?:_per(?:_%s)+)?$" % (_UNIT, _UNIT))
 
-# The suffix grammar reads a bare underscore as a product, so velocity_m_s is
-# metres times seconds and still matches UNIT_SUFFIX. A suffix can be well
-# formed and dimensionally wrong. For the roots every capsule carries, the
-# dimension is known, and the suffix must be the one that states it. Kinematic
-# viscosity is a different quantity and is left alone.
-DIMENSION_SUFFIXES = (
-    (("velocity", "u_inf", "u_ref", "speed"), "_m_per_s"),
-    (("density", "rho"), "_kg_per_m3"),
-    (("dynamic_viscosity", "viscosity", "mu"), "_pa_s"),
-    (("pressure", "q_inf", "dynamic_pressure"), "_pa"),
-)
+# Inside reference a unit suffix is not checked against the dimension of its
+# root: reference is where dimensional keys are allowed, and velocity_m_s and
+# velocity_m_per_s both pass. Removed in 1.5; 1.4.1 warned on the first.
 
 # A unit written in its SI capitals. Only the symbols that cannot be a name:
 # a single capital such as W or N is how a width or a count is named.
@@ -133,6 +126,22 @@ ANGLE_SUFFIX = re.compile(r"_(deg|rad)$")
 
 # Keys that mark the pre v0.2 object form {value, unit_flag}.
 LEGACY_UNIT_KEYS = ("unit", "units", "unit_flag", "dimensional", "flag")
+
+# SPEC 4.2.1. The root block that says which build produced the numbers.
+ENVIRONMENT_BLOCK = "environment"
+ENVIRONMENT_KEYS = ("solver", "version", "build", "platform", "precision")
+PRECISIONS = ("single", "double", "mixed")
+
+# SPEC 4.2.2 and 4.2.3. A run judged by window statistics publishes each
+# scalar with its window. The value, then four companions.
+CONVERGENCE_STATUSES = ("converged", "stationary", "not_stationary",
+                        "no_steady_state")
+STATISTICS = ("iteration_mean", "window_min", "window_max",
+              "window_min_max", "instantaneous")
+EXTREME_STATISTICS = ("window_min", "window_max", "window_min_max")
+QUINTET_SUFFIXES = ("_sd", "_window_iterations", "_n_windows", "_statistic")
+WINDOWED_BLOCKS = ("forces", "pressure", "wake", "mass")
+UNCERTAINTY_SOURCES = ("measured", "declared")
 
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
@@ -152,9 +161,17 @@ DIFF_REQUIRED_KEYS = ("schema_version", "base", "variant", "difference",
 # pointer to the as-published copy it was measured against.
 DIFF_BASE_KEYS = ("repo", "commit", "path", "frozen_copy_path")
 
-# A commit is named by its SHA. Short forms are legal, seven characters is
-# where git stops being ambiguous in practice.
+# A commit is named by its SHA. SPEC 0.4 asks for all 40 characters: a short
+# form unique today stops being unique as the history grows. Seven to 39
+# still reads as a SHA and warns; anything else is not a commit.
 COMMIT_SHA = re.compile(r"^[0-9a-f]{7,40}$")
+FULL_SHA_LENGTH = 40
+
+# SPEC 4.7: the chain is view, grayscale frame, diff, and every link carries
+# its sha256 in the pair that uses it.
+SOURCE_HASH_KEYS = ("base_view", "variant_view")
+INSTRUMENT_HASH_KEYS = ("base_frame", "variant_frame")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 # SPEC 4.7: a pixel distance is a field distance only when the render is
 # quantized to the levels the PNG carries.
@@ -507,18 +524,6 @@ def is_reference_root(key):
             and not is_nondimensional_name(lowered))
 
 
-def expected_suffix(key):
-    """The suffix a reference key must end in, when its root fixes it."""
-    lowered = key.lower()
-    if "kinematic" in lowered or is_nondimensional_name(lowered):
-        return None
-    for roots, suffix in DIMENSION_SUFFIXES:
-        for root in roots:
-            if lowered == root or lowered.startswith(root + "_"):
-                return suffix
-    return None
-
-
 def is_legacy_object(value):
     """True for the pre v0.2 form {value, unit_flag}: a value key next to a
     unit key. A block that merely lists its units is not one."""
@@ -635,21 +640,13 @@ def check_dimensional_flags(root, entries):
             if not isinstance(value, (int, float)) or isinstance(value, bool):
                 continue
 
-            # Rule 4: the suffix follows the grammar of SPEC 3.1. Units in
-            # lowercase, _per_ for a quotient. Added in 1.4.1: the capsules
-            # migrated by migrate_reference 1.0 passed --strict with
-            # velocity_m_s, a product, because the tail matched a unit.
+            # Rule 4: units in lowercase, SPEC 3.1. Added in 1.4.1 together
+            # with a check of the suffix against the dimension of its root,
+            # which 1.5 drops inside reference.
             if in_reference and UPPERCASE_UNIT.search(key):
                 legacy += 1
                 check.warn("unit symbol in capitals, SPEC 3.1 writes units "
                            "in lowercase: %s" % where, rel)
-                continue
-            want = expected_suffix(key) if in_reference else None
-            if want and (has_suffix or lowered.endswith(want)) \
-                    and not key.endswith(want):
-                legacy += 1
-                check.warn("suffix does not state the dimension of the "
-                           "quantity, expected %s: %s" % (want, where), rel)
                 continue
             if any(t.lower() in LEGACY_UNIT_KEYS for t in trail):
                 continue  # the leaf inside a legacy object, reported above
@@ -810,11 +807,14 @@ def relative_against_zero(node, trail=()):
 
 
 def resolve_commit(root, repo, sha):
-    """Return 'known', 'unknown' or 'unavailable' for a base commit.
+    """Return 'known', 'unknown', 'shallow' or 'unavailable' for a base
+    commit.
 
     Unavailable is the common case and never an error: the base lives in
     another repository, or this copy was unpacked from an archive with no
-    git objects at all.
+    git objects at all. Shallow is a commit missing from a clone that was
+    cut at a fixed depth: absence proves nothing there, so it is a warning
+    with its reason and not the error of 'unknown'.
     """
     try:
         remotes = subprocess.run(
@@ -830,7 +830,14 @@ def resolve_commit(root, repo, sha):
         found = subprocess.run(
             ["git", "-C", root, "cat-file", "-e", "%s^{commit}" % sha],
             capture_output=True, text=True, timeout=10)
-        return "known" if found.returncode == 0 else "unknown"
+        if found.returncode == 0:
+            return "known"
+        shallow = subprocess.run(
+            ["git", "-C", root, "rev-parse", "--is-shallow-repository"],
+            capture_output=True, text=True, timeout=10)
+        if shallow.returncode == 0 and shallow.stdout.strip() == "true":
+            return "shallow"
+        return "unknown"
     except (OSError, subprocess.SubprocessError):
         return "unavailable"
 
@@ -873,10 +880,19 @@ def check_diff_manifest(root, entries):
                 check.error("base/commit does not look like a commit SHA, "
                             "7 to 40 hex characters: %s" % sha, rel)
             else:
+                if len(sha.strip()) < FULL_SHA_LENGTH:
+                    check.warn("base/commit %s is abbreviated: SPEC 4.7 asks "
+                               "for the full %d-character SHA"
+                               % (sha, FULL_SHA_LENGTH), rel)
                 state = resolve_commit(root, base.get("repo", ""), sha.strip())
                 if state == "unknown":
                     check.error("base/commit %s is not in this repository, "
                                 "which base/repo names" % sha, rel)
+                elif state == "shallow":
+                    check.warn("base/commit %s is not in this clone, which is "
+                               "shallow: the commit may lie beyond the "
+                               "fetched depth; fetch the full history to "
+                               "verify it" % sha, rel)
                 elif state == "unavailable":
                     check.warn("base/commit %s could not be resolved here: "
                                "the base repository is not available" % sha,
@@ -980,6 +996,287 @@ def check_diff_manifest(root, entries):
     return check
 
 
+def check_environment(root, entries):
+    check = Check("environment", "summary.json declares the build the numbers "
+                  "came from", "SPEC 4.2.1")
+    if "summary.json" not in entries:
+        check.skip("no summary.json")
+        return check
+    data = load_json(root, "summary.json")
+    if not isinstance(data, dict):
+        check.skip("summary.json does not parse: see the json_parses check")
+        return check
+    rel = "summary.json"
+    # New in SPEC 0.4, so every finding is a warning: legal in a capsule
+    # written under 0.3, a failure under --strict.
+    if "numerics" in data:
+        check.warn("root block 'numerics' is absorbed by 'environment' in "
+                   "SPEC 0.4: precision is a property of the build", rel)
+    env = data.get(ENVIRONMENT_BLOCK)
+    if env is None:
+        check.warn("no 'environment' block: two builds of the same case are "
+                   "two measurements, and nothing says which one this is", rel)
+        return check
+    if not isinstance(env, dict):
+        check.warn("'environment' is not an object", rel)
+        return check
+    for key in ENVIRONMENT_KEYS:
+        if key not in env:
+            check.warn("environment/%s is missing" % key, rel)
+    precision = env.get("precision")
+    if "precision" in env and precision not in PRECISIONS:
+        check.warn("environment/precision is %r, the SPEC allows %s: read it "
+                   "from BuildEnv in setup.txt, -r8 is double"
+                   % (precision, ", ".join(PRECISIONS)), rel)
+    if "renders" not in env:
+        return check
+    renders = env["renders"]
+    if not isinstance(renders, dict):
+        check.warn("environment/renders is not an object", rel)
+        return check
+    if "precision" in renders and renders["precision"] not in PRECISIONS:
+        check.warn("environment/renders/precision is %r, the SPEC allows %s"
+                   % (renders["precision"], ", ".join(PRECISIONS)), rel)
+    scope = renders.get("scope")
+    if not isinstance(scope, list) or not scope:
+        check.warn("environment/renders/scope does not list the directories "
+                   "the render environment produced", rel)
+        return check
+    for name in scope:
+        folder = name.strip("/") if isinstance(name, str) else ""
+        if not folder or "/" in folder or ".." in folder:
+            check.warn("environment/renders/scope names %r, not a capsule "
+                       "directory" % (name,), rel)
+        elif not os.path.isdir(os.path.join(root, folder)):
+            check.warn("environment/renders/scope names %s, which is not in "
+                       "the capsule" % name, rel)
+    return check
+
+
+def sha256_of(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(65536), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def find_base_capsule(root, path):
+    """Return the directory base/path names, looked up from the capsule and
+    each of its parents, or None. base/path is relative to the repository
+    root, and a capsule checked out with its repository sits somewhere
+    below that root."""
+    if not isinstance(path, str) or not path or os.path.isabs(path):
+        return None
+    here = os.path.abspath(root)
+    while True:
+        candidate = os.path.join(here, path)
+        if os.path.isdir(candidate):
+            return candidate
+        parent = os.path.dirname(here)
+        if parent == here:
+            return None
+        here = parent
+
+
+def check_diff_view_hashes(root, entries):
+    check = Check("diff_view_hashes", "The views diff.json measured are the "
+                  "views both capsules carry", "SPEC 4.7")
+    if "diff" not in declared_extensions(root, entries):
+        check.skip("extension 'diff' not declared")
+        return check
+    if "diff.json" not in [e.replace("\\", "/") for e in entries]:
+        check.skip("no diff.json: see the extensions check")
+        return check
+    data = load_json(root, "diff.json")
+    if not isinstance(data, dict):
+        check.skip("diff.json does not parse: see the json_parses check")
+        return check
+    rel = "diff.json"
+    pairs = data.get("pairs")
+    if not isinstance(pairs, list) or not pairs:
+        check.skip("no pairs: see the diff_manifest check")
+        return check
+
+    base = data.get("base") if isinstance(data.get("base"), dict) else {}
+    base_dir = find_base_capsule(root, base.get("path"))
+    if base_dir is None:
+        # The capsule travels without its base: the same case as a base
+        # commit that cannot be resolved, a warning and never an error.
+        check.warn("base/path %r is not reachable from here: the base views "
+                   "were not hashed" % (base.get("path"),), rel)
+    sides = {"base_view": base_dir, "variant_view": os.path.abspath(root)}
+
+    for index, pair in enumerate(pairs):
+        where = "pairs/%d" % index
+        if not isinstance(pair, dict):
+            continue  # reported by diff_manifest
+        declared = {}
+        for block, keys in (("source_sha256", SOURCE_HASH_KEYS),
+                            ("instrument_sha256", INSTRUMENT_HASH_KEYS)):
+            hashes = pair.get(block)
+            if not isinstance(hashes, dict):
+                check.warn("%s/%s is missing: SPEC 4.7 hashes both views and "
+                           "both grayscale frames" % (where, block), rel)
+                continue
+            for key in keys:
+                value = hashes.get(key)
+                if not isinstance(value, str) \
+                        or not SHA256.match(value.lower()):
+                    check.warn("%s/%s/%s is not a sha256: %r"
+                               % (where, block, key, value), rel)
+                elif block == "source_sha256":
+                    declared[key] = value.lower()
+        for side, capsule_dir in sides.items():
+            name = pair.get(side)
+            if side not in declared or capsule_dir is None \
+                    or not isinstance(name, str) or "/" in name:
+                continue
+            view = os.path.join(capsule_dir, "views", name)
+            owner = "base" if side == "base_view" else "variant"
+            if not os.path.isfile(view):
+                check.error("%s/%s: %s is not in the views/ of the %s"
+                            % (where, side, name, owner), rel)
+            elif sha256_of(view) != declared[side]:
+                check.error("%s/%s: views/%s of the %s does not match its "
+                            "recorded sha256: the diff measured another image"
+                            % (where, side, name, owner), rel)
+    return check
+
+
+def is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def is_integer(value):
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def check_window_entry(check, rel, where, entry, prefix, windowed):
+    """One published scalar and its companions. With prefix the keys are
+    <name>_sd and so on inside a block; without, sd and so on inside the
+    scalar's own object, which is how probes carry them."""
+    def key(suffix):
+        return prefix + suffix if prefix else suffix.lstrip("_")
+    statistic = entry.get(key("_statistic"))
+    if key("_statistic") in entry and statistic not in STATISTICS:
+        check.warn("%s: statistic %r is not one of %s"
+                   % (where, statistic, ", ".join(STATISTICS)), rel)
+    if statistic in EXTREME_STATISTICS and key("_sd") in entry:
+        check.warn("%s: an extreme carries no sd, a minimum over a span has "
+                   "no spread of its own" % where, rel)
+    if not windowed:
+        return
+    missing = [key(s) for s in QUINTET_SUFFIXES[1:] if key(s) not in entry]
+    if statistic == "iteration_mean" and key("_sd") not in entry:
+        missing.insert(0, key("_sd"))
+    if missing:
+        check.warn("%s: a windowed value without %s cannot be checked"
+                   % (where, ", ".join(missing)), rel)
+
+
+def check_summary_blocks(root, entries):
+    check = Check("summary_blocks", "Windowed scalars carry their window, "
+                  "mass and mesh their 0.4 form", "SPEC 4.2.2, 4.2.3")
+    if "summary.json" not in entries:
+        check.skip("no summary.json")
+        return check
+    data = load_json(root, "summary.json")
+    if not isinstance(data, dict):
+        check.skip("summary.json does not parse: see the json_parses check")
+        return check
+    rel = "summary.json"
+    # New in SPEC 0.4: warnings, failures under --strict.
+
+    convergence = data.get("convergence")
+    convergence = convergence if isinstance(convergence, dict) else {}
+    status = convergence.get("status")
+    if "status" in convergence and status not in CONVERGENCE_STATUSES:
+        check.warn("convergence/status is %r, the SPEC allows %s"
+                   % (status, ", ".join(CONVERGENCE_STATUSES)), rel)
+    # A block without status predates 4.2.3 and is read as it was written.
+    windowed = "status" in convergence and status != "converged"
+    if "uncertainty" in data:
+        check.warn("root block 'uncertainty' belongs inside convergence, "
+                   "SPEC 4.2.3", rel)
+
+    for block in WINDOWED_BLOCKS:
+        values = data.get(block)
+        if not isinstance(values, dict):
+            continue
+        for name, value in values.items():
+            if not is_number(value) or any(
+                    name.endswith(s) and name[:-len(s)] in values
+                    for s in QUINTET_SUFFIXES):
+                continue
+            check_window_entry(check, rel, "%s/%s" % (block, name), values,
+                               name, windowed)
+
+    probes = data.get("probes")
+    if isinstance(probes, dict):
+        for name, probe in probes.items():
+            if not isinstance(probe, dict):
+                continue
+            where = "probes/%s" % name
+            if windowed and "value" not in probe:
+                check.warn("%s: no value" % where, rel)
+            check_window_entry(check, rel, where, probe, "", windowed)
+
+    extremes = data.get("plane_extremes")
+    if isinstance(extremes, dict):
+        statistic = extremes.get("statistic")
+        if "statistic" in extremes and statistic not in STATISTICS:
+            check.warn("plane_extremes: statistic %r is not one of %s"
+                       % (statistic, ", ".join(STATISTICS)), rel)
+        missing = [k for k in ("statistic", "window_iterations", "n_windows")
+                   if k not in extremes]
+        if windowed and missing:
+            check.warn("plane_extremes: the block carries %s once for all "
+                       "planes" % ", ".join(missing), rel)
+
+    mass = data.get("mass")
+    if isinstance(mass, dict):
+        for name in mass:
+            lowered = name.lower()
+            if lowered.startswith("mdot") and "_over_" not in lowered:
+                check.warn("mass/%s: a dimensional mass flow, SPEC 4.2.2 "
+                           "writes mdot over rho U D^2" % name, rel)
+
+    mesh = data.get("mesh")
+    if isinstance(mesh, dict):
+        if "cells" in mesh and not is_integer(mesh["cells"]):
+            check.warn("mesh/cells is %r, not an integer" % (mesh["cells"],),
+                       rel)
+        if "designed_for_Re" in mesh:
+            check.warn("mesh/designed_for_Re is replaced by "
+                       "designed_for_Re_range, [low, high]", rel)
+        if "designed_for_Re_range" in mesh:
+            span = mesh["designed_for_Re_range"]
+            if not (isinstance(span, list) and len(span) == 2
+                    and all(is_integer(v) for v in span)
+                    and span[0] <= span[1]):
+                check.warn("mesh/designed_for_Re_range is %r, not two "
+                           "integers low then high" % (span,), rel)
+
+    uncertainty = convergence.get("uncertainty")
+    if "uncertainty" in convergence:
+        if not isinstance(uncertainty, dict):
+            check.warn("convergence/uncertainty is not an object", rel)
+        else:
+            if not is_number(uncertainty.get("cd_relative")):
+                check.warn("convergence/uncertainty/cd_relative is not a "
+                           "number", rel)
+            if not isinstance(uncertainty.get("basis"), str):
+                check.warn("convergence/uncertainty/basis does not say how it "
+                           "was obtained", rel)
+            if uncertainty.get("source") not in UNCERTAINTY_SOURCES:
+                check.warn("convergence/uncertainty/source is %r, the SPEC "
+                           "allows %s"
+                           % (uncertainty.get("source"),
+                              " or ".join(UNCERTAINTY_SOURCES)), rel)
+    return check
+
+
 def check_publication_residue(root, entries):
     check = Check("publication_residue", "No working state left in a "
                   "published capsule", "SPEC 2")
@@ -1061,6 +1358,8 @@ CHECKS = [
     check_not_empty,
     check_encoding,
     check_json_parses,
+    check_environment,
+    check_summary_blocks,
     check_plane_pairs,
     check_csv_header,
     check_png_geometry,
@@ -1070,6 +1369,7 @@ CHECKS = [
     check_extensions,
     check_no_instrument_dir,
     check_diff_manifest,
+    check_diff_view_hashes,
     check_publication_residue,
     check_punctuation,
 ]

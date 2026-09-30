@@ -1,5 +1,12 @@
 {
   "case": "cube_re200",
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2602",
+    "build": "21.02.007",
+    "platform": "win64",
+    "precision": "double"
+  },
   "regime": {
     "reynolds_number": 200.0,
     "flow_model": "laminar, steady, constant density",

@@ -34,6 +34,27 @@ measures and reports; it is not a gate. `diagnostics/check_mirror_mesh.py` stays
 as a diagnostic: its pairing figure against a global median size is what
 `check_mirror.py --legacy-median` reproduces, for comparison only.
 
+## Validator
+
+These read a capsule and write nothing into it.
+
+| Script | Checks |
+|--------|--------|
+| `check_capsule.py` | a capsule against [SPEC.md](../SPEC.md), twenty checks, each citing its section |
+| `test_check_capsule.py` | that every one of those twenty checks fails on at least one fixture |
+| `check_frozen.py` | that `examples/as-published/` still matches `examples/frozen.sha256` byte for byte |
+
+`check_capsule.py` 1.5 follows SPEC 0.4 and needs only the standard library. A
+capsule runs the checks its layers call for: fifteen without plane sections or a
+comparison, seventeen with plane sections, eighteen with the `diff` extension and
+twenty with both. A rule an older capsule could not have met, such as the
+`environment` block of 0.4, warns, and fails under `--strict`.
+
+```
+python check_capsule.py ../examples/capsule_*/ --strict
+python test_check_capsule.py
+```
+
 ## Diagnostics
 
 These write nothing. They answer a question about a case or a method when the

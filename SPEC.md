@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.3. Draft.**
+**Version 0.4. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -72,8 +72,11 @@ declared by where it lives and how it is named:
 - It lives in `reference`. A key with a unit suffix anywhere else in the capsule
   is an error.
 - The key carries the unit as a suffix: the SI symbol in lowercase, joined with
-  underscores, `_per_` for division and a trailing digit for a power. The value
-  is a bare number.
+  underscores, and a trailing digit for a power. The value is a bare number.
+- `_per_` for division is recommended, `velocity_m_per_s`, not required. Inside
+  `reference` a suffix is accepted as written, `velocity_m_s` and `density_kg_m3`
+  included: the block already declares its keys dimensional, and the root of the
+  key names the quantity.
 
 ```json
 "reference": {
@@ -183,6 +186,183 @@ A single scalar that aggregates a worst case is an antipattern. Where a distribu
 matters, expose the distribution: a minimum cell quality alone says nothing useful
 without threshold counts at several levels.
 
+#### 4.2.1 `environment`
+
+A root block declaring the software and hardware the numbers came from. Two runs of
+the same case on two builds are two measurements, and the Part 6b pair showed how
+far apart they can land: the same comparison measured in single precision moved
+both changed pixel fractions by about 0.3 percentage points.
+
+```
+environment { solver, version, build, platform, precision,
+              renders { scope, version, build, platform, precision } }
+```
+
+- `solver`: the product, `Simcenter STAR-CCM+`.
+- `version`, `build`, `platform`: copied from the `Version:` line of `setup.txt`,
+  `PresentationVersion`, `ReleaseNumber` and `BuildArch` respectively.
+- `precision`: `single`, `double` or `mixed`.
+- `renders`: present only when the images were produced in another environment
+  than the run. `scope` lists the capsule directories whose files that environment
+  produced, `["views/"]` for instance, and every directory it names exists in the
+  capsule. The other keys repeat those of the render session; `solver` may be
+  omitted when it is the same product.
+
+**Precision is read, not remembered.** The same `Version:` line carries `BuildEnv`.
+A STAR-CCM+ build whose `BuildEnv` ends in `-r8` is double precision; without the
+suffix it is the mixed-precision default. `BuildEnv: clang20.1vc14.2-r8` is
+`double`, `BuildEnv: clang20.1` is `mixed`. `single` is kept for solvers that ship
+such a build.
+
+`environment` absorbs `numerics`. Precision is a property of the build, not of the
+discretization, so it has one place, and a `numerics` block at the root is reported
+as a leftover.
+
+#### 4.2.2 Window statistics
+
+A run that does not settle to a fixed point publishes statistics, not values, and a
+statistic without its window is a number nobody can check. Wherever
+`convergence.status` (4.2.3) is not `converged`, every published scalar in `forces`,
+`pressure`, `wake`, `probes` and `mass` carries its window with it, as a quintet:
+
+| Key | Holds |
+|-----|-------|
+| `<name>` | the published value |
+| `<name>_sd` | standard deviation of the sampled values over the span: the spread of the signal, not the uncertainty of the value |
+| `<name>_window_iterations` | iterations the statistic spans, all pooled windows together |
+| `<name>_n_windows` | number of windows pooled |
+| `<name>_statistic` | how the value was formed |
+
+`_statistic` takes one of five values:
+
+- `iteration_mean`: mean over the sampled iterations of the span.
+- `window_min`, `window_max`: the lowest or highest value reached at any sampled
+  iteration of the span.
+- `window_min_max`: both, as a `[min, max]` pair.
+- `instantaneous`: the value at the last iteration.
+
+Extremes carry no `_sd`: a minimum over a span has no spread of its own to report.
+The quintet of `cp_min` is therefore four keys:
+
+```json
+"cp_min": -2.029315009840153,
+"cp_min_window_iterations": 4000,
+"cp_min_n_windows": 2,
+"cp_min_statistic": "window_min"
+```
+
+`_window_iterations` counts the whole span, two windows of 2000 iterations give
+4000; `convergence.window_iterations` is the length of one window.
+
+**Probes.** `probes.<name>` is an object and carries the same keys unprefixed:
+`value`, `sd`, `window_iterations`, `n_windows`, `statistic`, next to `position_D`
+and the `report` it was read from.
+
+**Plane extremes.** `plane_extremes.<plane>.<field>` is a `[min, max]` pair, and the
+block carries `statistic`, `window_iterations` and `n_windows` once, for all of them.
+The plane keys follow the stems in `planes/`: `y0` for `plane_y0`.
+
+**Forces.** `forces` may carry `cd_pressure` and `cd_friction` next to `cd`, each
+with its own quintet.
+
+**Mass.** `mass` holds `mdot_in_over_rhoUD2` and `mdot_out_over_rhoUD2`, the mass
+flow through inlet and outlet over $\rho U D^2$, signed with the outward normal so
+that inflow is negative, and `mass_imbalance`, the net over the inflow. No
+dimensional mass flow key appears anywhere in `mass`.
+
+**Mesh.** `mesh.cells` is an integer. `mesh.designed_for_Re_range` is the pair of
+integers `[low, high]` the mesh was sized for, and replaces `designed_for_Re`.
+
+#### 4.2.3 `convergence`
+
+How the run was stopped, and on what evidence. A run judged by window statistics
+writes the block with the keys below and no others. Capsules published before 0.4
+carry a shorter block of iterations and residuals; it stays valid, and a block
+without `status` is read as predating this section.
+
+| Key | Holds |
+|-----|-------|
+| `solver` | solver mode as run, `steady segregated` |
+| `criterion` | name of the stopping criterion, `window_stationarity` |
+| `criterion_version` | integer version of that criterion |
+| `time_basis` | one sentence stating what an iteration mean is and is not |
+| `regime_expected` | `{ value, source, ref }`: the regime expected at this Reynolds number, `source` `declared` or `measured`, and the reference it comes from |
+| `status` | `converged`, `stationary`, `not_stationary` or `no_steady_state` |
+| `stop_reason` | one sentence, template below |
+| `solver_regime_mismatch` | boolean verdict of the chain on the solver mode against the expected regime |
+| `iterations` | iterations run |
+| `discard_iterations` | initial iterations discarded before the first window |
+| `window_iterations` | length of one window |
+| `windows_closed` | windows completed |
+| `sampling_interval` | iterations between two samples |
+| `max_iterations` | iteration cap |
+| `k_gate` | gate on `drift_over_se` |
+| `k_sd` | factor of the tolerance on `sd_log_ratio_over_tol` |
+| `min_cycles` | fewest signal cycles a window must hold |
+| `uncertainty` | optional, `{ cd_relative, basis, source, note }`, below |
+| `quantities` | one entry per gated quantity, keys below |
+
+Each entry of `quantities`, named after the scalar it gates (`cd`, `cp_base`):
+
+| Key | Holds |
+|-----|-------|
+| `window_means`, `window_sds` | mean and standard deviation of each closed window, in order |
+| `n_cycles_last` | signal cycles counted in the last window |
+| `period_iterations_last` | `window_iterations` over `n_cycles_last` |
+| `drift_last` | last window mean minus the one before it |
+| `drift_over_se` | `drift_last` over the standard error of that difference |
+| `sd_log_ratio_over_tol` | absolute log ratio of the last two window standard deviations, over its tolerance |
+| `pass` | boolean, the entry met every gate |
+
+`status` is `converged` when the run reached a fixed point and its values are
+single values; `stationary` when every entry of `quantities` passes and the
+published values are window statistics (4.2.2); `not_stationary` when some entry
+of `quantities` fails the test of settled means and amplitudes, and `iterations`
+is below `max_iterations`. Reaching `max_iterations` with a signal that is not flat
+is `no_steady_state`. That status names the flow, not the gate. A periodic limit
+cycle under a steady solver has no fixed point to reach, so the run is not on its
+way to steady: it is not steady, and its published values are window statistics
+all the same. `solver_regime_mismatch` is not a
+comparison of `solver` and `regime_expected`: the reference sample pairs a steady
+solver with an expected unsteady regime and writes `false`.
+
+`stop_reason` for `stationary`, with the gated names in the order of `quantities`,
+the two windows compared as iteration ranges, and the largest `drift_over_se`
+written in full:
+
+```
+Window statistics of <q1>, <q2>, ... stationary between iterations <a>-<b> and <c>-<d> (max drift/SE = <x>).
+```
+
+`Window statistics of cd, cl, cy, cp_base stationary between iterations 1000-3000
+and 3000-5000 (max drift/SE = 0.8749704041357005).`
+
+`stop_reason` for `no_steady_state`, with the quantity that failed the gate in the
+last two windows and the one clause, of the three in brackets, that failed:
+
+```
+Reached <max_iterations> iterations; <q> failed the stationarity gate in windows <a>-<b> and <c>-<d> (n = <n> cycles < <min_cycles> | drift/SE = <x> > <k_gate> | sd log ratio = <x> over tolerance).
+```
+
+`n` is the smaller cycle count of the two windows. In the sd clause `x` is the raw
+absolute log ratio of the two standard deviations and `over tolerance` means above
+`k_sd` divided by the square root of `n`; it is not `sd_log_ratio_over_tol`.
+
+**Uncertainty.** Optional. `convergence.uncertainty` declares the uncertainty of
+the published values:
+
+```
+uncertainty { cd_relative, basis, source, note }
+```
+
+`cd_relative` is a fraction, `basis` says in one sentence how it was obtained, and
+`source` is `measured` when it comes from runs of this case, `declared` when it is
+taken from elsewhere. `note` is optional. The block appears only where the
+uncertainty was measured or taken from a stated source; elsewhere the key is
+absent, never null or estimated. It is not the gate statistic: the standard error
+between windows decides when to stop and says nothing about how far the published
+value sits from a second run of the same case.
+
 ### 4.3 `planes/` (settled)
 
 Plane sections, exported as a CSV and PNG pair sharing a stem:
@@ -271,6 +451,14 @@ The base is declared by alias, repository, commit and path, and is never edited.
 the base needs a retrofit — `views/`, in this part — `base.commit` names the
 revision that carries it, and `frozen_copy_path` points at the as-published copy.
 
+**The commit locates, `source_sha256` proves.** `base.commit` says where to find the
+base; the view hashes say that what was found is what was measured. `base.commit` is
+the full 40-character SHA, never an abbreviation: a short form that is unique today
+stops being unique as the history grows. It is provisional while the history that
+carries it is only local, because a rebase or an amend rewrites the SHA and leaves
+the hashes intact. So it is written, or re-verified against the pushed history, as
+the last step before the push.
+
 **Shared view contract.** Both capsules render the same camera, the same fixed
 colorbar ranges, the same width, the same title band, and use the same filenames in
 their `views/`. Without this the difference measures the renderer.
@@ -309,6 +497,19 @@ the measurement runs and stay outside the capsule; `diff.json` declares the reci
 to regenerate them. A `diffsrc/` directory inside a capsule is an error whether or
 not `diff` is declared.
 
+`diffsrc/` lives at the repository root, one subdirectory per capsule, and each
+frame keeps the filename of the view it was rendered from:
+`diffsrc/capsule_naca0012_aoa5/view_cp_nearfield.png`. `pipeline.instrument_root`
+names it.
+
+**Every link of the chain is hashed.** The chain runs view, grayscale frame, diff.
+For every pair, `diff.json` declares the sha256 of both measured views in
+`source_sha256 { base_view, variant_view }` and of both grayscale frames in
+`instrument_sha256 { base_frame, variant_frame }`. The tool hashes all four before
+measuring and stops if any one does not match. A view re-exported without
+regenerating its frame leaves the frame hash intact, and a run that checked only the
+frames would return the previous number in silence.
+
 Schema of `diff.json`:
 
 ```
@@ -321,8 +522,11 @@ view_contract { camera, width_px, export_height_px, artifact_height_px,
                 crop_rows_top, colorbar_levels, contour_style, body_fill,
                 colormap_published, colormap_measured, colorbar { cp, u_over_u } }
 pipeline  { order: "crop_then_mask_then_diff", body_dilation_px,
-            colorbar_box_excluded_px, pixels_evaluated, tool, tool_version }
-pairs[]   { name, question, base_view, variant_view, output,
+            colorbar_box_excluded_px, pixels_evaluated, tool, tool_version,
+            instrument_root: "diffsrc" }
+pairs[]   { name, question, base_view, variant_view,
+            source_sha256 { base_view, variant_view },
+            instrument_sha256 { base_frame, variant_frame }, output,
             threshold_physical, threshold_comparison: ">=", threshold_levels,
             level_size, changed_pixel_fraction, max_delta_levels,
             max_delta_physical }
@@ -392,3 +596,26 @@ run it on the expanded directory.
 | 0.1 | First public draft. Layers through `views/` settled; transient and disclosure layers provisional. Capsule contents closed to the artifacts named in section 4. |
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
+| 0.4 | Unit suffixes inside `reference` accepted as written, `_per_` recommended (3.1). Root block `environment` (4.2.1), window statistics (4.2.2), `convergence` with its `uncertainty` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
+
+### 0.3 → 0.4
+
+- 4.2.1: root block `environment` (`solver`, `version`, `build`, `platform`,
+  `precision`, `renders.scope`) absorbs `numerics`; precision is read from the
+  `BuildEnv` field of `setup.txt`.
+- 4.7: `diffsrc/` lives at the repository root; `diff.json` declares the sha256 of
+  every measured view and every grayscale frame, and the tool stops on a mismatch.
+- 4.7: `base.commit` is the full 40-character SHA, provisional while its history is
+  only local, written or re-verified as the last step before the push.
+- 4.2.2: window statistics. Every published scalar of a run not `converged` carries
+  `_sd`, `_window_iterations`, `_n_windows` and `_statistic`; extremes carry no
+  `_sd`; probes and plane extremes carry the same keys.
+  `mass` is nondimensional, `mesh.cells` an integer, `designed_for_Re_range`
+  replaces `designed_for_Re`.
+- 4.2.3: block `convergence` for runs judged by window statistics: its keys,
+  `status` in `converged`, `stationary`, `not_stationary`, `no_steady_state`,
+  the `stop_reason` templates, and `convergence.uncertainty`.
+- 3.1: inside `reference`, unit suffixes are accepted as written (`_m_s`,
+  `_kg_m3`); `_per_` for division is a recommendation, not a rule.
+- Compatibility: a 0.3 capsule without `environment` now warns, and fails under
+  `--strict`. Everything else a 0.3 capsule carries stays valid.

@@ -24,11 +24,32 @@ Three things are proved here.
    the SPEC does not allow is an error and a measured colormap that is not
    grayscale is a warning.
 
+5. The environment block of SPEC 4.2.1. A capsule without it warns, a
+   precision outside single, double and mixed or a render scope that names
+   a directory the capsule does not carry fails under --strict.
+
+6. The hash chain of SPEC 4.7. A pair whose recorded sha256 matches the
+   views of both capsules passes; a mismatch is an error; a base that
+   cannot be reached from the variant is a warning.
+
+7. The base commit. An abbreviated SHA warns. A commit missing from a
+   shallow clone warns with its reason, where the same absence from a full
+   clone is an error.
+
+8. Window statistics, SPEC 4.2.2 and 4.2.3. A stationary run whose scalars
+   carry their quintets passes, extremes without sd included; a quintet
+   missing, a statistic outside the enum, sd on an extreme, a dimensional
+   mass flow, a mesh count that is not an integer, a Reynolds range that
+   is not two integers, an uncertainty at the root and one inside
+   convergence without its keys warn, and fail under --strict. A block without
+   status predates 0.4 and asks for no quintet.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
 """
 
+import hashlib
 import json
 import os
 import shutil
@@ -68,6 +89,11 @@ def write(path, text, encoding="utf-8"):
         handle.write(text)
 
 
+ENVIRONMENT = {"solver": "Simcenter STAR-CCM+", "version": "2602",
+               "build": "21.02.007", "platform": "win64",
+               "precision": "double"}
+
+
 GOOD_HEADER = ("# plane y_D = 0 | grid 33 x 13, spacing 0.25 D | "
                "419 of 429 nodes | fields %.3f | nondimensional\n"
                "x_D,z_D,u_U,cp\n-2.000,-1.500,0.993,0.031\n")
@@ -78,8 +104,9 @@ def build_jet(root, defective):
     trailing = "," if defective else ""
     write(os.path.join(root, "summary.json"),
           '{\n  "case": "jet_r2_re100",\n'
+          '  "environment": %s,\n'
           '  "reference": {"length_scale_D_m": 2.0, "re_D": 100}%s\n}\n'
-          % trailing)
+          % (json.dumps(ENVIRONMENT), trailing))
     for tag in ("y0", "x5", "x10"):
         write(os.path.join(root, "planes", "plane_%s.csv" % tag), GOOD_HEADER)
         name = ("jet_r2_re100_scene_%s.png" % tag) if defective \
@@ -128,7 +155,8 @@ def build_bad_name(root):
 
 def build_suffix_grammar(root, wrong):
     """The suffixes migrate_reference 1.0 wrote, against the ones SPEC 3.1
-    asks for. velocity_m_s matches the unit pattern and is a product."""
+    asks for. Units in capitals warn; inside reference, velocity_m_s and
+    density_kg_m3 are not checked against their dimension."""
     write(os.path.join(root, "setup.txt"), "Case: suffixes\n")
     if wrong:
         reference = {"chord_m": 1.0, "velocity_m_s": 15.0,
@@ -171,15 +199,69 @@ def build_legacy(root):
     }, indent=2))
 
 
+def build_environment(root):
+    """A precision the SPEC does not name, a render scope pointing at a
+    directory the capsule does not carry, and a numerics block left over."""
+    write(os.path.join(root, "setup.txt"), "Case: environment\n")
+    write(os.path.join(root, "summary.json"), json.dumps({
+        "case": "environment",
+        "reference": {"chord_m": 1.0, "re_c": 1.0e6},
+        "numerics": {"precision": "double"},
+        "environment": dict(ENVIRONMENT, precision="quad",
+                            renders={"scope": ["views/"],
+                                     "precision": "double"}),
+    }, indent=2))
+
+
+def windowed_summary(**overrides):
+    """A summary.json in the shape the T7 chain writes, stationary run."""
+    def quintet(name, value, statistic="iteration_mean"):
+        out = {name: value, name + "_window_iterations": 4000,
+               name + "_n_windows": 2, name + "_statistic": statistic}
+        if statistic == "iteration_mean":
+            out[name + "_sd"] = 0.05
+        return out
+    summary = {
+        "case": "cube_re3000",
+        "environment": ENVIRONMENT,
+        "reference": {"side_m": 1.0, "re_D": 3000},
+        "mesh": {"cells": 501860, "designed_for_Re_range": [100, 3000]},
+        "convergence": {"status": "stationary", "iterations": 5000,
+                        "uncertainty": {
+                            "cd_relative": 0.004, "source": "measured",
+                            "basis": "two independent runs of the same case"}},
+        "forces": dict(quintet("cd", 1.12), **quintet("cd_pressure", 1.14)),
+        "pressure": dict(quintet("cp_base", -0.42),
+                         **quintet("cp_min", -2.03, "window_min")),
+        "wake": quintet("recirculation_length_D", 2.27),
+        "mass": dict(quintet("mdot_in_over_rhoUD2", -100.0),
+                     **quintet("mass_imbalance", 5.3e-06)),
+        "probes": {"u_over_U_axis_x2D": {
+            "value": 0.21, "sd": 0.20, "window_iterations": 4000,
+            "n_windows": 2, "statistic": "iteration_mean",
+            "position_D": [2.0, 0.0, 0.0]}},
+        "plane_extremes": {"y0": {"cp": [-1.79, 1.04]},
+                           "statistic": "window_min_max",
+                           "window_iterations": 4000, "n_windows": 2},
+    }
+    summary.update(overrides)
+    return summary
+
+
+def build_windowed(root, summary):
+    write(os.path.join(root, "setup.txt"), "Case: cube_re3000\n")
+    write(os.path.join(root, "summary.json"), json.dumps(summary, indent=2))
+
+
 def diff_manifest(**overrides):
     """A diff.json that satisfies SPEC 4.7, before the overrides a fixture
     applies to break exactly one thing."""
     manifest = {
-        "schema_version": "0.3",
+        "schema_version": "0.4",
         "base": {
             "alias": "naca0012_aoa5",
             "repo": "https://github.com/example/simulation-capsule",
-            "commit": "9a805f3",
+            "commit": hashlib.sha1(b"fixture base commit").hexdigest(),
             "path": "examples/capsule_naca0012_aoa5",
             "frozen_copy_path": "examples/as-published/capsule_naca0012_aoa5",
         },
@@ -237,10 +319,27 @@ def diff_manifest(**overrides):
     return manifest
 
 
+def sha256_hex(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def build_base(workspace):
+    """The base capsule where diff_manifest()['base']['path'] says it is,
+    relative to the workspace, which stands in for the repository root."""
+    view = os.path.join(workspace, "examples", "capsule_naca0012_aoa5",
+                        "views", "view_cp_nearfield.png")
+    os.makedirs(os.path.dirname(view), exist_ok=True)
+    write_png(view, height=512)
+    return check_capsule.sha256_of(view)
+
+
 def build_variant(root, declare=True, manifest=True, images=True,
-                  instrument=False, overrides=None):
+                  instrument=False, overrides=None, base_sha=None,
+                  variant_sha=None):
     """A section 4 capsule that also carries the diff extension. Each flag
-    removes one half of the contract so a fixture can break it."""
+    removes one half of the contract so a fixture can break it. With
+    base_sha the pair records the four hashes of SPEC 4.7; variant_sha
+    replaces the one of its own view."""
     write(os.path.join(root, "setup.txt"), "Case: naca0012_aoa8\n")
     summary = {
         "case": "naca0012_aoa8",
@@ -256,11 +355,51 @@ def build_variant(root, declare=True, manifest=True, images=True,
         os.makedirs(os.path.join(root, "diff"), exist_ok=True)
         write_png(os.path.join(root, "diff", "diff_cp_nearfield.png"))
     if manifest:
-        write(os.path.join(root, "diff.json"),
-              json.dumps(diff_manifest(**(overrides or {})), indent=2))
+        data = diff_manifest(**(overrides or {}))
+        if base_sha:
+            own = check_capsule.sha256_of(
+                os.path.join(root, "views", "view_cp_nearfield.png"))
+            data["pairs"][0]["source_sha256"] = {
+                "base_view": base_sha, "variant_view": variant_sha or own}
+            data["pairs"][0]["instrument_sha256"] = {
+                "base_frame": sha256_hex(b"grayscale base frame"),
+                "variant_frame": sha256_hex(b"grayscale variant frame")}
+        write(os.path.join(root, "diff.json"), json.dumps(data, indent=2))
     if instrument:
         os.makedirs(os.path.join(root, "diffsrc"), exist_ok=True)
         write_png(os.path.join(root, "diffsrc", "gray_cp_nearfield.png"))
+
+
+class FakeGit:
+    """Stands in for subprocess.run: a repository whose remote names the
+    base, which does not hold the commit, shallow or not."""
+
+    def __init__(self, shallow):
+        self.shallow = shallow
+
+    def __call__(self, argv, **kwargs):
+        class Done:
+            returncode = 0
+            stdout = ""
+        done = Done()
+        if "remote" in argv:
+            done.stdout = "origin\thttps://github.com/example/simulation-capsule"
+        elif "cat-file" in argv:
+            done.returncode = 1
+        elif "--is-shallow-repository" in argv:
+            done.stdout = "true\n" if self.shallow else "false\n"
+        return done
+
+
+def resolve_with(fake):
+    real = check_capsule.subprocess.run
+    check_capsule.subprocess.run = fake
+    try:
+        return check_capsule.resolve_commit(
+            ".", "https://github.com/example/simulation-capsule",
+            hashlib.sha1(b"fixture base commit").hexdigest())
+    finally:
+        check_capsule.subprocess.run = real
 
 
 def status_of(root, check_id, strict=False):
@@ -303,6 +442,15 @@ def main():
         zero_base = os.path.join(workspace, "capsule_zero_base")
         suffix_bad = os.path.join(workspace, "capsule_suffix_bad")
         suffix_ok = os.path.join(workspace, "capsule_suffix_ok")
+        environment = os.path.join(workspace, "capsule_environment")
+        bad_hash = os.path.join(workspace, "capsule_bad_hash")
+        far_base = os.path.join(workspace, "capsule_far_base")
+        short_sha = os.path.join(workspace, "capsule_short_sha")
+        windowed_ok = os.path.join(workspace, "capsule_windowed_ok")
+        windowed_bad = os.path.join(workspace, "capsule_windowed_bad")
+        no_steady = os.path.join(workspace, "capsule_no_steady")
+        odd_status = os.path.join(workspace, "capsule_odd_status")
+        pre_status = os.path.join(workspace, "capsule_pre_status")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -314,7 +462,33 @@ def main():
         build_angles(angles_ok)
         build_suffix_grammar(suffix_bad, True)
         build_suffix_grammar(suffix_ok, False)
-        build_variant(variant_ok)
+        build_environment(environment)
+        base_sha = build_base(workspace)
+        build_variant(variant_ok, base_sha=base_sha)
+        build_variant(bad_hash, base_sha=base_sha, variant_sha="0" * 64)
+        far = dict(diff_manifest()["base"], path="elsewhere/capsule_x")
+        build_variant(far_base, base_sha=base_sha, overrides={"base": far})
+        short = dict(diff_manifest()["base"], commit="9a805f3")
+        build_variant(short_sha, base_sha=base_sha, overrides={"base": short})
+        build_windowed(windowed_ok, windowed_summary())
+        good = windowed_summary()
+        build_windowed(windowed_bad, windowed_summary(
+            forces={"cd": 1.12, "cd_statistic": "median", "cl": -0.006,
+                    "cl_statistic": "iteration_mean"},
+            pressure=dict(good["pressure"], cp_min_sd=0.1),
+            mass=dict(good["mass"], mdot_inlet=-6.0),
+            mesh={"cells": 501860.0, "designed_for_Re": 3000,
+                  "designed_for_Re_range": [3000]},
+            uncertainty=good["convergence"]["uncertainty"],
+            convergence={"status": "stationary", "uncertainty": {
+                "cd_relative": "0.4 percent", "basis": "two runs",
+                "source": "guessed"}}))
+        build_windowed(pre_status, windowed_summary(
+            convergence={"iterations": 5000}, forces={"cd": 1.12}))
+        build_windowed(no_steady, windowed_summary(
+            convergence=dict(good["convergence"], status="no_steady_state")))
+        build_windowed(odd_status, windowed_summary(
+            convergence=dict(good["convergence"], status="not_steady")))
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -351,7 +525,7 @@ def main():
         fired = set()
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
-                     bad_colormap):
+                     bad_colormap, environment, bad_hash, windowed_bad):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -395,16 +569,22 @@ def main():
             print("PASS  dimensionless groups inside reference stay silent")
 
         msgs = [f["message"] for f in findings(suffix_bad, "dimensional_flags")]
-        wrong = ("velocity_m_s", "density_kg_m3", "viscosity_Pa_s", "q_inf_Pa")
+        wrong = ("viscosity_Pa_s", "q_inf_Pa")
+        exempt = ("velocity_m_s", "density_kg_m3")
         missed = [k for k in wrong if not any(k in m for m in msgs)]
+        fired = [k for k in exempt if any(k in m for m in msgs)]
         if missed:
-            failures.append("suffix grammar not reported for %s" % missed)
+            failures.append("capital units not reported for %s" % missed)
+        elif fired:
+            failures.append("reference is exempt from the dimension of the "
+                            "suffix, yet %s fired" % fired)
         elif "dimensional_flags" in failed_checks(suffix_bad):
             failures.append("suffix grammar should warn, not fail, in normal mode")
         elif "dimensional_flags" not in failed_checks(suffix_bad, strict=True):
             failures.append("suffix grammar should fail under --strict")
         else:
-            print("PASS  products for quotients and capital units warn, fail strict")
+            print("PASS  capital units warn, fail strict; _m_s inside "
+                  "reference stays silent")
         msgs = [f["message"] for f in findings(suffix_ok, "dimensional_flags")]
         if msgs:
             failures.append("grammatical suffixes fired: %s" % msgs)
@@ -501,6 +681,118 @@ def main():
                             "declared")
         else:
             print("PASS  a 0.2 capsule skips both diff checks, unchanged")
+
+        # 5. The environment block.
+        missing = findings(legacy, "environment")
+        if not missing or missing[0]["severity"] != check_capsule.WARN:
+            failures.append("a capsule without environment should warn, got "
+                            "%s" % missing)
+        elif "environment" in failed_checks(legacy):
+            failures.append("a missing environment should warn, not fail")
+        else:
+            print("PASS  no environment block warns, fails strict")
+
+        msgs = [f["message"] for f in findings(environment, "environment")]
+        wanted = ("'quad'", "views/", "numerics")
+        absent = [w for w in wanted if not any(w in m for m in msgs)]
+        if absent:
+            failures.append("environment findings missing %s: %s"
+                            % (absent, msgs))
+        elif "environment" not in failed_checks(environment, strict=True):
+            failures.append("a bad environment should fail under --strict")
+        else:
+            print("PASS  bad precision, absent scope directory and numerics "
+                  "warn, fail strict")
+
+        # 6. The hash chain.
+        if status_of(variant_ok, "diff_view_hashes") != "PASS":
+            failures.append("hashes matching both views should pass: %s"
+                            % findings(variant_ok, "diff_view_hashes"))
+        else:
+            print("PASS  recorded hashes that match both views pass")
+
+        wrong = findings(bad_hash, "diff_view_hashes")
+        if [f["severity"] for f in wrong] != [check_capsule.ERROR] \
+                or "variant_view" not in wrong[0]["message"]:
+            failures.append("a variant view that does not match its hash "
+                            "should be one error: %s" % wrong)
+        else:
+            print("PASS  a view that does not match its hash fails")
+
+        far = findings(far_base, "diff_view_hashes")
+        if [f["severity"] for f in far] != [check_capsule.WARN]:
+            failures.append("an unreachable base should warn once: %s" % far)
+        else:
+            print("PASS  an unreachable base warns, never errors")
+
+        # 7. The base commit.
+        short = [f for f in findings(short_sha, "diff_manifest")
+                 if "abbreviated" in f["message"]]
+        if not short or short[0]["severity"] != check_capsule.WARN:
+            failures.append("an abbreviated base commit should warn: %s"
+                            % short)
+        else:
+            print("PASS  an abbreviated base commit warns, fails strict")
+
+        states = (resolve_with(FakeGit(shallow=True)),
+                  resolve_with(FakeGit(shallow=False)))
+        if states != ("shallow", "unknown"):
+            failures.append("a commit missing from a shallow clone should "
+                            "resolve 'shallow', from a full one 'unknown': "
+                            "got %s" % (states,))
+        else:
+            print("PASS  a missing commit is 'shallow' in a shallow clone, "
+                  "'unknown' in a full one")
+
+        # 8. Window statistics.
+        got = failed_checks(windowed_ok, strict=True)
+        if got:
+            failures.append("a stationary run with its quintets should pass "
+                            "strict, failed %s: %s"
+                            % (sorted(got), findings(windowed_ok,
+                                                     "summary_blocks")))
+        else:
+            print("PASS  a stationary run with its quintets passes strict")
+
+        got = failed_checks(no_steady, strict=True)
+        if got:
+            failures.append("a no_steady_state run with its quintets should "
+                            "pass strict, failed %s: %s"
+                            % (sorted(got), findings(no_steady,
+                                                     "summary_blocks")))
+        else:
+            print("PASS  a no_steady_state run with its quintets passes strict")
+
+        msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
+        if not any("the SPEC allows" in m for m in msgs):
+            failures.append("a status outside the enum should warn: %s" % msgs)
+        elif "summary_blocks" in failed_checks(odd_status):
+            failures.append("a status outside the enum should warn, not fail")
+        else:
+            print("PASS  a status outside the enum warns, fails strict")
+
+        msgs = [f["message"] for f in findings(windowed_bad, "summary_blocks")]
+        wanted = ("cl_sd", "'median'", "no sd", "mdot_inlet", "mesh/cells",
+                  "designed_for_Re is replaced", "designed_for_Re_range is",
+                  "belongs inside convergence", "cd_relative is not",
+                  "'guessed'")
+        absent = [w for w in wanted if not any(w in m for m in msgs)]
+        if absent:
+            failures.append("summary_blocks missed %s: %s" % (absent, msgs))
+        elif "summary_blocks" in failed_checks(windowed_bad):
+            failures.append("summary_blocks should warn, not fail")
+        elif "summary_blocks" not in failed_checks(windowed_bad, strict=True):
+            failures.append("summary_blocks should fail under --strict")
+        else:
+            print("PASS  missing quintet, bad statistic, sd on an extreme, "
+                  "mdot, cells and Re range warn, fail strict")
+
+        if findings(pre_status, "summary_blocks"):
+            failures.append("a convergence block without status asks for no "
+                            "quintet: %s" % findings(pre_status,
+                                                     "summary_blocks"))
+        else:
+            print("PASS  a block without status predates 0.4, stays silent")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
