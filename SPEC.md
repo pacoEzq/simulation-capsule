@@ -299,7 +299,7 @@ without `status` is read as predating this section.
 | `k_gate` | gate on `drift_over_se` |
 | `k_sd` | factor of the tolerance on `sd_log_ratio_over_tol` |
 | `min_cycles` | fewest signal cycles a window must hold |
-| `uncertainty` | `{ cd_relative, basis, source, note }`, below |
+| `uncertainty` | optional, `{ cd_relative, basis, source, note }`, below |
 | `quantities` | one entry per gated quantity, keys below |
 
 Each entry of `quantities`, named after the scalar it gates (`cd`, `cp_base`):
@@ -348,8 +348,8 @@ Reached <max_iterations> iterations; <q> failed the stationarity gate in windows
 absolute log ratio of the two standard deviations and `over tolerance` means above
 `k_sd` divided by the square root of `n`; it is not `sd_log_ratio_over_tol`.
 
-**Uncertainty.** `convergence.uncertainty` declares the uncertainty of the
-published values:
+**Uncertainty.** Optional. `convergence.uncertainty` declares the uncertainty of
+the published values:
 
 ```
 uncertainty { cd_relative, basis, source, note }
@@ -357,9 +357,11 @@ uncertainty { cd_relative, basis, source, note }
 
 `cd_relative` is a fraction, `basis` says in one sentence how it was obtained, and
 `source` is `measured` when it comes from runs of this case, `declared` when it is
-taken from elsewhere. `note` is optional. It is not the gate statistic: the
-standard error between windows decides when to stop and says nothing about how far
-the published value sits from a second run of the same case.
+taken from elsewhere. `note` is optional. The block appears only where the
+uncertainty was measured or taken from a stated source; elsewhere the key is
+absent, never null or estimated. It is not the gate statistic: the standard error
+between windows decides when to stop and says nothing about how far the published
+value sits from a second run of the same case.
 
 ### 4.3 `planes/` (settled)
 
