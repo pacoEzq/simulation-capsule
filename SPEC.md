@@ -316,13 +316,13 @@ Each entry of `quantities`, named after the scalar it gates (`cd`, `cp_base`):
 
 `status` is `converged` when the run reached a fixed point and its values are
 single values; `stationary` when every entry of `quantities` passes and the
-published values are window statistics (4.2.2); `not_stationary` when the run
-stopped short of `max_iterations` with the test of settled means and amplitudes
-failing, some entry of `quantities` not passing; `no_steady_state` when the run
-reached `max_iterations` and the signal is not flat. The last one names the flow,
-not the gate. A periodic limit cycle under a steady solver has no fixed point to
-reach, so the run is not on its way to steady: it is not steady, and its published
-values are window statistics all the same. `solver_regime_mismatch` is not a
+published values are window statistics (4.2.2); `not_stationary` when some entry
+of `quantities` fails the test of settled means and amplitudes, and `iterations`
+is below `max_iterations`. Reaching `max_iterations` with a signal that is not flat
+is `no_steady_state`. That status names the flow, not the gate. A periodic limit
+cycle under a steady solver has no fixed point to reach, so the run is not on its
+way to steady: it is not steady, and its published values are window statistics
+all the same. `solver_regime_mismatch` is not a
 comparison of `solver` and `regime_expected`: the reference sample pairs a steady
 solver with an expected unsteady regime and writes `false`.
 
