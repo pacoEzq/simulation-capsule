@@ -23,6 +23,10 @@ jobs:
       # fire on at least one fixture.
       - name: Self test the validator
         run: python3 tools/test_check_capsule.py
+      # The mirror measurement has to reproduce its own synthetic cases, the
+      # 501 860 cell size run included, before its figures go into a capsule.
+      - name: Self test the mirror measurement
+        run: python3 tools/test_check_mirror.py
       # A capsule linked from a published post does not change, not a byte.
       # This is the rule that makes examples/as-published/ a record rather
       # than a copy nobody is watching.

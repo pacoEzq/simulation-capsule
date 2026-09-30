@@ -14,6 +14,7 @@ These write files that go into a capsule.
 |--------|----------|------|
 | `sample_capsule_volume.py` | `samples.csv` | [Part 4](../examples/capsule_jet_r2_re100.md) |
 | `extract_features_delta.py` | `features.json` | [Part 5](../examples/capsule_delta65_a13p3_re1e6.md) |
+| `check_mirror.py` | mirror figures for a capsule (JSON on stdout) | XYZ table of cell centroids and volumes, after meshing |
 
 `sample_capsule_volume.py` draws an importance-weighted sample of a volume export,
 without replacement, using the Efraimidis-Spirakis exponential-key method. The
@@ -24,6 +25,14 @@ worth running once to see what the weighting buys.
 polylines and per-station scalars. It carries the two-threshold rule the
 specification requires: an export floor that bounds file size, and a per-station
 relative threshold that defines the set actually integrated.
+
+`check_mirror.py` measures whether a volume mesh is a mirror image of itself across
+a plane, before any flow exists. Each off-plane cell is reflected and its exact
+nearest cell on the other side found; the cell is paired, a level mismatch or
+unpaired, and the paired distances are reported against the cell's own size. It
+measures and reports; it is not a gate. `diagnostics/check_mirror_mesh.py` stays
+as a diagnostic: its pairing figure against a global median size is what
+`check_mirror.py --legacy-median` reproduces, for comparison only.
 
 ## Diagnostics
 
@@ -52,6 +61,7 @@ artifact is reproduced later, that banner is what identifies which build made it
 ```
 python sample_capsule_volume.py volume_raw.csv samples.csv --n 800 --alpha 1.0 --seed 42
 python extract_features_delta.py features_cloud.csv --beta 0.10 --z-cut 0.005
+python check_mirror.py cells_volume.csv --axis y --json
 python diagnostics/check_mirror_mesh.py wing_faces.csv
 python diagnostics/diag_station_clusters.py features_cloud.csv --x 0.30 --neighbours
 ```
