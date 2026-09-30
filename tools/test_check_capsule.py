@@ -448,6 +448,8 @@ def main():
         short_sha = os.path.join(workspace, "capsule_short_sha")
         windowed_ok = os.path.join(workspace, "capsule_windowed_ok")
         windowed_bad = os.path.join(workspace, "capsule_windowed_bad")
+        no_steady = os.path.join(workspace, "capsule_no_steady")
+        odd_status = os.path.join(workspace, "capsule_odd_status")
         pre_status = os.path.join(workspace, "capsule_pre_status")
 
         build_jet(jet_bad, True)
@@ -483,6 +485,10 @@ def main():
                 "source": "guessed"}}))
         build_windowed(pre_status, windowed_summary(
             convergence={"iterations": 5000}, forces={"cd": 1.12}))
+        build_windowed(no_steady, windowed_summary(
+            convergence=dict(good["convergence"], status="no_steady_state")))
+        build_windowed(odd_status, windowed_summary(
+            convergence=dict(good["convergence"], status="not_steady")))
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -747,6 +753,23 @@ def main():
                                                      "summary_blocks")))
         else:
             print("PASS  a stationary run with its quintets passes strict")
+
+        got = failed_checks(no_steady, strict=True)
+        if got:
+            failures.append("a no_steady_state run with its quintets should "
+                            "pass strict, failed %s: %s"
+                            % (sorted(got), findings(no_steady,
+                                                     "summary_blocks")))
+        else:
+            print("PASS  a no_steady_state run with its quintets passes strict")
+
+        msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
+        if not any("the SPEC allows" in m for m in msgs):
+            failures.append("a status outside the enum should warn: %s" % msgs)
+        elif "summary_blocks" in failed_checks(odd_status):
+            failures.append("a status outside the enum should warn, not fail")
+        else:
+            print("PASS  a status outside the enum warns, fails strict")
 
         msgs = [f["message"] for f in findings(windowed_bad, "summary_blocks")]
         wanted = ("cl_sd", "'median'", "no sd", "mdot_inlet", "mesh/cells",

@@ -287,7 +287,7 @@ without `status` is read as predating this section.
 | `criterion_version` | integer version of that criterion |
 | `time_basis` | one sentence stating what an iteration mean is and is not |
 | `regime_expected` | `{ value, source, ref }`: the regime expected at this Reynolds number, `source` `declared` or `measured`, and the reference it comes from |
-| `status` | `converged`, `stationary` or `not_stationary` |
+| `status` | `converged`, `stationary`, `not_stationary` or `no_steady_state` |
 | `stop_reason` | one sentence, template below |
 | `solver_regime_mismatch` | boolean verdict of the chain on the solver mode against the expected regime |
 | `iterations` | iterations run |
@@ -317,7 +317,12 @@ Each entry of `quantities`, named after the scalar it gates (`cd`, `cp_base`):
 `status` is `converged` when the run reached a fixed point and its values are
 single values; `stationary` when every entry of `quantities` passes and the
 published values are window statistics (4.2.2); `not_stationary` when the run
-stopped at `max_iterations` before they did. `solver_regime_mismatch` is not a
+stopped short of `max_iterations` with the test of settled means and amplitudes
+failing, some entry of `quantities` not passing; `no_steady_state` when the run
+reached `max_iterations` and the signal is not flat. The last one names the flow,
+not the gate. A periodic limit cycle under a steady solver has no fixed point to
+reach, so the run is not on its way to steady: it is not steady, and its published
+values are window statistics all the same. `solver_regime_mismatch` is not a
 comparison of `solver` and `regime_expected`: the reference sample pairs a steady
 solver with an expected unsteady regime and writes `false`.
 
@@ -331,6 +336,17 @@ Window statistics of <q1>, <q2>, ... stationary between iterations <a>-<b> and <
 
 `Window statistics of cd, cl, cy, cp_base stationary between iterations 1000-3000
 and 3000-5000 (max drift/SE = 0.8749704041357005).`
+
+`stop_reason` for `no_steady_state`, with the quantity that failed the gate in the
+last two windows and the one clause, of the three in brackets, that failed:
+
+```
+Reached <max_iterations> iterations; <q> failed the stationarity gate in windows <a>-<b> and <c>-<d> (n = <n> cycles < <min_cycles> | drift/SE = <x> > <k_gate> | sd log ratio = <x> over tolerance).
+```
+
+`n` is the smaller cycle count of the two windows. In the sd clause `x` is the raw
+absolute log ratio of the two standard deviations and `over tolerance` means above
+`k_sd` divided by the square root of `n`; it is not `sd_log_ratio_over_tol`.
 
 **Uncertainty.** `convergence.uncertainty` declares the uncertainty of the
 published values:
@@ -595,8 +611,8 @@ run it on the expanded directory.
   `mass` is nondimensional, `mesh.cells` an integer, `designed_for_Re_range`
   replaces `designed_for_Re`.
 - 4.2.3: block `convergence` for runs judged by window statistics: its keys,
-  `status` in `converged`, `stationary`, `not_stationary`, the `stop_reason`
-  template, and `convergence.uncertainty`.
+  `status` in `converged`, `stationary`, `not_stationary`, `no_steady_state`,
+  the `stop_reason` templates, and `convergence.uncertainty`.
 - 3.1: inside `reference`, unit suffixes are accepted as written (`_m_s`,
   `_kg_m3`); `_per_` for division is a recommendation, not a rule.
 - Compatibility: a 0.3 capsule without `environment` now warns, and fails under

@@ -134,7 +134,8 @@ PRECISIONS = ("single", "double", "mixed")
 
 # SPEC 4.2.2 and 4.2.3. A run judged by window statistics publishes each
 # scalar with its window. The value, then four companions.
-CONVERGENCE_STATUSES = ("converged", "stationary", "not_stationary")
+CONVERGENCE_STATUSES = ("converged", "stationary", "not_stationary",
+                        "no_steady_state")
 STATISTICS = ("iteration_mean", "window_min", "window_max",
               "window_min_max", "instantaneous")
 EXTREME_STATISTICS = ("window_min", "window_max", "window_min_max")
