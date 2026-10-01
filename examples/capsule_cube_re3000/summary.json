@@ -1,0 +1,177 @@
+{
+  "frame": {
+    "x": "streamwise, from inlet to outlet",
+    "y": "normal to lateral_yminus/lateral_yplus",
+    "z": "normal to lateral_zminus/lateral_zplus",
+    "handedness": "right"
+  },
+  "reference": {
+    "side_m": 1.0,
+    "velocity_m_per_s": 1.0,
+    "density_kg_per_m3": 1.0,
+    "dynamic_viscosity_pa_s": 3.333333333333333E-4,
+    "note": "Only dimensional block in this file. All other scalars are nondimensional groups."
+  },
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2606",
+    "build": "21.04.007",
+    "platform": "linux-x86_64-2.28",
+    "precision": "double"
+  },
+  "extensions": ["diff"],
+  "sweep": {
+    "parameter": "Re",
+    "value": 3000
+  },
+  "mesh": {
+    "cells": 501860,
+    "identical_across_sweep": true,
+    "designed_for_Re_range": [100, 3000],
+    "prism_layers_nonwall": 0,
+    "note": "declared range; no y+ or mesh-independence study"
+  },
+  "convergence": {
+    "solver": "steady segregated",
+    "criterion": "window_stationarity",
+    "criterion_version": 2,
+    "time_basis": "solver iterations (pseudo-time); iteration means are not physical time averages",
+    "regime_expected": {"value": "unsteady", "source": "declared", "ref": "Meng et al. JFM 2021; Klotz et al. JFM 2014"},
+    "status": "stationary",
+    "stop_reason": "Window statistics of cd, cl, cy, cp_base stationary between iterations 1000-3000 and 3000-5000 (max drift/SE = 0.7738136247806247).",
+    "solver_regime_mismatch": false,
+    "iterations": 5000,
+    "discard_iterations": 1000,
+    "window_iterations": 2000,
+    "windows_closed": 2,
+    "sampling_interval": 10,
+    "max_iterations": 15000,
+    "k_gate": 2.0,
+    "k_sd": 3.0,
+    "min_cycles": 10,
+    "uncertainty": {
+      "cd_relative": 0.004,
+      "basis": "run-to-run: two independent runs of the same case and mesh differ by 0.39 % in pooled cd (2026-09-23)",
+      "source": "measured",
+      "note": "the standard error between windows is the gate statistic, not the uncertainty of the published value"
+    },
+    "quantities": {
+      "cd": {"window_means": [1.1244276263116948, 1.1341260990811723], "window_sds": [0.051456369398055264, 0.0548387833716815],
+             "n_cycles_last": 36,
+             "drift_last": 0.00969847276947755, "drift_over_se": 0.7738136247806247, "sd_log_ratio_over_tol": 0.127326833905719, "pass": true},
+      "cl": {"window_means": [-0.0019003268866624474, 0.002755183618368399], "window_sds": [0.1298321548178453, 0.1604902235785216],
+             "n_cycles_last": 22,
+             "drift_last": 0.004655510505030847, "drift_over_se": 0.10578036152736596, "sd_log_ratio_over_tol": 0.3314412393397942, "pass": true},
+      "cy": {"window_means": [-0.0024442069698227555, -0.010255202153031934], "window_sds": [0.18765300374557808, 0.14137520987914687],
+             "n_cycles_last": 24,
+             "drift_last": -0.007810995183209178, "drift_over_se": 0.1594404053099747, "sd_log_ratio_over_tol": 0.4526899094125337, "pass": true},
+      "cp_base": {"window_means": [-0.42594212571373413, -0.43207477457608867], "window_sds": [0.04685221899699369, 0.04853473342978419],
+             "n_cycles_last": 36,
+             "drift_last": -0.006132648862354539, "drift_over_se": 0.5454536139170938, "sd_log_ratio_over_tol": 0.070562646786952, "pass": true}
+    }
+  },
+  "forces": {
+    "cd": 1.1292768626964342,
+    "cd_sd": 0.05332928422808761,
+    "cd_window_iterations": 4000,
+    "cd_n_windows": 2,
+    "cd_statistic": "iteration_mean",
+    "cd_pressure": 1.1455543478366434,
+    "cd_pressure_sd": 0.04965523729362118,
+    "cd_pressure_window_iterations": 4000,
+    "cd_pressure_n_windows": 2,
+    "cd_pressure_statistic": "iteration_mean",
+    "cd_friction": -0.01627748514020982,
+    "cd_friction_sd": 0.004991597591340788,
+    "cd_friction_window_iterations": 4000,
+    "cd_friction_n_windows": 2,
+    "cd_friction_statistic": "iteration_mean",
+    "cl": 4.274283658529772E-4,
+    "cl_sd": 0.14580391556038377,
+    "cl_window_iterations": 4000,
+    "cl_n_windows": 2,
+    "cl_statistic": "iteration_mean",
+    "cy": -0.006349704561427344,
+    "cy_sd": 0.16597113407729344,
+    "cy_window_iterations": 4000,
+    "cy_n_windows": 2,
+    "cy_statistic": "iteration_mean"
+  },
+  "pressure": {
+    "cp_base": -0.42900845014491146,
+    "cp_base_sd": 0.04773990576141339,
+    "cp_base_window_iterations": 4000,
+    "cp_base_n_windows": 2,
+    "cp_base_statistic": "iteration_mean",
+    "cp_min": -2.0457030335421016,
+    "cp_min_window_iterations": 4000,
+    "cp_min_n_windows": 2,
+    "cp_min_statistic": "window_min",
+    "cp_stagnation": 1.039167033790218,
+    "cp_stagnation_window_iterations": 4000,
+    "cp_stagnation_n_windows": 2,
+    "cp_stagnation_statistic": "window_max"
+  },
+  "wake": {
+    "x_reattach_D": 2.73671875,
+    "x_reattach_D_sd": 0.6241844420463145,
+    "x_reattach_D_window_iterations": 4000,
+    "x_reattach_D_n_windows": 2,
+    "x_reattach_D_statistic": "iteration_mean",
+    "recirculation_length_D": 2.23671875,
+    "recirculation_length_D_sd": 0.6241844420463145,
+    "recirculation_length_D_window_iterations": 4000,
+    "recirculation_length_D_n_windows": 2,
+    "recirculation_length_D_statistic": "iteration_mean",
+    "note": "mean of instantaneous lengths; not the recirculation length of the time-averaged field, which is out of scope for this part"
+  },
+  "mass": {
+    "mdot_in_over_rhoUD2": -100.0,
+    "mdot_in_over_rhoUD2_sd": 0.0,
+    "mdot_in_over_rhoUD2_window_iterations": 4000,
+    "mdot_in_over_rhoUD2_n_windows": 2,
+    "mdot_in_over_rhoUD2_statistic": "iteration_mean",
+    "mdot_out_over_rhoUD2": 99.9996295058402,
+    "mdot_out_over_rhoUD2_sd": 0.003763825053993298,
+    "mdot_out_over_rhoUD2_window_iterations": 4000,
+    "mdot_out_over_rhoUD2_n_windows": 2,
+    "mdot_out_over_rhoUD2_statistic": "iteration_mean",
+    "mass_imbalance": 3.7049415991923228E-6,
+    "mass_imbalance_sd": 3.763825053993299E-5,
+    "mass_imbalance_window_iterations": 4000,
+    "mass_imbalance_n_windows": 2,
+    "mass_imbalance_statistic": "iteration_mean"
+  },
+  "probes": {
+    "LLM_u_over_U_axis_x2D": {
+      "value": 0.257610933436611,
+      "sd": 0.18628377690983855,
+      "window_iterations": 4000,
+      "n_windows": 2,
+      "statistic": "iteration_mean",
+      "position_D": [2.0, 0.0, 0.0],
+      "report": "LLM_u_over_U_axis_x2D"
+    }
+  },
+  "plane_extremes": {
+    "y0": {
+      "cp": [-1.6772458010203641, 1.0390109308823146],
+      "u_over_U": [-0.7753622424655537, 1.3501885115222156]
+    },
+    "x1": {
+      "cp": [-1.3242097018172498, 0.4242758770506828],
+      "u_over_U": [-0.7761059004785029, 1.3448335747256868]
+    },
+    "x2": {
+      "cp": [-1.409900082849198, 0.3382132243859557],
+      "u_over_U": [-0.7075213739665854, 1.3308294686272735]
+    },
+    "x4": {
+      "cp": [-0.6194644251736332, 0.20125673205935862],
+      "u_over_U": [-0.09028453743916949, 1.228308852781661]
+    },
+    "statistic": "window_min_max",
+    "window_iterations": 4000,
+    "n_windows": 2
+  }
+}

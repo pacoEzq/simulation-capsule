@@ -1,0 +1,152 @@
+{
+  "schema_version": "diff/2",
+  "base": {
+    "capsule": "capsule_cube_re0100",
+    "case": "cube_re0100",
+    "repo": "simulation-capsule",
+    "path": "examples/capsule_cube_re0100",
+    "frozen_copy_path": "examples/capsule_cube_re0100",
+    "commit": "ee7ff59bd628cfa81d530671c43d5bef9ea30264"
+  },
+  "variant": {
+    "capsule": "capsule_cube_re1000",
+    "case": "cube_re1000"
+  },
+  "difference": {
+    "parameter": "Re",
+    "base_value": 100,
+    "variant_value": 1000,
+    "implementation": "global parameter Re, mu = rho*U*D/Re",
+    "mesh_identical": true
+  },
+  "view_contract": {
+    "camera": {
+      "focal_point": [
+        0.07,
+        0.099,
+        -0.008
+      ],
+      "position": [
+        37.781,
+        -25.043,
+        20.107
+      ],
+      "view_up": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "parallel_scale": 0.988,
+      "projection": 1
+    },
+    "projection": "parallel",
+    "width_px": 1024,
+    "view_height_px": 739,
+    "measured_height_px": 739,
+    "crop_rows_top": 0,
+    "colorbar_levels": 256,
+    "contour_style": "Smooth Filled",
+    "colormap_published": "blue-red uniform perception",
+    "colormap_measured": "grayscale",
+    "range_cp": [
+      -2.8,
+      1.1
+    ],
+    "range_note": "envelope of Re 300 to 3000; Re 100 saturates at the edges, clamped rather than clipped"
+  },
+  "pipeline": {
+    "order": "crop_then_mask_then_diff",
+    "crop": "none: the gray frame is exported without the title, so no row differs by its text",
+    "mask": "every non grey pixel in either frame, which removes the magenta background (1, 0, 1) and its antialiased edge around the body; the colour bar is grey in both frames and is evaluated",
+    "tool": "tools/diff_capsule_views.py 2.2",
+    "instrument_recipe": "the grayscale renders are the instrument and stay outside the capsule, SPEC 4.7. Session B exports the body view a second time from the same scene, camera and range, with colormap grayscale, a solid magenta background and no title.",
+    "output_gain": 6,
+    "instrument_root": "diffsrc",
+    "integrity": "the chain is view then grayscale frame then diff. All four hashes are checked before measuring and a mismatch stops the run.",
+    "pixels_evaluated": 243494,
+    "pixels_excluded": 513242
+  },
+  "pairs": [
+    {
+      "name": "diff_cp_body",
+      "base_view": "view_cp_body.png",
+      "variant_view": "view_cp_body.png",
+      "source_sha256": {
+        "base_view": "0b129a0ee501ffd1281c80cfd6abb21e431a96f7c666525bb4041a3f3d34be8f",
+        "variant_view": "219cb7f1fc3b07f17dc780451fae7925a56dcf8c9e89b413bb731c88fd498695"
+      },
+      "instrument_sha256": {
+        "base_frame": "cc58d1f72d58d1008e9873053adee19f1c4204a44bb50a51f985b2c04da99aa4",
+        "variant_frame": "255fe00b08366e207c5f9eac5f5a0cf9f2f8d4edb66109a08a5dda2be864b803"
+      },
+      "output": "diff/diff_cp_body.png",
+      "level_size": 0.015234375,
+      "threshold_levels": 3,
+      "threshold_comparison": ">=",
+      "threshold_physical": 0.0457,
+      "changed_pixel_fraction": 0.7571,
+      "max_delta_levels": 76,
+      "max_delta_physical": 1.1578
+    }
+  ],
+  "scalar_deltas": {
+    "delta_cd": -0.270892,
+    "delta_cd_pressure": 0.048291,
+    "delta_cd_friction": -0.3191831,
+    "delta_cl": 0.0064187,
+    "delta_cy": -0.0084387,
+    "delta_cp_base": -0.1506429,
+    "delta_cp_min": 1.5381932,
+    "delta_cp_stagnation": -1.3508379,
+    "base": {
+      "forces": {
+        "cd": 1.3419383945381655,
+        "cd_statistic": "instantaneous",
+        "cd_pressure": 1.0515079817051498,
+        "cd_pressure_statistic": "instantaneous",
+        "cd_friction": 0.2904304128330157,
+        "cd_friction_statistic": "instantaneous",
+        "cl": 1.0074655448782522e-05,
+        "cl_statistic": "instantaneous",
+        "cy": 5.846667898269164e-06,
+        "cy_statistic": "instantaneous"
+      },
+      "pressure": {
+        "cp_base": -0.22949121135539396,
+        "cp_base_statistic": "instantaneous",
+        "cp_min": -3.5130829514607687,
+        "cp_min_statistic": "instantaneous",
+        "cp_stagnation": 2.393783490345101,
+        "cp_stagnation_statistic": "instantaneous"
+      }
+    },
+    "variant": {
+      "forces": {
+        "cd": 1.0710463680474462,
+        "cd_statistic": "iteration_mean",
+        "cd_pressure": 1.0997990233467247,
+        "cd_pressure_statistic": "iteration_mean",
+        "cd_friction": -0.028752655299277726,
+        "cd_friction_statistic": "iteration_mean",
+        "cl": 0.006428775748672197,
+        "cl_statistic": "iteration_mean",
+        "cy": -0.008432885684581391,
+        "cy_statistic": "iteration_mean"
+      },
+      "pressure": {
+        "cp_base": -0.38013410176747386,
+        "cp_base_statistic": "iteration_mean",
+        "cp_min": -1.9748897532634535,
+        "cp_min_statistic": "window_min",
+        "cp_stagnation": 1.0429456053114279,
+        "cp_stagnation_statistic": "window_max"
+      }
+    },
+    "note": "delta is variant minus base. Each side keeps its own *_statistic: a converged point publishes the last iteration, a stationary or no_steady_state point a pooled mean over its closed windows."
+  },
+  "known_differences": [
+    "Re: 100 in the base, 1000 in the variant",
+    "status: converged in the base, stationary in the variant",
+    "iterations: 3000 in the base, 5000 in the variant"
+  ]
+}
