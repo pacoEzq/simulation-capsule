@@ -1,0 +1,9 @@
+{
+  "template": "cube_sweep_template.sim",
+  "points": [100, 300, 1000, 3000],
+  "baseline": 100,
+  "np": 8,
+  "starccm": "<launcher path, set in the local copy only>",
+  "python": "<Python 3.12 interpreter, set in the local copy only; the system python3 may be older>",
+  "window_check": "check_window_stats.py"
+}

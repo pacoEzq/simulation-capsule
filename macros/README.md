@@ -3,9 +3,10 @@
 Simcenter STAR-CCM+ Java macros that produce capsule artifacts. Run them from
 inside the simulation; they write files, they do not read the capsule back.
 
-Macros here are reusable across cases. The per case `run_macro.java` that
-Part 7 puts inside a capsule is a different thing: it records how one capsule
-was built, and it travels with that capsule.
+Macros here are reusable across cases. `t7/` is the exception: it holds the
+chain that builds the Part 7 capsules, and its `run_macro.java` belongs to
+that one case. No capsule carries a copy of it; each capsule's
+`manifest.json` names it by path and sha256.
 
 ## TrimReportForAI.java
 
@@ -44,6 +45,24 @@ Usage notes:
 Origin: published with
 [Making AI Understand Your Simulations](https://community.sw.siemens.com/s/question/0D5Vb0000181bwjKAA/making-ai-understand-your-simulations)
 and attached to Part 1 of the series.
+
+## t7/
+
+The chain behind the Part 7 capsules: one cube, swept over Reynolds number.
+`run_macro.java`, `output_exporter.java`, `manifest_writer.java` and
+`object_audit.java` run inside Simcenter STAR-CCM+, one macro per batch
+session. `sweep_driver.sh` launches those sessions over the points of a
+sweep file; `sweep.example.json` shows its shape. `check_window_stats.py`
+guards the window statistics, and `build_capsule.py` assembles the capsules
+with the tools in `../tools/`.
+
+The chain starts from `cube_re200.sim`, the cube of
+[Part 3](https://community.sw.siemens.com/s/question/0D5Vb00001QuRzDKAV/preparing-cfd-output-for-large-language-models-310-sections-and-planes-the-csv-plus-image-pair),
+which `run_macro.java` turns once into the sweep template. Part 3 attaches
+the `.sim`; neither it nor the template is in this repository, and no `.sim`
+will be: a capsule is meant to be read without its simulation. The `.sim`
+names in a capsule's `manifest.json` are file names, not paths into this
+repository.
 
 ---
 
