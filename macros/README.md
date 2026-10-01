@@ -64,6 +64,12 @@ will be: a capsule is meant to be read without its simulation. The `.sim`
 names in a capsule's `manifest.json` are file names, not paths into this
 repository.
 
+`setup.txt` comes out of `output_exporter.java` already redacted: the folder
+of the `.sim` and the host name read `(redacted)`. The earlier capsules show
+`<path>` and `<host>` instead, removed by hand (note 5 under
+`TrimReportForAI.java`). Same fact, two spellings; neither is a value
+waiting to be filled in.
+
 ---
 
 ## Terms

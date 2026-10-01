@@ -1,0 +1,451 @@
+{
+  "capsule": "capsule_cube_re0100",
+  "spec_version": "0.4",
+  "produced": "2026-10-01T18:29:47Z",
+  "written_by": "manifest_writer",
+  "sweep": {
+    "parameter": "Re",
+    "values": [
+      100,
+      300,
+      1000,
+      3000
+    ],
+    "point": 100,
+    "siblings": [
+      "capsule_cube_re0300",
+      "capsule_cube_re1000",
+      "capsule_cube_re3000"
+    ],
+    "baseline": "capsule_cube_re0100",
+    "template": {
+      "file": "cube_sweep_template.sim",
+      "sha256": "c280377613abd599335a4e42c03fc05357377a1b39cfcc1ec121a3376f11602f"
+    },
+    "sim": {
+      "file": "cube_re0100.sim",
+      "sha256": "0a81710b01d1d287590affa29f7ce70d4ca4dd825bdf0b6134d31072987712ce"
+    }
+  },
+  "chain": {
+    "run_macro": {
+      "file": "run_macro.java",
+      "path": "macros/t7/run_macro.java",
+      "sha256": "cbdbb47f3b5d030d47044ae340ecd024a816538c5b9e76b606c892e96970c488"
+    },
+    "output_exporter": {
+      "file": "output_exporter.java",
+      "path": "macros/t7/output_exporter.java",
+      "sha256": "7844bbe778d040464f9453bc2179e2e8acb89bf3f72aa106e138940f42aefc76"
+    },
+    "manifest_writer": {
+      "file": "manifest_writer.java",
+      "path": "macros/t7/manifest_writer.java",
+      "sha256": "ec626f0d894d9a220d53555155322f626cfa10a25e5c12cd6445d7656fea1169"
+    },
+    "object_audit": {
+      "file": "object_audit.java",
+      "path": "macros/t7/object_audit.java",
+      "sha256": "09669ead7a4adceb9a6f2add1d7593684c396adaaeef5975e6ecbe0c481038de"
+    },
+    "sweep_driver": {
+      "file": "sweep_driver.sh",
+      "path": "macros/t7/sweep_driver.sh",
+      "sha256": "467150012fef8adfec2ecc4425a5cf0340515fa53c6382346e20779b2b3f74cf"
+    },
+    "build_capsule": {
+      "file": "build_capsule.py",
+      "path": "macros/t7/build_capsule.py",
+      "sha256": "6f184a02f32d6ffdb2e8f4f3c282cebfa6ae11660962833bb3f3a70ecf4548e8"
+    },
+    "repo": {
+      "url": "https://github.com/pacoEzq/simulation-capsule",
+      "commit": "7ff5be1233d03b9d49ef8833eec3b69beb814124"
+    }
+  },
+  "session": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2606",
+    "build": "21.04.007",
+    "platform": "linux-x86_64-2.28",
+    "precision": "double",
+    "javac": "25.0.1",
+    "np": null
+  },
+  "seeds": {},
+  "seeds_note": "No stochastic step in this chain. samples.csv (Part 4) is not part of the cube capsule.",
+  "mesh": {
+    "operation": "mesh_cube",
+    "base_size_over_D": 0.5,
+    "cells": 501860,
+    "identical_across_sweep": true,
+    "prism_guard": "LLM_prism_off_nonwall"
+  },
+  "fields": {
+    "u_over_U": {
+      "field_function": "u_over_U",
+      "definition": "Velocity[0] / U",
+      "component": "x"
+    }
+  },
+  "planes": [
+    {
+      "file": "planes/plane_y0.csv",
+      "raw_file": "planes/plane_y0_raw.csv",
+      "table": "LLM_table_y0",
+      "part": "grid_y0",
+      "grid_intervals": [
+        32,
+        12
+      ],
+      "rows_expected": 429,
+      "rows_written": 415,
+      "missing_in_body": 14,
+      "columns": [
+        "x_D",
+        "z_D",
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "sha256_raw": "655788d342ac46615c8ed57a7c5e73444e430327e47caf2df80c70c2def1f7aa",
+      "sha256": "cc8a74c20b14c226e23f643b0164ffbd94df7604a67a27d38387a57a6b53af02",
+      "png": {
+        "file": "planes/plane_y0.png",
+        "scene": "LLM_plane_u_over_U",
+        "camera": {
+          "focal_point": [
+            2.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            2.0,
+            -20.0,
+            0.0
+          ],
+          "view_up": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "parallel_scale": 2.9,
+          "projection": 1
+        },
+        "colorbar": {
+          "range": [
+            -0.8,
+            1.4
+          ],
+          "levels": 256,
+          "clip": "0",
+          "labels": 6,
+          "label_format": "%.2f",
+          "contour_style": "1",
+          "colormap": "blue-red uniform perception",
+          "width": 0.3,
+          "position": [
+            0.6,
+            0.08
+          ],
+          "shadow": false
+        },
+        "title": {
+          "font_string": "Siemens Sans Global-Plain",
+          "height": 0.04
+        },
+        "sha256": "600e95f2084f124ac1235336e08ee38c0c846eba9d24213c95682492a9c1693a"
+      }
+    },
+    {
+      "file": "planes/plane_x1.csv",
+      "raw_file": "planes/plane_x1_raw.csv",
+      "table": "LLM_table_x1",
+      "part": "grid_x1",
+      "grid_intervals": [
+        12,
+        12
+      ],
+      "rows_expected": 169,
+      "rows_written": 169,
+      "missing_in_body": 0,
+      "columns": [
+        "y_D",
+        "z_D",
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "sha256_raw": "775726b6d551b6587ee2ff4f4c7fb60b5c782d55469ca3e50baf357f68b0977c",
+      "sha256": "ee19ab1dd4ea20e214df01a6f6dd007e7028888ff99a87431486efa86b8a4861",
+      "png": {
+        "file": "planes/plane_x1.png",
+        "scene": "LLM_plane_u_over_U",
+        "camera": {
+          "focal_point": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            21.0,
+            0.0,
+            0.0
+          ],
+          "view_up": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "parallel_scale": 1.8,
+          "projection": 1
+        },
+        "colorbar": {
+          "range": [
+            -0.8,
+            1.4
+          ],
+          "levels": 256,
+          "clip": "0",
+          "labels": 6,
+          "label_format": "%.2f",
+          "contour_style": "1",
+          "colormap": "blue-red uniform perception",
+          "width": 0.3,
+          "position": [
+            0.6,
+            0.08
+          ],
+          "shadow": false
+        },
+        "title": {
+          "font_string": "Siemens Sans Global-Plain",
+          "height": 0.04
+        },
+        "sha256": "5f935d553e67bef8ab5a36f60a094382edd49788cf38f1d6e933a2dea9d2ff87"
+      }
+    },
+    {
+      "file": "planes/plane_x2.csv",
+      "raw_file": "planes/plane_x2_raw.csv",
+      "table": "LLM_table_x2",
+      "part": "grid_x2",
+      "grid_intervals": [
+        12,
+        12
+      ],
+      "rows_expected": 169,
+      "rows_written": 169,
+      "missing_in_body": 0,
+      "columns": [
+        "y_D",
+        "z_D",
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "sha256_raw": "09239f4d3e62c0f280edc4c0f7d3864a7034dcd904ede701bd3e180916210280",
+      "sha256": "b7ce22c847c66a7bcbd5eb7690b6f8cbfa67778f4bdcb7a10bbae243b37c02e8",
+      "png": {
+        "file": "planes/plane_x2.png",
+        "scene": "LLM_plane_u_over_U",
+        "camera": {
+          "focal_point": [
+            2.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            22.0,
+            0.0,
+            0.0
+          ],
+          "view_up": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "parallel_scale": 1.8,
+          "projection": 1
+        },
+        "colorbar": {
+          "range": [
+            -0.8,
+            1.4
+          ],
+          "levels": 256,
+          "clip": "0",
+          "labels": 6,
+          "label_format": "%.2f",
+          "contour_style": "1",
+          "colormap": "blue-red uniform perception",
+          "width": 0.3,
+          "position": [
+            0.6,
+            0.08
+          ],
+          "shadow": false
+        },
+        "title": {
+          "font_string": "Siemens Sans Global-Plain",
+          "height": 0.04
+        },
+        "sha256": "1b7c1c44d1103fdf4e379d894291c352b481669ea0ed038279130dd603cd3125"
+      }
+    },
+    {
+      "file": "planes/plane_x4.csv",
+      "raw_file": "planes/plane_x4_raw.csv",
+      "table": "LLM_table_x4",
+      "part": "grid_x4",
+      "grid_intervals": [
+        12,
+        12
+      ],
+      "rows_expected": 169,
+      "rows_written": 169,
+      "missing_in_body": 0,
+      "columns": [
+        "y_D",
+        "z_D",
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "sha256_raw": "9f24c8116026cf121facef6fd450416f7a745613591c790d984a5bbdeb252fb9",
+      "sha256": "40109a57958aa7b1ba34f0082873ac86627018ecdf8be945aff2cddba49aba18",
+      "png": {
+        "file": "planes/plane_x4.png",
+        "scene": "LLM_plane_u_over_U",
+        "camera": {
+          "focal_point": [
+            4.0,
+            0.0,
+            0.0
+          ],
+          "position": [
+            24.0,
+            0.0,
+            0.0
+          ],
+          "view_up": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "parallel_scale": 1.8,
+          "projection": 1
+        },
+        "colorbar": {
+          "range": [
+            -0.8,
+            1.4
+          ],
+          "levels": 256,
+          "clip": "0",
+          "labels": 6,
+          "label_format": "%.2f",
+          "contour_style": "1",
+          "colormap": "blue-red uniform perception",
+          "width": 0.3,
+          "position": [
+            0.6,
+            0.08
+          ],
+          "shadow": false
+        },
+        "title": {
+          "font_string": "Siemens Sans Global-Plain",
+          "height": 0.04
+        },
+        "sha256": "ced93f96a5870cc7a63f48a2682470b92ba51a8ee1ae5cc444dc063a8ff1d9ce"
+      }
+    }
+  ],
+  "views": [
+    {
+      "file": "views/view_cp_body.png",
+      "question": "Where does the flow push and where does it pull on the body surface?",
+      "scene": "view_cp_body",
+      "field": "cp",
+      "part": "cube_back, cube_bottom, cube_front, cube_left, cube_right, cube_top",
+      "camera": {
+        "focal_point": [
+          0.07,
+          0.099,
+          -0.008
+        ],
+        "position": [
+          37.781,
+          -25.043,
+          20.107
+        ],
+        "view_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "parallel_scale": 0.988,
+        "projection": 1
+      },
+      "colorbar": {
+        "range": [
+          -2.8,
+          1.1
+        ],
+        "levels": 256,
+        "clip": "0",
+        "labels": 6,
+        "label_format": "%.2f",
+        "contour_style": "1",
+        "colormap": "blue-red uniform perception",
+        "width": 0.3,
+        "position": [
+          0.6,
+          0.08
+        ],
+        "shadow": false
+      },
+      "title": {
+        "font_string": "Siemens Sans Global-Plain",
+        "height": 0.04
+      },
+      "export": {
+        "call": "printAndWait(file, 1, 1024, 739, true, false)",
+        "size": [
+          1024,
+          739
+        ]
+      },
+      "sha256": "0b129a0ee501ffd1281c80cfd6abb21e431a96f7c666525bb4041a3f3d34be8f"
+    }
+  ],
+  "checks": {
+    "mirror_pair_max_delta": 0.380659,
+    "mirror_unpaired": 0,
+    "mirror_level_mismatch": 0
+  },
+  "tokens": {
+    "tool": "capsule_ledger.py",
+    "eol": "LF",
+    "files": {
+      "manifest.json": 2817,
+      "planes/plane_x1.csv": 2679,
+      "planes/plane_x1.png": 1200,
+      "planes/plane_x2.csv": 2680,
+      "planes/plane_x2.png": 1200,
+      "planes/plane_x4.csv": 2622,
+      "planes/plane_x4.png": 1200,
+      "planes/plane_y0.csv": 6290,
+      "planes/plane_y0.png": 1200,
+      "setup.txt": 8002,
+      "summary.json": 1493,
+      "views/view_cp_body.png": 1200
+    },
+    "total": 32583
+  }
+}
