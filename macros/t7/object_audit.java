@@ -372,8 +372,8 @@ public class object_audit extends StarMacro {
             } catch (NumberFormatException e) {
                 throw new RuntimeException("object_audit: property 're_target' is not an integer: '" + v + "'.");
             }
-            if (reTarget != 100 && reTarget != 300 && reTarget != 1000 && reTarget != 3000) {
-                throw new RuntimeException("object_audit: property 're_target' must be 100, 300, 1000 or 3000, got "
+            if (reTarget < 1 || reTarget > 9999) {
+                throw new RuntimeException("object_audit: property 're_target' must be an integer in 1..9999, got "
                     + reTarget + ".");
             }
             String relative = WORK_DIR + File.separator + "cube_re" + four(reTarget);

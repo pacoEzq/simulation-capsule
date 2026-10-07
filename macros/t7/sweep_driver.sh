@@ -7,6 +7,10 @@
 #
 #   bash sweep_driver.sh [--points 100,300] [--dry-run]
 #
+# A point is any integer 1..9999 listed in sweep.json "points"; nothing else names it. The optional
+# declarations of sweep.json ("declared" per point, "regime_ref", "designed_for_Re_range") reach the
+# macros through LLM_point.properties; a point without a declaration runs like any other.
+#
 # Per point: LLM_point.properties, copy of the template, session A (run_macro), window check W on
 # work/cube_re<NNNN>, session B (output_exporter), C (manifest_writer), D (object_audit). The gates
 # read the logs, not only the exit code: `starccm+ -batch` exits 0 even when the macro dies.
@@ -134,7 +138,8 @@ except Exception as e:
 if not isinstance(c, dict):
     sys.exit("%s: top level is not an object" % path)
 keys = ["template", "points", "baseline", "np", "starccm", "python", "window_check"]
-extra = sorted(set(c) - set(keys))
+optional = ["declared", "regime_ref", "designed_for_Re_range"]
+extra = sorted(set(c) - set(keys) - set(optional))
 missing = [k for k in keys if k not in c]
 if extra:
     sys.exit("%s: unknown keys %s" % (path, ", ".join(extra)))
@@ -152,6 +157,32 @@ if not isinstance(p, list) or not p or not all(is_int(x) for x in p):
 # baseline (spec v16, 2): read by manifest_writer.java and build_capsule.py, not by the driver.
 if not is_int(c["baseline"]) or c["baseline"] not in p:
     sys.exit("%s: 'baseline' must be one of 'points'" % path)
+# Declarations (all optional): checked here so that a bad one stops the sweep before any session.
+d = c.get("declared", {})
+if not isinstance(d, dict):
+    sys.exit("%s: 'declared' must be an object keyed by point" % path)
+for k, v in d.items():
+    if not (k.isdigit() and str(int(k)) == k):
+        sys.exit("%s: declared key '%s' is not a point written as an integer" % (path, k))
+    if not isinstance(v, dict) or set(v) - {"regime_expected", "uncertainty"}:
+        sys.exit("%s: declared '%s' takes only 'regime_expected' and 'uncertainty'" % (path, k))
+    if "regime_expected" in v:
+        r = v["regime_expected"]
+        if not isinstance(r, str) or not r.strip() or r != r.strip() or "\n" in r or "\r" in r:
+            sys.exit("%s: declared '%s' regime_expected must be a non-empty one-line string, no edge spaces" % (path, k))
+        if not isinstance(c.get("regime_ref"), str):
+            sys.exit("%s: 'regime_ref' is required when a regime is declared" % path)
+    if "uncertainty" in v:
+        u = v["uncertainty"]
+        if not isinstance(u, dict) or not u or not all(x and x.strip() == x and "," not in x for x in u):
+            sys.exit("%s: declared '%s' uncertainty must be a non-empty object, keys without commas" % (path, k))
+if "regime_ref" in c and (not isinstance(c["regime_ref"], str) or not c["regime_ref"].strip()
+                         or c["regime_ref"] != c["regime_ref"].strip()):
+    sys.exit("%s: 'regime_ref' must be a non-empty string, no edge spaces" % path)
+if "designed_for_Re_range" in c:
+    r = c["designed_for_Re_range"]
+    if not (isinstance(r, list) and len(r) == 2 and all(is_int(x) for x in r) and r[0] <= r[1]):
+        sys.exit("%s: 'designed_for_Re_range' must be [min, max], two integers" % path)
 if not is_int(c["np"]) or c["np"] < 1:
     sys.exit("%s: 'np' must be a positive integer" % path)
 print("template=" + c["template"])
@@ -348,15 +379,56 @@ session() {
     step "$tag" "$nnnn" "$STARCCM" -batch "${MACRO[$tag]}" -np "$NP" "cube_re$nnnn.sim"
 }
 
+# LLM_point.properties of one point: mode, re_target and whatever sweep.json declares for it, in the
+# java.util.Properties escaping (ASCII, \uXXXX beyond). uncertainty.<key> holds the JSON literal of
+# each declared value, written as is into summary.json; uncertainty_keys keeps their order.
+point_props() {
+    python3 - "$CONFIG" "$1" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1], encoding="utf-8"))
+re_target = int(sys.argv[2])
+def esc(s, key=False):
+    out = []
+    for i, ch in enumerate(s):
+        o = ord(ch)
+        if ch in "\\\n\r\t":
+            out.append({"\\": "\\\\", "\n": "\\n", "\r": "\\r", "\t": "\\t"}[ch])
+        elif (key and ch in "=:#! ") or (ch == " " and i == 0):
+            out.append("\\" + ch)
+        elif o < 0x20 or o > 0x7e:
+            units = [o] if o < 0x10000 else [0xd800 + ((o - 0x10000) >> 10), 0xdc00 + ((o - 0x10000) & 0x3ff)]
+            out.append("".join("\\u%04x" % x for x in units))
+        else:
+            out.append(ch)
+    return "".join(out)
+lines = [("mode", "run"), ("re_target", str(re_target))]
+if "designed_for_Re_range" in c:
+    lines.append(("designed_for_re_range", "%d,%d" % tuple(c["designed_for_Re_range"])))
+d = c.get("declared", {}).get(str(re_target), {})
+if "regime_expected" in d:
+    lines.append(("regime_expected", d["regime_expected"]))
+    lines.append(("regime_ref", c["regime_ref"]))
+if "uncertainty" in d:
+    lines.append(("uncertainty_keys", ",".join(d["uncertainty"])))
+    for k, v in d["uncertainty"].items():
+        lines.append(("uncertainty." + k, json.dumps(v, ensure_ascii=False)))
+for k, v in lines:
+    print(esc(k, True) + "=" + esc(v))
+PY
+}
+
 run_point() {
     local re=$1 nnnn=$2
     local sim="cube_re$nnnn.sim"
+    local props_text
+    props_text=$(point_props "$re") || { slog "re$nnnn properties fail"; return 1; }
 
     if [[ $DRY -eq 1 ]]; then
-        echo "dry-run: write $PROPS: mode=run re_target=$re"
+        echo "dry-run: write $PROPS:"
+        printf '%s\n' "$props_text" | sed 's/^/dry-run:   /'
         echo "dry-run: $(show cp -- "$TEMPLATE" "$sim")"
     else
-        printf 'mode=run\nre_target=%s\n' "$re" > "$PROPS"
+        printf '%s\n' "$props_text" > "$PROPS"
         cp -- "$TEMPLATE" "$sim"
     fi
 

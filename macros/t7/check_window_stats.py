@@ -4,8 +4,10 @@ monitor_history_re<NNNN>.csv and checks them against summary.json.
 
 Spec: T7-cadena-spec-interno v4, section 6.2. Standard library only.
 
-Usage:  python check_window_stats.py work/cube_re<NNNN>
-Exit:   0 if every check passes, 1 otherwise, 2 on bad usage.
+Usage:  python check_window_stats.py work/cube_re<NNNN> [--sweep sweep.json]
+        G04 and G09 compare the summary with the point's declarations in sweep.json ("declared",
+        "regime_ref"), read from --sweep or else from sweep.json in the current directory.
+Exit:   0 if every check passes, 1 otherwise, 2 on bad usage or no readable sweep.json.
 """
 import csv
 import json
@@ -50,7 +52,6 @@ SAMPLED_63 = [("forces", "cd_pressure", "cd_pressure", False),
               ("mass", "mass_imbalance", "mass_imbalance", False)]
 
 STATUSES = {"converged", "stationary", "no_steady_state", "diverged"}
-REGIME = {100: "steady", 300: "periodic (hairpin shedding)", 1000: "unsteady", 3000: "unsteady"}
 WAKE_NOTE = ("mean of instantaneous lengths; not the recirculation length of the "
              "time-averaged field, which is out of scope for this part")
 STOP_TEMPLATES = {
@@ -195,10 +196,21 @@ def replay(rows, conv):
 
 
 def main(argv):
-    if len(argv) != 2:
+    args = argv[1:]
+    sweep_p = Path("sweep.json")
+    if len(args) == 3 and args[1] == "--sweep":
+        sweep_p = Path(args[2])
+    elif len(args) != 1:
         print(__doc__.strip())
         return 2
-    cap = Path(argv[1])
+    cap = Path(args[0])
+    try:
+        sweep = json.loads(sweep_p.read_text(encoding="utf-8"))
+        declared_all = sweep.get("declared", {})
+        regime_ref = sweep.get("regime_ref")
+    except (OSError, ValueError, AttributeError) as e:
+        print("check_window_stats: cannot read the declarations in %s: %s" % (sweep_p, e))
+        return 2
     rep = Report()
 
     # G01 files
@@ -239,12 +251,17 @@ def main(argv):
     # G04 constants, regime
     diff = [k for k, v in SPEC.items() if conv.get(k) != v]
     rep.check("G04", not diff, "convergence constants equal the spec", first(diff))
-    exp_regime = REGIME.get(re_val)
+    declared = declared_all.get(str(re_val), {})
+    exp_regime = declared.get("regime_expected")
     rx = conv.get("regime_expected", {})
     status = conv.get("status")
-    mismatch = status == "converged" and exp_regime != "steady"
-    rep.check("G04", rx.get("value") == exp_regime and rx.get("source") == "declared"
-              and conv.get("solver_regime_mismatch") == mismatch and "time_basis" in conv,
+    if exp_regime is None:
+        exp_rx, mismatch = {"value": None, "source": "not declared"}, None
+    else:
+        exp_rx = {"value": exp_regime, "source": "declared", "ref": regime_ref}
+        mismatch = status == "converged" and exp_regime != "steady"
+    rep.check("G04", rx == exp_rx and "solver_regime_mismatch" in conv
+              and conv["solver_regime_mismatch"] is mismatch and "time_basis" in conv,
               "regime_expected, solver_regime_mismatch, time_basis",
               "regime=%s expected=%s mismatch=%s" % (rx.get("value"), exp_regime, conv.get("solver_regime_mismatch")))
 
@@ -305,14 +322,13 @@ def main(argv):
     rep.check("G08", tpl is not None and re.fullmatch(tpl, conv.get("stop_reason", "")) is not None,
               "stop_reason follows its template", conv.get("stop_reason", ""))
 
-    # G09 uncertainty: present only at Re 3000, measured; absent at every other point (contract v10)
-    if re_val == 3000:
-        u = conv.get("uncertainty")
-        ok = isinstance(u, dict) and isinstance(u.get("cd_relative"), (int, float)) \
-            and not isinstance(u.get("cd_relative"), bool) and bool(u.get("basis")) and u.get("source") == "measured"
-        rep.check("G09", ok, "uncertainty at Re 3000 with cd_relative, basis, source measured", json.dumps(u)[:80])
+    # G09 uncertainty: present exactly when sweep.json declares it for the point, and equal to it
+    exp_u = declared.get("uncertainty")
+    if exp_u is not None:
+        rep.check("G09", conv.get("uncertainty") == exp_u, "uncertainty equals the declared block",
+                  json.dumps(conv.get("uncertainty"))[:80])
     else:
-        rep.check("G09", "uncertainty" not in conv, "no uncertainty key outside Re 3000",
+        rep.check("G09", "uncertainty" not in conv, "no uncertainty key where none is declared",
                   json.dumps(conv.get("uncertainty"))[:80])
 
     # G10-G12 published values

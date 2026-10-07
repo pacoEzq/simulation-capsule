@@ -5,5 +5,19 @@
   "np": 8,
   "starccm": "<launcher path, set in the local copy only>",
   "python": "<Python 3.12 interpreter, set in the local copy only; the system python3 may be older>",
-  "window_check": "check_window_stats.py"
+  "window_check": "check_window_stats.py",
+  "declared": {
+    "100":  {"regime_expected": "steady"},
+    "300":  {"regime_expected": "periodic (hairpin shedding)"},
+    "1000": {"regime_expected": "unsteady"},
+    "3000": {"regime_expected": "unsteady",
+             "uncertainty": {
+               "cd_relative": 0.004,
+               "basis": "run-to-run: two independent runs of the same case and mesh differ by 0.39 % in pooled cd (2026-09-23)",
+               "source": "measured",
+               "note": "the standard error between windows is the gate statistic, not the uncertainty of the published value"
+             }}
+  },
+  "regime_ref": "Meng et al. JFM 2021; Klotz et al. JFM 2014",
+  "designed_for_Re_range": [100, 3000]
 }

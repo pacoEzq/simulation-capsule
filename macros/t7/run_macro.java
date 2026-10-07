@@ -113,8 +113,9 @@ public class run_macro extends StarMacro {
     private static final double HYSTERESIS_SD = 0.1;
     private static final double CONVERGED_SD = 1.0e-4;
     private static final String[] QUANTITIES = { "cd", "cl", "cy", "cp_base" };
-    // Spec v4 6 (mesh): the single mesh is declared for the whole sweep range, not for one Re.
-    private static final int[] DESIGNED_FOR_RE_RANGE = { 100, 3000 };
+    // Spec v4 6 (mesh): the single mesh is declared for the whole sweep range, not for one Re. The range
+    // is a declaration of sweep.json ("designed_for_Re_range"), passed by the driver as the property
+    // designed_for_re_range; a point outside it runs anyway.
     private static final int PRISM_LAYERS_NONWALL = 0;
     // Mesh settings fixed by hand in the GUI 20-21.09.2026 and now owned by prepare (change A).
     private static final String CUBE_SURFACE_CONTROL = "cube_refinement";
@@ -1479,10 +1480,12 @@ public class run_macro extends StarMacro {
     // ================================================================= RUN MODE
     private void doRun(Properties props) {
         int reTarget = requireIntProperty(props, "re_target");
-        if (reTarget != 100 && reTarget != 300 && reTarget != 1000 && reTarget != 3000) {
-            throw new RuntimeException("run_macro: property 're_target' must be 100, 300, 1000 or 3000, got " + reTarget + ".");
+        // Any Re the four-digit NNNN of the point name can hold; there is no list of points.
+        if (reTarget < 1 || reTarget > 9999) {
+            throw new RuntimeException("run_macro: property 're_target' must be an integer in 1..9999, got " + reTarget + ".");
         }
         log("re_target=" + reTarget);
+        Declarations decl = readDeclarations(props);
 
         // ---- preconditions: every inherited and owned object must exist. No create calls below.
         checkInheritedObjects();
@@ -1713,7 +1716,7 @@ public class run_macro extends StarMacro {
         // ---- outputs
         String nnnn = four(reTarget);
         File outDir = sessionRelativeDir(WORK_DIR + File.separator + "cube_re" + nnnn);
-        String json = buildSummaryJson(reTarget, dVal, uVal, rhoVal, muVal, cells, st);
+        String json = buildSummaryJson(reTarget, decl, dVal, uVal, rhoVal, muVal, cells, st);
         writeTextFile(new File(outDir, "summary.json"), json);
         log("summary.json written");
         writeTextFile(new File(outDir, "monitor_history_re" + nnnn + ".csv"), monitorHistoryCsv.toString());
@@ -2048,19 +2051,58 @@ public class run_macro extends StarMacro {
         return count;
     }
 
-    // regime_expected of summary.json, declared per sweep point, not measured by the macro.
-    // Re 100 steady, Re 300 periodic hairpin shedding, Re 1000 and Re 3000 unsteady.
-    private static String regimeExpected(int reTarget) {
-        if (reTarget == 100) {
-            return "steady";
+    // Declarations of the point, written by sweep_driver.sh from sweep.json into LLM_point.properties.
+    // None is measured by the macro and all are optional: a point without them is normal.
+    //   designed_for_re_range  "<min>,<max>", the declared range of the single mesh (else null)
+    //   regime_expected        the declared regime of this point; regime_ref goes with it
+    //   uncertainty_keys       ordered key list of the declared uncertainty block, each key's value in
+    //                          uncertainty.<key> as a JSON literal written by the driver
+    private static final class Declarations {
+        int[] designedRange;
+        String regime;
+        String regimeRef;
+        List<String> uncertaintyKeys = new ArrayList<String>();
+        List<String> uncertaintyValues = new ArrayList<String>();
+    }
+
+    private Declarations readDeclarations(Properties p) {
+        Declarations d = new Declarations();
+        if (p.getProperty("designed_for_re_range") != null) {
+            String v = requireProperty(p, "designed_for_re_range");
+            String[] parts = v.split(",", -1);
+            if (parts.length != 2) {
+                throw new RuntimeException("run_macro: property 'designed_for_re_range' must be '<min>,<max>', got '" + v + "'.");
+            }
+            d.designedRange = new int[2];
+            for (int i = 0; i < 2; i++) {
+                try {
+                    d.designedRange[i] = Integer.parseInt(parts[i].trim());
+                } catch (NumberFormatException e) {
+                    throw new RuntimeException("run_macro: property 'designed_for_re_range' is not two integers: '" + v + "'.");
+                }
+            }
         }
-        if (reTarget == 300) {
-            return "periodic (hairpin shedding)";
+        if (p.getProperty("regime_expected") != null) {
+            d.regime = requireProperty(p, "regime_expected");
+            d.regimeRef = requireProperty(p, "regime_ref");
+        } else if (p.getProperty("regime_ref") != null) {
+            throw new RuntimeException("run_macro: property 'regime_ref' without 'regime_expected'.");
         }
-        if (reTarget == 1000 || reTarget == 3000) {
-            return "unsteady";
+        if (p.getProperty("uncertainty_keys") != null) {
+            String[] keys = requireProperty(p, "uncertainty_keys").split(",", -1);
+            for (int i = 0; i < keys.length; i++) {
+                String k = keys[i].trim();
+                if (k.length() == 0) {
+                    throw new RuntimeException("run_macro: property 'uncertainty_keys' has an empty key.");
+                }
+                d.uncertaintyKeys.add(k);
+                d.uncertaintyValues.add(requireProperty(p, "uncertainty." + k));
+            }
         }
-        throw new RuntimeException("run_macro: no declared regime for re_target " + reTarget + ".");
+        log("declared designed_for_re_range=" + (d.designedRange == null ? "none" : d.designedRange[0] + "," + d.designedRange[1])
+            + " regime_expected=" + (d.regime == null ? "none" : d.regime)
+            + " uncertainty=" + (d.uncertaintyKeys.isEmpty() ? "none" : d.uncertaintyKeys.toString()));
+        return d;
     }
 
     private static String four(int n) {
@@ -2220,7 +2262,7 @@ public class run_macro extends StarMacro {
     }
 
     // ================================================================= summary.json
-    private String buildSummaryJson(int reTarget, double d, double u, double rho, double mu,
+    private String buildSummaryJson(int reTarget, Declarations decl, double d, double u, double rho, double mu,
             long cells, ConvergenceState st) {
         // What the four coefficients publish is decided in publish() (C1): the last sample with
         // "converged", the pooled mean over every closed window after the discard with "stationary" and
@@ -2262,24 +2304,34 @@ public class run_macro extends StarMacro {
         sb.append("  \"mesh\": {\n");
         sb.append("    \"cells\": ").append(cells).append(",\n");
         sb.append("    \"identical_across_sweep\": true,\n");
-        sb.append("    \"designed_for_Re_range\": [").append(DESIGNED_FOR_RE_RANGE[0]).append(", ")
-          .append(DESIGNED_FOR_RE_RANGE[1]).append("],\n");
+        if (decl.designedRange == null) {
+            sb.append("    \"designed_for_Re_range\": null,\n");
+        } else {
+            sb.append("    \"designed_for_Re_range\": [").append(decl.designedRange[0]).append(", ")
+              .append(decl.designedRange[1]).append("],\n");
+        }
         sb.append("    \"prism_layers_nonwall\": ").append(PRISM_LAYERS_NONWALL).append(",\n");
         sb.append("    \"note\": \"declared range; no y+ or mesh-independence study\"\n");
         sb.append("  },\n");
 
         // convergence (C2, criterion_version 2). The band criteria and their band_tolerance /
         // cd_band_last_500 keys are gone with the criterion they belonged to.
-        String regime = regimeExpected(reTarget);
-        boolean mismatch = "converged".equals(st.status) && !"steady".equals(regime);
+        String regime = decl.regime;
+        // null when no regime is declared: there is nothing to mismatch.
+        String mismatch = regime == null ? "null"
+            : String.valueOf("converged".equals(st.status) && !"steady".equals(regime));
         sb.append("  \"convergence\": {\n");
         sb.append("    \"solver\": \"steady segregated\",\n");
         sb.append("    \"criterion\": \"window_stationarity\",\n");
         sb.append("    \"criterion_version\": 2,\n");
         sb.append("    \"time_basis\": \"solver iterations (pseudo-time); iteration means are not ")
           .append("physical time averages\",\n");
-        sb.append("    \"regime_expected\": {\"value\": ").append(str(regime))
-          .append(", \"source\": \"declared\", \"ref\": \"Meng et al. JFM 2021; Klotz et al. JFM 2014\"},\n");
+        if (regime == null) {
+            sb.append("    \"regime_expected\": {\"value\": null, \"source\": \"not declared\"},\n");
+        } else {
+            sb.append("    \"regime_expected\": {\"value\": ").append(str(regime))
+              .append(", \"source\": \"declared\", \"ref\": ").append(str(decl.regimeRef)).append("},\n");
+        }
         sb.append("    \"status\": ").append(str(st.status)).append(",\n");
         sb.append("    \"stop_reason\": ").append(str(st.stopReason)).append(",\n");
         sb.append("    \"solver_regime_mismatch\": ").append(mismatch).append(",\n");
@@ -2292,16 +2344,14 @@ public class run_macro extends StarMacro {
         sb.append("    \"k_gate\": ").append(num(K_GATE)).append(",\n");
         sb.append("    \"k_sd\": ").append(num(K_SD)).append(",\n");
         sb.append("    \"min_cycles\": ").append(MIN_CYCLES).append(",\n");
-        // Declared measurement, not computed here: two independent runs of the same case and mesh.
-        // Contract v10: written only at Re 3000; at every other point the key is absent.
-        if (reTarget == 3000) {
+        // Declared in sweep.json, not computed here; written only where declared, else the key is absent.
+        if (!decl.uncertaintyKeys.isEmpty()) {
             sb.append("    \"uncertainty\": {\n");
-            sb.append("      \"cd_relative\": 0.004,\n");
-            sb.append("      \"basis\": \"run-to-run: two independent runs of the same case and mesh differ ")
-              .append("by 0.39 % in pooled cd (2026-09-23)\",\n");
-            sb.append("      \"source\": \"measured\",\n");
-            sb.append("      \"note\": \"the standard error between windows is the gate statistic, not the ")
-              .append("uncertainty of the published value\"\n");
+            for (int i = 0; i < decl.uncertaintyKeys.size(); i++) {
+                sb.append("      ").append(str(decl.uncertaintyKeys.get(i))).append(": ")
+                  .append(decl.uncertaintyValues.get(i))
+                  .append(i + 1 < decl.uncertaintyKeys.size() ? ",\n" : "\n");
+            }
             sb.append("    },\n");
         }
         sb.append("    \"quantities\": {\n");

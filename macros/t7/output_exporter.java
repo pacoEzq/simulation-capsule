@@ -265,8 +265,8 @@ public class output_exporter extends StarMacro {
         try {
             Properties props = loadProperties();
             reTarget = requireIntProperty(props, "re_target");
-            if (reTarget != 100 && reTarget != 300 && reTarget != 1000 && reTarget != 3000) {
-                throw new RuntimeException("output_exporter: property 're_target' must be 100, 300, 1000 or 3000, got "
+            if (reTarget < 1 || reTarget > 9999) {
+                throw new RuntimeException("output_exporter: property 're_target' must be an integer in 1..9999, got "
                     + reTarget + ".");
             }
             nnnn = four(reTarget);
