@@ -1216,7 +1216,7 @@ public class run_macro extends StarMacro {
         log("prepare: leftover " + name + " removed");
     }
 
-    // ---- 8b. LLM_ objects outside the closed list (prepare only, spec v16 3.1 and 7) ------------
+    // ---- 8b. LLM_ objects outside the closed list (prepare and run, spec v16 3.1 and 7) ---------
     // Decision 78 took the 16 objects of the four cut views out of the list; a template prepared before
     // v16 still carries them. The managers object_audit.java walks are walked here with the same
     // getObjects() calls. Scenes, annotations and tables are removed with the calls of
@@ -1307,7 +1307,7 @@ public class run_macro extends StarMacro {
         // Same call as object_audit.walkCustomMeshControls (TODO there).
         requireNoUnlisted(meshCube().getCustomMeshControls().getObjects(), new String[] { PRISM_CONTROL },
             "custom mesh control of mesh_cube");
-        log("prepare: no LLM_ object outside the closed list of " + OWNED_OBJECTS_EXPECTED);
+        log("no LLM_ object outside the closed list of " + OWNED_OBJECTS_EXPECTED);
     }
 
     private static boolean isUnlisted(String name, String[] owned) {
@@ -1332,7 +1332,7 @@ public class run_macro extends StarMacro {
 
     private void unlistedRemoved(String name, String kind) {
         modified(name, "Object", "present", "removed");
-        log("prepare: unlisted " + kind + " " + name + " removed");
+        log("unlisted " + kind + " " + name + " removed");
     }
 
     // A view scene or displayer missing at this point is a macro failure; doPrepare logs it as FAIL.
@@ -1490,6 +1490,12 @@ public class run_macro extends StarMacro {
         // ---- preconditions: every inherited and owned object must exist. No create calls below.
         checkInheritedObjects();
         checkOwnedObjects();
+        // A template prepared before spec v16 (decision 78) still carries the 16 objects of the four
+        // retired cut views; they do not touch the solution, but object_audit counts them as unlisted
+        // and session D fails. They are removed here from the point's own copy, with the calls prepare
+        // uses, so a point can be added on the published template without preparing it again (which
+        // would remesh it and change its sha256). The template file is never opened in run mode.
+        removeUnlistedLlmObjects();
 
         // ---- Re and mu
         ScalarGlobalParameter re = parameter("Re");
