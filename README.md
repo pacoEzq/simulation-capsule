@@ -98,7 +98,7 @@ model-agnostic; nothing here depends on a particular frontier model.
 | 6 | [Visualizations Designed for LLMs](https://community.sw.siemens.com/s/question/0D5Vb00001WjpY0KAJ/preparing-cfd-output-for-large-language-models-610-visualizations-designed-for-llms) | `views/` |
 | 6b | [Case Comparison via Image Differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing) | `diff.json`, `diff/` |
 | 7a | [Automation, the Macro That Builds the Capsule](https://community.sw.siemens.com/s/question/0D5Vb00001dUIzpKAG/preparing-cfd-output-for-large-language-models-7a10-automation-the-macro-that-builds-the-capsule) | `manifest.json` |
-| 7b | [Four Reynolds Numbers, the Cube That Would Not Sit Still](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still) | no new file: every averaged number in `summary.json` carries the run's convergence state and its statistic |
+| 7b | [Four Reynolds Numbers, the Cube That Would Not Sit Still](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still) | no new file: every averaged number<br>in `summary.json` carries the run's<br>convergence state and its statistic |
 | 7c | Integrity, a Capsule Sealed to a Commit (not yet) | — |
 | 8 | Transient fields I: time as statistics (not yet) | `signals/` |
 | 9 | Transient fields II: modes (not yet) | `modes/`, `snapshots/` |
