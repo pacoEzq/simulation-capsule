@@ -64,8 +64,7 @@ capsule_<alias>/
 ├── diff.json           what was compared, and against what
 ├── diff/               image differences between capsules
 │   └── *.png
-├── run_macro.java      reproduction
-├── manifest.json       seeds, colorbar ranges, versions
+├── manifest.json       build record: chain, commit, fingerprints, tokens
 ├── signals/            time series and spectra
 ├── modes/              POD and DMD decomposition
 ├── snapshots/          phase-locked renders (optional)
@@ -98,8 +97,8 @@ model-agnostic; nothing here depends on a particular frontier model.
 | 5 | [Semantic Feature Extraction](https://community.sw.siemens.com/s/question/0D5Vb00001SkKCtKAN/preparing-cfd-output-for-large-language-models-510-semantic-feature-extraction) | `features.json` |
 | 6 | [Visualizations Designed for LLMs](https://community.sw.siemens.com/s/question/0D5Vb00001WjpY0KAJ/preparing-cfd-output-for-large-language-models-610-visualizations-designed-for-llms) | `views/` |
 | 6b | [Case Comparison via Image Differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing) | `diff.json`, `diff/` |
-| 7a | [Automation, the Macro That Builds the Capsule](https://community.sw.siemens.com/s/question/0D5Vb00001dUIzpKAG/preparing-cfd-output-for-large-language-models-7a10-automation-the-macro-that-builds-the-capsule) | `run_macro.java`, `manifest.json` |
-| 7b | [Four Reynolds Numbers, the Cube That Would Not Sit Still](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still) | no new layer: the cube at four Reynolds numbers |
+| 7a | [Automation, the Macro That Builds the Capsule](https://community.sw.siemens.com/s/question/0D5Vb00001dUIzpKAG/preparing-cfd-output-for-large-language-models-7a10-automation-the-macro-that-builds-the-capsule) | `manifest.json` |
+| 7b | [Four Reynolds Numbers, the Cube That Would Not Sit Still](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still) | no new file: every averaged number in `summary.json` carries the run's convergence state and its statistic |
 | 7c | Integrity, a Capsule Sealed to a Commit (not yet) | — |
 | 8 | Transient fields I: time as statistics (not yet) | `signals/` |
 | 9 | Transient fields II: modes (not yet) | `modes/`, `snapshots/` |
@@ -162,9 +161,9 @@ form. That is the record, not a regression, and it is why the commands above nam
 The specification tracks the series and is incomplete by design: layers are
 specified as their tutorial publishes. Parts 1 to 6 are out, Part 6b with
 them, and Parts 7a and 7b. Everything from `setup.txt` through `views/` is
-settled, and so is the `diff` extension of 4.7. Section 4.8, `run_macro.java`
-and `manifest.json`, is still marked provisional. The transient layers and the
-disclosure audit are still moving.
+settled, and so is the `diff` extension of 4.7. Section 4.8, the manifest, is
+still marked provisional. The transient layers and the disclosure audit are
+still moving.
 
 Breaking changes to settled layers get a version bump and a note in `SPEC.md`.
 
