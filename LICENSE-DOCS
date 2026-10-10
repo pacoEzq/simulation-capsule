@@ -9,6 +9,7 @@ This license covers the documentation and data in this repository:
     examples/
     probes/
     assets/
+    docs/ (except the .py scripts, which are MIT)
 
 You are free to share and adapt this material for any purpose, including
 commercially, provided you give appropriate credit, link to the license, and
