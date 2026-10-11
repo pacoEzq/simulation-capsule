@@ -107,7 +107,7 @@ model-agnostic; nothing here depends on a particular frontier model.
 Part 6b runs alongside Part 6 rather than after it, and introduces the `diff`
 extension.
 
-**Articles.** [Steady Solver, Unsteady Wake: a Cube at Re = 300](docs/cube-re300/) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
+**Side Runs.** Articles outside the series. [Steady Solver, Unsteady Wake: a Cube at Re = 300](docs/cube-re300/README.md) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
 
 ## Repository contents
 
@@ -120,7 +120,7 @@ extension.
 | `tools/` | Python for building and checking capsule artifacts |
 | `macros/` | Java macros for Simcenter STAR-CCM+ export |
 | `assets/` | Figures used by the series |
-| `docs/` | Articles, one folder each with its text, figures, data and scripts |
+| `docs/` | Side Runs, one article per folder with its text, figures, data and scripts |
 
 ## Validation
 
@@ -187,7 +187,7 @@ Two licenses, because this repository holds two kinds of thing.
 | What | License |
 |---|---|
 | `tools/`, `macros/`, the `.py` scripts in `docs/` | [MIT](LICENSE) |
-| `SPEC.md`, `README.md`, `examples/`, `probes/`, `assets/`, `docs/` (articles, figures, data) | [CC BY 4.0](LICENSE-DOCS) |
+| `SPEC.md`, `README.md`, `examples/`, `probes/`, `assets/`, `docs/` (Side Runs: text, figures, data) | [CC BY 4.0](LICENSE-DOCS) |
 
 The code is MIT so you can run it, fork it and ship it inside your own
 workflow without asking anyone. The specification, the example capsules and
