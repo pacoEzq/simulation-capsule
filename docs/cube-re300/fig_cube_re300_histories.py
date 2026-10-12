@@ -27,6 +27,6 @@ for a, d, x, xl, ttl, loc in panels:
     a.set_xlabel(xl); a.set_title(ttl, fontsize=11, loc="left"); a.set_ylim(-0.11, 0.15)
     for sp in a.spines.values(): sp.set_color(G)
     a.legend(loc=loc, frameon=False, fontsize=10, ncol=2, labelcolor=T1)
-ax[0].set_xlim(0, 15000); ax[1].set_xlim(0, 300)
+ax[0].set_xlim(0, 15000); ax[1].set_xlim(0, 725)
 fig.tight_layout()
 fig.savefig(HERE / "cube-re300-steady-vs-transient-histories.png", facecolor=S, metadata={"Software": None})
