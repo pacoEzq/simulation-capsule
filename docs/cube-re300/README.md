@@ -73,7 +73,7 @@ Starting from the steady solution spares the spin-up from uniform flow, and the 
 
 The step gives about 200 samples per fast period.
 
-Ten inner iterations do not drive the residuals down three orders within a step, but the forces do not care: rerunning 10 time units with 20 and 40 inner iterations moved $C_d$ and $C_l$ by less than 0.0001.
+Ten inner iterations do not drive the residuals down three orders within a step, but the forces do not care: rerunning 10 time units with 20 and 40 inner iterations moved $C_d$ and $C_l$ by less than 0.0001, about a hundredth of the mesh uncertainty below.
 
 Two more meshes check the rest: 255,952 and 902,232 cells, the cell size scaled by about 1.25 each way, with the time step scaled along so that the Courant number stays put, and the medium mesh run again at half the step. Every run locks 7:2 and repeats every 70.5 to 71.6 time units. Halving the step moves $C_d$, $C_l$ and the Strouhal numbers by less than 0.0002; the mesh moves them more.
 
@@ -87,7 +87,7 @@ Two more meshes check the rest: 255,952 and 902,232 cells, the cell size scaled 
 $C_d$ and the Strouhal numbers converge at second order, and the extrapolated drag lands inside the 0.83 to 0.87 that other studies report at this Reynolds number ([Cheng et al. 2024](https://doi.org/10.1017/jfm.2024.690), table 2). $C_l$ falls too evenly to extrapolate, so the 0.081 above belongs to the medium mesh; that the side force exists, stays in one plane and sits near 0.08 holds on all three.
 
 > [!NOTE]
-> The uncertainties follow [Celik et al. (2008)](https://doi.org/10.1115/1.2960953). The refinement ratios of 1.22 and 1.25 sit below the 1.3 they recommend, and each run averages over two to five repeats of 71 time units.
+> The uncertainties follow [Celik et al. (2008)](https://doi.org/10.1115/1.2960953). The refinement ratios of 1.22 and 1.25 sit below the 1.3 they recommend, and each run averages over two to five repeats of 71 time units. Only the medium-mesh histories are published in this folder; the other three runs enter through the table.
 
 ## What to take away
 
