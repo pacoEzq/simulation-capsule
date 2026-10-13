@@ -46,8 +46,7 @@ jobs:
         run: |
           set -o pipefail
           python3 tools/check_capsule.py examples/capsule_*/ --strict | tee validation.txt
-      # Informational for now. Add --fail-over 60000 once Part 7 settles
-      # whether one capsule may carry both spatial layers at full resolution.
+      # Informational by design: SPEC 3.5 makes 60000 a target, not a gate.
       - name: Measure the token cost
         if: always()
         run: python3 tools/capsule_ledger.py examples/capsule_*/ --markdown > ledger.md

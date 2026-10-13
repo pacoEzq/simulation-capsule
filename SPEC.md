@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.4. Draft.**
+**Version 0.5. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -9,6 +9,12 @@ that has never seen either.
 Layers marked **settled** have shipped with their tutorial and should not change
 without a version bump. Layers marked **provisional** are subject to change as
 their part is written.
+
+Each artifact is defined by what it carries and why, in terms no solver owns.
+Where a definition needs a solver to become concrete, a recipe follows it under
+**Recipe (Simcenter STAR-CCM+)**. A recipe is one way to meet the definition, not
+the definition: a capsule built with another solver meets the same definition by
+its own route.
 
 The repository ships a validator, `tools/check_capsule.py`, whose checks cite the
 section of this document they enforce. Where a check has no section to cite, the
@@ -32,6 +38,17 @@ preserved. Flattening `views/*.png` into the archive root breaks the contract.
 The alias is neutral: never a project name, a customer, or a program. It follows
 the case, not the geometry, so a case run at two Reynolds numbers gets two aliases.
 The published examples use `capsule_ahmed25_re1e6`, not `capsule_ahmed25`.
+
+Numbers in an alias follow the conventions already in use: a decimal point is
+written `p` (`a13p3`), a power of ten `e` (`re1e6`), and the points of a sweep
+are zero-padded to the width of the largest, so that they sort in parameter
+order: `capsule_cube_re0100` to `capsule_cube_re3000`. A single case carries its
+number unpadded, `capsule_cube_re200`.
+
+Two capsules of the same case that differ in how they were produced, a mesh, a
+precision, a solver, share the alias and add a suffix naming the difference:
+`_m2`, `_double`. A sequence letter or number says that something differs
+without saying what, and is not an alias.
 
 **Files.** `snake_case`, lowercase, with the extension declaring the format. No
 spaces, no dates in filenames, no `_final_v2`.
@@ -154,33 +171,63 @@ extension adds is checked only when it is declared, with one exception stated in
 
 Defined so far: `diff` (4.7).
 
+### 3.5 Token budget
+
+A capsule is token-budgeted: it is measured file by file, and the whole is held
+to a declared target. The series works to 60,000 tokens for a complete capsule,
+30 percent of a 200,000-token window, which leaves the rest of the window to the
+conversation that uses it. Cost alone admits nothing: each file earns its place
+by the question it answers.
+
+The target is a design budget, not a gate. A capsule may exceed it when no layer
+can be cut without losing its question; the ledger reports the excess and the
+validator does not refuse it. Weights are measured by `tools/capsule_ledger.py`
+at the rates it declares, and recorded per file in `manifest.json` where the
+capsule carries one (4.8).
+
 ---
 
 ## 4. Artifacts
 
 ### 4.1 `setup.txt` (settled)
 
-A trimmed solver setup report. The full report from STAR-CCM+ runs 400 to 900 KB of
-HTML, roughly 100k to 200k tokens; trimming keeps the sections a reviewer audits
-and removes those that style the scene, for a reduction of 90 to 95 percent.
-Measured over the five published capsules, the trimmed file weighs 5.7k to 11.9k
-tokens; the spread follows the number of regions, boundaries and reports the case
-carries. The per-case figures are in `examples/token-ledger.md`.
+The solver's own account of how the case was set up, trimmed to what a reviewer
+audits: regions and boundaries with their conditions, physics models, material
+properties, solver settings, stopping criteria and the reports that feed
+`summary.json`. What styles the output rather than defines the run (scenes,
+colours, layout) is removed.
+
+It is the one artifact written in the solver's own vocabulary, on purpose. Every
+other file translates the case into neutral terms; `setup.txt` is the original
+those translations are checked against. A solver that keeps its setup in several
+input files ships them as one text, each part under a line naming the file it
+came from.
 
 This is the highest-exposure artifact in the capsule. It names boundaries, models,
 material properties and often the geometry. It is the first thing to audit before a
 capsule leaves the building.
 
-Produced by the `TrimReportForAI` macro in `macros/`.
+**Recipe (Simcenter STAR-CCM+).** The `TrimReportForAI` macro in `macros/` trims
+the HTML summary report, 400 to 900 KB or roughly 100k to 200k tokens, by 90 to
+95 percent. Measured over the five published capsules, the trimmed file weighs
+5.7k to 11.9k tokens; per-case figures are in `examples/token-ledger.md`.
 
 ### 4.2 `summary.json` (settled)
 
 Global scalars: the case anchored in numbers a model can quote and check.
 
-The schema is case-driven, not fixed. Keys map one to one onto solver report names,
-so a case with a moment report has a moment key and a case without does not. What is
-fixed is that every key is nondimensional per section 3.1, and that the `reference`
-block is present.
+The schema is case-driven, not fixed: a case that measures a moment has a moment
+key and a case that does not has none. A key names the quantity, never the
+instrument that measured it. `cd`, `cp_base` and `x_reattach_D` mean the same
+thing whichever solver, report or script produced them, which is what makes two
+capsules comparable key by key (section 2). The instrument is recorded beside the
+value where it matters, as `probes.<name>.report` does. A probe is named by the
+quantity and the place, `u_over_U_axis_x2D`; a prefix that belongs to the
+instrument's own object names stays in `report`. Free-text values, such as
+`convergence.solver`, may use the solver's own terms.
+
+What is fixed is that every key is nondimensional per section 3.1, and that the
+`reference` block is present.
 
 A single scalar that aggregates a worst case is an antipattern. Where a distribution
 matters, expose the distribution: a minimum cell quality alone says nothing useful
@@ -198,21 +245,28 @@ environment { solver, version, build, platform, precision,
               renders { scope, version, build, platform, precision } }
 ```
 
-- `solver`: the product, `Simcenter STAR-CCM+`.
-- `version`, `build`, `platform`: copied from the `Version:` line of `setup.txt`,
-  `PresentationVersion`, `ReleaseNumber` and `BuildArch` respectively.
-- `precision`: `single`, `double` or `mixed`.
+- `solver`: the product name as its vendor writes it.
+- `version`, `build`: the release identifiers the solver prints for the session,
+  copied as printed.
+- `platform`: operating system and architecture of the run, as the solver
+  reports them.
+- `precision`: `single`, `double` or `mixed`, the floating-point precision of
+  the build that ran.
 - `renders`: present only when the images were produced in another environment
   than the run. `scope` lists the capsule directories whose files that environment
   produced, `["views/"]` for instance, and every directory it names exists in the
   capsule. The other keys repeat those of the render session; `solver` may be
   omitted when it is the same product.
 
-**Precision is read, not remembered.** The same `Version:` line carries `BuildEnv`.
-A STAR-CCM+ build whose `BuildEnv` ends in `-r8` is double precision; without the
-suffix it is the mixed-precision default. `BuildEnv: clang20.1vc14.2-r8` is
-`double`, `BuildEnv: clang20.1` is `mixed`. `single` is kept for solvers that ship
-such a build.
+**Precision is read, not remembered.** It comes from what the build or its
+environment records, never from what the installation is believed to be.
+
+**Recipe (Simcenter STAR-CCM+).** `version`, `build` and `platform` are copied
+from the `Version:` line of `setup.txt`: `PresentationVersion`, `ReleaseNumber`
+and `BuildArch`. The same line carries `BuildEnv`; a build whose `BuildEnv` ends
+in `-r8` is double precision, and without the suffix it is the mixed-precision
+default. `BuildEnv: clang20.1vc14.2-r8` is `double`, `BuildEnv: clang20.1` is
+`mixed`.
 
 `environment` absorbs `numerics`. Precision is a property of the build, not of the
 discretization, so it has one place, and a `numerics` block at the root is reported
@@ -282,7 +336,7 @@ without `status` is read as predating this section.
 
 | Key | Holds |
 |-----|-------|
-| `solver` | solver mode as run, `steady segregated` |
+| `solver` | solver mode as run, in the solver's own terms (`steady segregated` in STAR-CCM+) |
 | `criterion` | name of the stopping criterion, `window_stationarity` |
 | `criterion_version` | integer version of that criterion |
 | `time_basis` | one sentence stating what an iteration mean is and is not |
@@ -440,7 +494,7 @@ union of both cases, fixed before either is rendered.
 ### 4.7 `diff/` and `diff.json` (settled, extension `diff`)
 
 A variant capsule answers what a single case cannot: what a parameter does. It is a
-capsule of section 4 — `setup.txt` and `summary.json` at minimum, plus `views/` —
+capsule of section 4 (`setup.txt` and `summary.json` at minimum, plus `views/`)
 that also carries `diff/` and `diff.json`, and declares `extensions: ["diff"]` per
 section 3.4.
 
@@ -448,7 +502,7 @@ section 3.4.
 variant's own case, and nothing moves out of it.
 
 The base is declared by alias, repository, commit and path, and is never edited. If
-the base needs a retrofit — `views/`, in this part — `base.commit` names the
+the base needs a retrofit (`views/`, in this part), `base.commit` names the
 revision that carries it, and `frozen_copy_path` points at the as-published copy.
 
 **The commit locates, `source_sha256` proves.** `base.commit` says where to find the
@@ -479,7 +533,7 @@ measured one.
 **Threshold in physical units.** The threshold is declared in the units of the field
 together with its comparison sign, `>=`, and the equivalent in levels is derived
 from it. A threshold expressed as a percentage of RGB describes the instrument, not
-the flow — and the sign is not cosmetic: the same pair measured with `>` cuts at the
+the flow. And the sign is not cosmetic: the same pair measured with `>` cuts at the
 next level up and roughly halves the reported fraction.
 
 **Declared masks.** The solid body, filled with a colour outside the colormap and
@@ -545,7 +599,8 @@ Reproduction and provenance. The manifest carries seeds, colorbar ranges, solver
 tool versions, and the measured token weight of each artifact.
 
 Macros are idempotent, fail loudly on missing preconditions, and never invent object
-names. Each macro declares the STAR-CCM+ build it was verified against.
+names. Each script or macro in the chain declares the solver build it was verified
+against.
 
 Specified in Part 7.
 
@@ -577,8 +632,9 @@ never seen the case can answer questions about it correctly from the capsule alo
 
 Hand the whole capsule to a frontier model in a fresh conversation, ask a fixed set
 of questions, and grade every answer against the files. This catches defects human
-review misses. The records in `probes/` cover Parts 1 to 6 and list nine defects
-found this way and not by the author, three of them in the Part 3 capsule alone.
+review misses. The records in `probes/` cover Parts 1 to 6b and list fourteen
+defects found this way and not by the author, five of them in the Part 6b pair
+alone.
 
 The capsule travels whole. Attaching part of it and describing the rest tests
 nothing.
@@ -597,6 +653,7 @@ run it on the expanded directory.
 | 0.2 | Published capsules frozen under `examples/as-published/`, migrated copies under `examples/` (3.1). Dimensional quantities take a single form: unit suffix on the key, inside `reference` (3.1). Burned-in titles declare regime and span (3.3, 4.6). Minimum capsule, empty files and draft residue stated (2). PNG text chunks prohibited (3.3). Token figures for `setup.txt` and `samples.csv` replaced by ledger measurements (4.1, 4.4). Section 5 links `probes/` and the validator. |
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
 | 0.4 | Unit suffixes inside `reference` accepted as written, `_per_` recommended (3.1). Root block `environment` (4.2.1), window statistics (4.2.2), `convergence` with its `uncertainty` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
+| 0.5 | Definition separated from recipe (preamble): each artifact is defined in terms no solver owns, with the STAR-CCM+ steps under **Recipe**; `setup.txt` (4.1) and `environment` (4.2.1) restated that way. A key names the quantity, never the instrument (4.2). Token budget as a design target, not a gate (3.5). Numbers and production suffixes in an alias (2). Additive over 0.4; every capsule valid under 0.4 is valid under 0.5. |
 
 ### 0.3 → 0.4
 
@@ -619,3 +676,20 @@ run it on the expanded directory.
   `_kg_m3`); `_per_` for division is a recommendation, not a rule.
 - Compatibility: a 0.3 capsule without `environment` now warns, and fails under
   `--strict`. Everything else a 0.3 capsule carries stays valid.
+
+### 0.4 → 0.5
+
+- Preamble: a definition says what an artifact carries and why; a recipe under
+  **Recipe (Simcenter STAR-CCM+)** is one way to meet it.
+- 4.1, 4.2.1: `setup.txt` and `environment` defined without naming a solver; the
+  trimming macro and the `BuildEnv` reading of precision move under Recipe.
+- 4.2: a key names the quantity and the place, never the instrument; the
+  instrument goes beside the value, as `probes.<name>.report` does.
+- 3.5: 60,000 tokens is the series' design budget; the ledger reports an excess and
+  the validator does not refuse it.
+- 2: decimal point `p`, power of ten `e`, sweeps zero-padded; two capsules of one
+  case that differ in how they were produced share the alias plus a suffix naming
+  the difference.
+- Compatibility: no check changes. A probe key published before 0.5 that carries
+  the instrument's prefix, `LLM_u_over_U_axis_x2D` in the five Part 7 cube
+  capsules, stays valid as published.
