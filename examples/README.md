@@ -31,12 +31,17 @@ could not yet answer is exactly what the later layers were built for.
 | `capsule_delta65_a13p3_re1e6` | Delta wing, 65 degrees, alpha 13.3 | `+ features.json` | [Part 5](capsule_delta65_a13p3_re1e6.md) | [read](../probes/part-5_delta65_a13p3_re1e6.md) |
 | `capsule_ahmed25_re1e6` | Ahmed body, 25 degree slant, Re 1e6 | `setup.txt`, `summary.json`, `views/` | [Part 6](capsule_ahmed25_re1e6.md) | [read](../probes/part-6_ahmed25_re1e6.md) |
 | `capsule_naca0012_aoa7` | NACA 0012, 7 degrees, Re 1e6 | `+ diff.json`, `diff/` | [Part 6b](capsule_naca0012_aoa7.md) | not yet |
+| `capsule_cube_re0100` | Cube, Re 100, laminar, base of the sweep | `+ manifest.json` | [Part 7](capsule_cube_re0100.md) | not yet |
+| `capsule_cube_re0300` | Cube, Re 300, laminar | `+ diff.json`, `diff/` | [Part 7](capsule_cube_re0300.md) | not yet |
+| `capsule_cube_re0600` | Cube, Re 600, laminar | `+ diff.json`, `diff/` | [Part 7a](capsule_cube_re0600.md) | not yet |
+| `capsule_cube_re1000` | Cube, Re 1000, laminar | `+ diff.json`, `diff/` | [Part 7](capsule_cube_re1000.md) | not yet |
+| `capsule_cube_re3000` | Cube, Re 3000, laminar | `+ diff.json`, `diff/` | [Part 7](capsule_cube_re3000.md) | not yet |
 
 Read down the table and the format assembles itself: scalars, then sections, then a
 volume sample, then named features, then curated views, then a comparison
-between two of them.
+between two of them, then a sweep that one chain built point by point.
 
-Every capsule here but the newest was handed whole to a language model and
+Every capsule from Part 2 to Part 6 was handed whole to a language model and
 questioned about its own case before it was published. The probe records hold
 the questions, the answers
 and what the reader got wrong, and [`probes/README.md`](../probes/README.md) lists
@@ -46,7 +51,7 @@ the nine capsule defects those sessions caught.
 
 For most of the series these capsules declared their reference quantities three
 different ways, and their plane CSV headers disagreed too. That is closed. They now
-declare those quantities the same way, and `tools/check_capsule.py` run over the six
+declare those quantities the same way, and `tools/check_capsule.py` run over the eleven
 of them in `--strict` reports no error and no warning.
 
 The divergence was invisible until several capsules sat side by side, which is a
@@ -61,7 +66,7 @@ repository root:
 python3 tools/check_capsule.py examples/capsule_*/ --strict
 ```
 
-Six capsules, six passes, exit code 0. Point it at `examples/*/` instead and it also
+Eleven capsules, eleven passes, exit code 0. Point it at `examples/*/` instead and it also
 reads `as-published/` as if it were one capsule, and fails: that directory holds the
 capsules exactly as the posts shipped them, frozen, old forms included.
 
@@ -73,8 +78,9 @@ format.
 
 ## What they cost
 
-Between 8,400 and 65,000 tokens, measured per artifact in
-[token-ledger.md](token-ledger.md).
+Between 8,400 and 65,000 tokens for the capsules of Parts 2 to 6b, measured per
+artifact in [token-ledger.md](token-ledger.md). The Part 7 capsules are not in the
+ledger yet.
 
 The headline is not the one most people expect. Images are cheap: they account for
 5% of the jet capsule and 7% of the delta. Numeric tables are what fills a context
