@@ -1,5 +1,7 @@
 # capsule_cube_re3000
 
+Files: [`capsule_cube_re3000/`](capsule_cube_re3000/)
+
 Flow around a cube at $Re_D = 3000$. Laminar, constant density, 3D, solved with the
 steady segregated solver on 501,860 cells: the template and the mesh of the Part 7
 sweep at $Re_D = 100$, 300, 1000 and 3000, built together by the chain in

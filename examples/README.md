@@ -23,19 +23,21 @@ could not yet answer is exactly what the later layers were built for.
 
 ## The capsules
 
+Each name opens the capsule's case card, which links to its files.
+
 | Capsule | Case | Layers present | From | Probe record |
 |---------|------|----------------|------|--------------|
-| `capsule_naca0012_aoa5` | NACA 0012, 5 degrees, Re 1e6 | `setup.txt`, `summary.json`, `views/` | [Part 2](capsule_naca0012_aoa5.md) | [read](../probes/part-2_naca0012_aoa5.md) |
-| `capsule_cube_re200` | Cube, Re 200, laminar | `+ planes/` | [Part 3](capsule_cube_re200.md) | [read](../probes/part-3_cube_re200.md) |
-| `capsule_jet_r2_re100` | Jet in crossflow, r = 2, Re 100 | `+ samples.csv` | [Part 4](capsule_jet_r2_re100.md) | [read](../probes/part-4_jet_r2_re100.md) |
-| `capsule_delta65_a13p3_re1e6` | Delta wing, 65 degrees, alpha 13.3 | `+ features.json` | [Part 5](capsule_delta65_a13p3_re1e6.md) | [read](../probes/part-5_delta65_a13p3_re1e6.md) |
-| `capsule_ahmed25_re1e6` | Ahmed body, 25 degree slant, Re 1e6 | `setup.txt`, `summary.json`, `views/` | [Part 6](capsule_ahmed25_re1e6.md) | [read](../probes/part-6_ahmed25_re1e6.md) |
-| `capsule_naca0012_aoa7` | NACA 0012, 7 degrees, Re 1e6 | `+ diff.json`, `diff/` | [Part 6b](capsule_naca0012_aoa7.md) | not yet |
-| `capsule_cube_re0100` | Cube, Re 100, laminar, base of the sweep | `+ manifest.json` | [Part 7](capsule_cube_re0100.md) | not yet |
-| `capsule_cube_re0300` | Cube, Re 300, laminar | `+ diff.json`, `diff/` | [Part 7](capsule_cube_re0300.md) | not yet |
-| `capsule_cube_re0600` | Cube, Re 600, laminar | `+ diff.json`, `diff/` | [Part 7a](capsule_cube_re0600.md) | not yet |
-| `capsule_cube_re1000` | Cube, Re 1000, laminar | `+ diff.json`, `diff/` | [Part 7](capsule_cube_re1000.md) | not yet |
-| `capsule_cube_re3000` | Cube, Re 3000, laminar | `+ diff.json`, `diff/` | [Part 7](capsule_cube_re3000.md) | not yet |
+| [`capsule_naca0012_aoa5`](capsule_naca0012_aoa5.md) | NACA 0012, 5 degrees, Re 1e6 | `setup.txt`, `summary.json`, `views/` | Part 2 | [read](../probes/part-2_naca0012_aoa5.md) |
+| [`capsule_cube_re200`](capsule_cube_re200.md) | Cube, Re 200, laminar | `+ planes/` | Part 3 | [read](../probes/part-3_cube_re200.md) |
+| [`capsule_jet_r2_re100`](capsule_jet_r2_re100.md) | Jet in crossflow, r = 2, Re 100 | `+ samples.csv` | Part 4 | [read](../probes/part-4_jet_r2_re100.md) |
+| [`capsule_delta65_a13p3_re1e6`](capsule_delta65_a13p3_re1e6.md) | Delta wing, 65 degrees, alpha 13.3 | `+ features.json` | Part 5 | [read](../probes/part-5_delta65_a13p3_re1e6.md) |
+| [`capsule_ahmed25_re1e6`](capsule_ahmed25_re1e6.md) | Ahmed body, 25 degree slant, Re 1e6 | `setup.txt`, `summary.json`, `views/` | Part 6 | [read](../probes/part-6_ahmed25_re1e6.md) |
+| [`capsule_naca0012_aoa7`](capsule_naca0012_aoa7.md) | NACA 0012, 7 degrees, Re 1e6 | `+ diff.json`, `diff/` | Part 6b | not yet |
+| [`capsule_cube_re0100`](capsule_cube_re0100.md) | Cube, Re 100, laminar, base of the sweep | `+ manifest.json` | Part 7 | not yet |
+| [`capsule_cube_re0300`](capsule_cube_re0300.md) | Cube, Re 300, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
+| [`capsule_cube_re0600`](capsule_cube_re0600.md) | Cube, Re 600, laminar | `+ diff.json`, `diff/` | Part 7a | not yet |
+| [`capsule_cube_re1000`](capsule_cube_re1000.md) | Cube, Re 1000, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
+| [`capsule_cube_re3000`](capsule_cube_re3000.md) | Cube, Re 3000, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
 
 Read down the table and the format assembles itself: scalars, then sections, then a
 volume sample, then named features, then curated views, then a comparison

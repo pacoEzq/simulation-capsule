@@ -1,5 +1,7 @@
 # capsule_naca0012_aoa7
 
+Files: [`capsule_naca0012_aoa7/`](capsule_naca0012_aoa7/)
+
 NACA 0012 at 7 degrees incidence, $Re_c = 10^6$, $M = 0.043$. Steady RANS, k-omega
 SST (Menter), incompressible. The mesh is the one from `capsule_naca0012_aoa5`, cell
 for cell: the two extra degrees are applied by rotating the freestream at the inlet,

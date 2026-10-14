@@ -1,5 +1,7 @@
 # capsule_delta65_a13p3_re1e6
 
+Files: [`capsule_delta65_a13p3_re1e6/`](capsule_delta65_a13p3_re1e6/)
+
 Sharp-edged delta wing, 65 degree leading-edge sweep, $\alpha = 13.3°$,
 $Re_{c_r} = 10^6$. Steady RANS, k-omega SST, incompressible, full model with no
 symmetry plane, 6,491,106 cells. Nondimensional by construction with

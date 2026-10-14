@@ -1,5 +1,7 @@
 # capsule_jet_r2_re100
 
+Files: [`capsule_jet_r2_re100/`](capsule_jet_r2_re100/)
+
 Jet in crossflow at velocity ratio $r = 2$ and $Re_D = 100$, laminar and steady.
 Jet issues along $+z$ from a floor orifice of unit diameter, crossflow along $+x$.
 436,390 cells.

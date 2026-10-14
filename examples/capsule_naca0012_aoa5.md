@@ -1,5 +1,7 @@
 # capsule_naca0012_aoa5
 
+Files: [`capsule_naca0012_aoa5/`](capsule_naca0012_aoa5/)
+
 NACA 0012 at 5 degrees incidence, $Re_c = 10^6$, $M = 0.043$. Steady RANS,
 k-omega SST (Menter), incompressible, 2D mesh of 65,885 cells with the farfield at
 50 chords.

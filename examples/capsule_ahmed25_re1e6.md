@@ -1,5 +1,7 @@
 # capsule_ahmed25_re1e6
 
+Files: [`capsule_ahmed25_re1e6/`](capsule_ahmed25_re1e6/)
+
 Ahmed body with a 25 degree slant, no stilts, full model with no symmetry plane,
 fixed ground. Steady RANS, k-omega SST, segregated, incompressible, at
 $Re_L = 10^6$. Simcenter STAR-CCM+ 2606, 5.87 million cells.
