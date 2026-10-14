@@ -24,3 +24,11 @@ sweep. Only at $Re_D = 100$ does the corner win.
 The likely cause, not tested here, is the pressure singularity that viscous flow
 develops at a sharp corner, which weighs more as the Reynolds number falls. No
 mesh-refinement study was run. Read 1.068 as the stagnation value of this capsule.
+
+## Known issues
+
+- The colormap of the planes and the view, `blue-red uniform perception`, is not
+  lightness-monotonic as SPEC 3.3 requires: along its bar, L* rises from 37 to
+  81 and falls back to 62, so two different values can share a lightness. Hue
+  still tells them apart; a reader of lightness alone cannot. Later capsules use
+  a lightness-monotonic map.

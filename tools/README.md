@@ -44,7 +44,7 @@ These read a capsule and write nothing into it.
 | `test_check_capsule.py` | that every one of those twenty checks fails on at least one fixture |
 | `check_frozen.py` | that `examples/as-published/` still matches `examples/frozen.sha256` byte for byte |
 
-`check_capsule.py` 1.6 follows SPEC 0.5 and needs only the standard library. A
+`check_capsule.py` 1.7 follows SPEC 0.6 and needs only the standard library. A
 capsule runs the checks its layers call for: fifteen without plane sections or a
 comparison, seventeen with plane sections, eighteen with the `diff` extension and
 twenty with both. A rule an older capsule could not have met, such as the

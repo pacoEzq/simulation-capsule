@@ -15,3 +15,11 @@ at this Reynolds number periodic.
 `diff.json` compares this capsule with the base of the sweep, `capsule_cube_re0100`,
 pinned at commit `ee7ff59`. The grayscale frame it measures sits in
 `diffsrc/capsule_cube_re0300/`, outside the capsule.
+
+## Known issues
+
+- The colormap of the planes and the view, `blue-red uniform perception`, is not
+  lightness-monotonic as SPEC 3.3 requires: along its bar, L* rises from 37 to
+  81 and falls back to 62, so two different values can share a lightness. Hue
+  still tells them apart; a reader of lightness alone cannot. Later capsules use
+  a lightness-monotonic map.

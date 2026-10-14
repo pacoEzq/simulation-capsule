@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.5. Draft.**
+**Version 0.6. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -185,6 +185,21 @@ validator does not refuse it. Weights are measured by `tools/capsule_ledger.py`
 at the rates it declares, and recorded per file in `manifest.json` where the
 capsule carries one (4.8).
 
+### 3.6 How each value was formed
+
+Every value in the capsule says how it was formed, in the place a reader finds
+it. A run that reached a fixed point publishes values. A run that did not
+publishes statistics, and a statistic travels with its window (4.2.2). A file
+that holds a field rather than a scalar, a plane, a sample or a view, declares
+whether it is one instant or a statistic, and over which iterations or which
+nondimensional time window: in the header comment of a CSV, in the burned-in
+title of an image (3.3). The names are those of 4.2.2.
+
+Two artifacts of one capsule may be formed differently, and often are: the
+scalars of a run judged by window statistics are window means, while its planes
+are a snapshot at the last iteration. That is not a defect. Leaving the reader
+to guess which is which is.
+
 ---
 
 ## 4. Artifacts
@@ -228,6 +243,15 @@ instrument's own object names stays in `report`. Free-text values, such as
 
 What is fixed is that every key is nondimensional per section 3.1, and that the
 `reference` block is present.
+
+**Force coefficients.** `cd` is the drag of the body over the dynamic pressure
+and the reference area. Where it is split, `cd_pressure` integrates the pressure
+over the wall, relative to the reference pressure, and `cd_friction` integrates
+the wall shear stress, the tangential part of the viscous traction, both
+projected on the drag direction, so that `cd = cd_pressure + cd_friction`. The
+normal part of the viscous traction belongs to neither. In incompressible flow
+it vanishes on a no-slip wall, so a nonzero value there is numerical, not
+physical. The same split holds for every force coefficient a capsule carries.
 
 A single scalar that aggregates a worst case is an antipattern. Where a distribution
 matters, expose the distribution: a minimum cell quality alone says nothing useful
@@ -428,8 +452,23 @@ is the artifact.
 
 Wide CSVs are reformatted rather than shipped raw: column order and precision are
 chosen for reading, not for whatever the solver emitted. The header comment
-declares the plane, the node count and the spacing, so the table can be read
-without the image beside it.
+declares the plane, the grid and its spacing, the nodes returned of the nodes
+requested, how the values were formed (3.6) and the field precision, so the
+table can be read without the image beside it:
+
+```
+# plane y_D = 0 | grid 33 x 13, spacing 0.25 D | 404 of 429 nodes, 25 in the body | instantaneous at iteration 15000 | fields %.3f | nondimensional
+```
+
+How the values were formed is written `instantaneous at iteration <n>` or
+`iteration_mean over iterations <a>-<b>`, or the same over a nondimensional time
+window for an unsteady run.
+
+**Nodes in the body.** A grid node inside the solid, or on its surface within
+1e-6 of the reference length, is absent: its row is omitted, not filled, and the
+header counts it. The rule is geometric, so every solver drops the same nodes.
+Wall values belong to the views of the body, not to a plane: a plane node on a
+sharp edge would carry the edge singularity into the table.
 
 ### 4.4 `samples.csv` (settled)
 
@@ -654,6 +693,7 @@ run it on the expanded directory.
 | 0.3 | Declared extensions (3.4): optional, additive, named in `summary.json`. First extension `diff`, with `diff/` and `diff.json` settled (4.7): shared view contract, measurement on grayscale at 256 levels, threshold in physical units with its comparison sign, base declared by alias, repo, commit and path, `diffsrc/` refused inside a capsule. Additive over 0.2; every capsule valid under 0.2 is valid under 0.3. |
 | 0.4 | Unit suffixes inside `reference` accepted as written, `_per_` recommended (3.1). Root block `environment` (4.2.1), window statistics (4.2.2), `convergence` with its `uncertainty` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
 | 0.5 | Definition separated from recipe (preamble): each artifact is defined in terms no solver owns, with the STAR-CCM+ steps under **Recipe**; `setup.txt` (4.1) and `environment` (4.2.1) restated that way. A key names the quantity, never the instrument (4.2). Token budget as a design target, not a gate (3.5). Numbers and production suffixes in an alias (2). Additive over 0.4; every capsule valid under 0.4 is valid under 0.5. |
+| 0.6 | How each value was formed (3.6): a file holding a field declares whether it is one instant or a statistic, and over which window. Plane header and nodes in the body (4.3). Force coefficients and the pressure and friction split (4.2). No check changes; capsules published before 0.6 stay valid as published: see below. |
 
 ### 0.3 → 0.4
 
@@ -683,8 +723,11 @@ run it on the expanded directory.
   **Recipe (Simcenter STAR-CCM+)** is one way to meet it.
 - 4.1, 4.2.1: `setup.txt` and `environment` defined without naming a solver; the
   trimming macro and the `BuildEnv` reading of precision move under Recipe.
-- 4.2: a key names the quantity and the place, never the instrument; the
-  instrument goes beside the value, as `probes.<name>.report` does.
+- 4.2: a key names the quantity, never the instrument; a probe is named by the
+  quantity and the place, and the instrument goes beside the value, as
+  `probes.<name>.report` does.
+- 4.2.3, 4.8: the solver mode is written in the solver's own terms, and every
+  script or macro of the chain declares the build it was verified against.
 - 3.5: 60,000 tokens is the series' design budget; the ledger reports an excess and
   the validator does not refuse it.
 - 2: decimal point `p`, power of ten `e`, sweeps zero-padded; two capsules of one
@@ -693,3 +736,17 @@ run it on the expanded directory.
 - Compatibility: no check changes. A probe key published before 0.5 that carries
   the instrument's prefix, `LLM_u_over_U_axis_x2D` in the five Part 7 cube
   capsules, stays valid as published.
+
+### 0.5 → 0.6
+
+- 3.6: every value says how it was formed, a CSV in its header comment and an
+  image in its burned-in title, with the names of 4.2.2.
+- 4.3: the plane header also declares how the values were formed and how many
+  nodes fall in the body; a grid node inside the solid, or on its surface within
+  1e-6 of the reference length, is omitted and counted.
+- 4.2: `cd = cd_pressure + cd_friction`; friction is the tangential part of the
+  viscous traction, and the normal part belongs to neither.
+- Compatibility: no check changes. The five Part 7 cube capsules, published
+  before 0.6, stay valid as published: their plane headers do not say how the
+  values were formed, and `plane_y0.csv` keeps 11 nodes on the cube surface,
+  415 of 429.

@@ -57,9 +57,6 @@ is better than a key filled with a placeholder.
 The simulation file is attached to the tutorial, not to this repository. See
 [SPEC.md](../SPEC.md) for why the capsule ships without it.
 
-## For `capsule_cube_re200.md`
-
-```markdown
 ## Known issues
 
 Found by the [Part 3 probe test](../probes/part-3_cube_re200.md). The capsule
@@ -86,5 +83,3 @@ are recorded rather than patched.
 - **The material is labelled Air** while density is 1 and viscosity is set from
   the Reynolds number. It is a nondimensionalization device, not a physical air
   test at 1 m/s.
-```
-

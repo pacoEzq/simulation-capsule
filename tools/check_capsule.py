@@ -35,8 +35,8 @@ import re
 import subprocess
 import sys
 
-SPEC_VERSION = "0.5"
-TOOL_VERSION = "1.6"
+SPEC_VERSION = "0.6"
+TOOL_VERSION = "1.7"
 
 ERROR = "ERROR"
 WARN = "WARN"
