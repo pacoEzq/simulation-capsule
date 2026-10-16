@@ -23,9 +23,11 @@ The side force does something else. Its two components, $C_l$ and $C_y$, swing s
 The fast flutter has a shape in the wake. I let the same steady run continue past 15,000 iterations and, from iteration 31,703 on, saved a frame every 7 iterations. The surface where $u\text{/}U = 0.5$ trails behind the cube, bends, and pinches off a blob at its tail; the next blob leaves about 63 iterations later, the same period as the flutter in $C_l$. Each frame is an iteration, not an instant.
 
 ![Four views of the u/U = 0.5 isosurface behind a cube at Re 300 over 120 iterations of a steady solver, its tail bending and pinching off](cube-re300-steady-wake-iterations.gif)
+
 *Steady solver, iterations 32,123 to 32,242, one frame every 7 iterations. Isosurface u/U = 0.5 coloured by x/D from 0.5 to 5, seen from downstream, in isometric view, from above and from the side.*
 
 ![Ninety side views of the wake isosurface of a cube at Re 300, one every 7 steady-solver iterations, with blobs leaving the tail at regular intervals](cube-re300-steady-wake-mosaic.jpg)
+
 *Ninety frames of the same isosurface, one every 7 iterations from 31,703 to 32,326. A blob leaves the tail about every 63 iterations.*
 
 ## What the flow does
@@ -33,6 +35,7 @@ The fast flutter has a shape in the wake. I let the same steady run continue pas
 The transient run disagrees. Within the first 75 time units the force stops turning: $C_y$ falls from 0.04 to below 0.002 and stays there, under 0.0005 after $t \cdot U\text{/}D = 150$ and under 0.00002 after 300, while $C_l$ climbs and settles around a positive mean. The swings of $C_l$ keep growing until about $t \cdot U\text{/}D = 300$, so I take the statistics after that. Over $t \cdot U\text{/}D = 300$ to 725 the time means are $C_d = 0.883$ (rms 0.009), $C_l = 0.081$ (rms 0.034) and $C_y = 0.0000$. Split that window in two and the halves agree to 0.0005 in $C_l$ and 0.0001 in $C_d$. Not once does $C_l$ cross zero: for 425 time units it stays between 0.028 and 0.145.
 
 ![Side-force vector of a cube at Re 300 in the cl-cy plane: the steady solver's iterates trace a ring around the origin, the transient run settles on the cl axis at 0.081](cube-re300-steady-vs-transient-side-force.png)
+
 *The steady iterates circle the origin; the transient force leaves the ring and stays on one axis.*
 
 In the cross-flow plane the two runs look like different cases. The steady iterates trace a ring of radius about 0.05, and their mean sits in the middle of it, 0.012 or more from every iterate after the first thousand. The flow, given a clock, picks a plane, here the plane of $C_l$, and keeps pushing the cube towards one side of it. Nothing in the geometry prefers $+C_l$ over the other three lateral directions, so a different starting state would probably pick a different one with the same magnitude.
@@ -52,11 +55,13 @@ Drag came out of the steady run 0.3% low. Nobody would reject a drag value for t
 Iterations are pseudo-time. Their 3,870 per turn is not a frequency, and only the transient run can say how fast anything happens. Its history of $C_l$ carries two time scales, and they are locked together. A fast oscillation at $\mathrm{St} = fD\text{/}U = 0.099$, a period of about 10 time units, rides on a slow modulation at $\mathrm{St} = 0.028$, about 35 time units. Seven fast periods fit into exactly two slow ones, so once the wake has settled the whole signal repeats every 71 time units, and every peak of its spectrum sits on a multiple of $1/71$. The slow modulation holds 90% of the fluctuation energy of $C_l$.
 
 ![Lift coefficient of a cube at Re 300 in the transient run, repeating every 71 time units after settling, and its spectrum with every peak on a multiple of 1/71](cube-re300-transient-period.png)
+
 *Top: C<sub>l</sub> against t·U/D, with the settling phase shaded and a dashed line every 71 time units. Bottom: spectrum of C<sub>l</sub> over t·U/D 300 to 725.*
 
 That repeat decides the run length. A mean is only clean over whole repeats, and the 425 time units after settling hold six. A first version of this article used 225 time units that still included the settling; its spectrum was too coarse to separate the two scales cleanly, and it put the slow one at $\mathrm{St} = 0.031$, a factor of about three below the shedding.
 
 ![cl and cy of a cube at Re 300 against iteration in a steady run and against time in a transient run on the same mesh](cube-re300-steady-vs-transient-histories.png)
+
 *Top: C<sub>l</sub> and C<sub>y</sub> against iteration in the steady run. Bottom: the same coefficients against t·U/D in the transient run.*
 
 The same locking has been reported before. [Schuh Frantz et al. (2025)](https://doi.org/10.1017/jfm.2025.10469) find a cube wake at $\mathrm{Re} = 282$ whose pattern repeats every seven shedding periods and two modulation cycles, with $\mathrm{St} = 0.0975$ and 0.0281, and [Meng et al. (2021)](https://doi.org/10.1017/jfm.2021.406) call the range from $\mathrm{Re} = 289$ to 305 high-order synchronised shedding. That makes physics the likely explanation here too, and the lock survives two more meshes and a halved time step.
