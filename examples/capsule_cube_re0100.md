@@ -23,9 +23,11 @@ edges.
 From $Re_D = 300$ up, the two numbers agree to within 0.001 in every capsule of the
 sweep. Only at $Re_D = 100$ does the corner win.
 
-The likely cause, not tested here, is the pressure singularity that viscous flow
-develops at a sharp corner, which weighs more as the Reynolds number falls. No
-mesh-refinement study was run. Read 1.068 as the stagnation value of this capsule.
+The cause is the pressure singularity that viscous flow develops at a sharp corner,
+which weighs more as the Reynolds number falls. A mesh-refinement study confirms it:
+with good cells the corner value keeps rising as the mesh is refined, while drag and
+the stagnation point converge (see [docs/cube-re100](../docs/cube-re100/README.md)).
+Read 1.068 as the stagnation value of this capsule.
 
 ## Known issues
 
