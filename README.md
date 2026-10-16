@@ -107,7 +107,10 @@ model-agnostic; nothing here depends on a particular frontier model.
 Part 6b runs alongside Part 6 rather than after it, and introduces the `diff`
 extension.
 
-**Side Runs.** Articles outside the series. [Steady Solver, Unsteady Wake: a Cube at Re = 300](docs/cube-re300/README.md) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
+**Side Runs.** Articles outside the series.
+
+- [Steady Solver, Unsteady Wake: a Cube at Re = 300](docs/cube-re300/README.md) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
+- [Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at Re = 100](docs/cube-re100/README.md) tests the two stagnation values that `capsule_cube_re0100` reports.
 
 ## Repository contents
 
