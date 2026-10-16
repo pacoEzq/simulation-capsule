@@ -59,16 +59,21 @@ became visible only after the fact.
 | 5 | `+ features.json` | 1 | [part-5_delta65_a13p3_re1e6.md](part-5_delta65_a13p3_re1e6.md) |
 | 6 | `+ views/` | 4 | [part-6_ahmed25_re1e6.md](part-6_ahmed25_re1e6.md) |
 | 6b | `+ diff.json`, `diff/` | 2 | [part-6b_naca0012_aoa5_aoa7.md](part-6b_naca0012_aoa5_aoa7.md) |
+| 7a | `+ manifest.json` | 2 | [part-7a_cube_re0600.md](part-7a_cube_re0600.md) |
+| 7b | no new file | 2 | [part-7b_cube_re0100_re3000.md](part-7b_cube_re0100_re3000.md) |
+| 7c | no new file | 2 | [part-7c_cube_re0100_re3000.md](part-7c_cube_re0100_re3000.md) |
 
 Records are named `part-<N>_<case>.md`, one file per part; a part that compares
-two cases names the pair in full. The dated `2026-09-02_ahmed25_re1e6.md` was
+two cases names the pair in full, and a part that probes a sweep names its first
+and last point, or its one new point. The dated `2026-09-02_ahmed25_re1e6.md` was
 the three reader draft of the Part 6 record. The four reader record replaced
 it, and the draft is gone from the tree and kept in the history.
 
-The single reader in Parts 1 to 5, reader D in Part 6 and reader A in Part 6b
-share a family with the assistant that helped write these records. The conflict is in the
-judgement, not in `tools/`, which is deterministic and runnable by anyone.
-Every transcript is linked for the same reason.
+The single reader in Parts 1 to 5, reader D in Part 6, reader A in Part 6b and
+reader A in Parts 7a, 7b and 7c share a family with the assistant that helped
+write these records. The conflict is in the judgement, not in `tools/`, which is
+deterministic and runnable by anyone. Every transcript is linked for the same
+reason.
 
 ## Defects the probes found
 
@@ -90,7 +95,12 @@ Every transcript is linked for the same reason.
 | 6b | The inlet carries `Part Surfaces: []` in both `setup.txt`, 38 faces each, while the outlet carries `fluid.freestream` | open |
 | 6b | No scalar reports backflow at the outlet, and the global mass imbalance, 1e-13, cannot | not a defect; candidate scalar for `summary.json`, minimum normal velocity on the outlet faces |
 | 6b | The Cp and u/U thresholds are one cut under linearised Bernoulli, which is why 6.17% and 5.88% nearly coincide | not a defect; explains the pair of fractions |
+| 7a | The side of the wake deficit on a plane cannot be predicted from the files: each plane is the last iteration of a wake that does not settle | not a defect; SPEC 3.6 has a plane declare that it is one instant |
+| 7b | No file ties the planes to an iteration: the plane CSV headers and `manifest.json` carry none, while the PNG titles and `setup.txt` line 71 do; both readers said so | became SPEC 0.6, 3.6 and 4.3: the plane header reads `instantaneous at iteration <n>` |
+| 7c | `pressure.cp_stagnation` is labelled stagnation and is the maximum over the cube faces, in a corner cell, growing as the mesh is refined; the readers parted on which way it moves | open; the [Side Run](../docs/cube-re100/README.md) measures the drift, and the next version of the contract has to say how a value like this came to be |
 
-None came from human review. The Part 4 row is why the validator exists: a
+None came from human review, with one qualification: the Part 7c trap was found
+in the solver before the probe was written, and the probe tested whether the
+readers would get past it. The Part 4 row is why the validator exists: a
 reader named the trailing comma as the one packaging change it would make, and
 the capsule shipped with it anyway.
