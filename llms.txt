@@ -20,6 +20,7 @@ The format is defined by a tutorial series published on the Siemens Simcenter co
 - [6b. Case Comparison via Image Differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing): `diff.json` and `diff/`.
 - [7a. Automation, the Macro That Builds the Capsule](https://community.sw.siemens.com/s/question/0D5Vb00001dUIzpKAG/preparing-cfd-output-for-large-language-models-7a10-automation-the-macro-that-builds-the-capsule): `manifest.json`, the build record that gives each capsule the address of the code that built it; the macros stay outside, in `macros/t7/`.
 - [7b. Four Reynolds Numbers, the Cube That Would Not Sit Still](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still): the same chain at four Reynolds numbers, where the steady run at Re = 300 never settles; every number in `summary.json` now states its convergence state and the statistic that produced it.
+- [7c. Integrity, a Capsule Sealed to a Commit](https://community.sw.siemens.com/s/question/0D5Vb00001fgMSYKA2/preparing-cfd-output-for-large-language-models-7c10-integrity-a-capsule-sealed-to-a-commit): no new file: a capsule is publishable only when it passes --strict and its manifest names a commit.
 
 ## Optional
 

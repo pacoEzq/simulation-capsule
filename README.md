@@ -99,7 +99,7 @@ model-agnostic; nothing here depends on a particular frontier model.
 | 6b | [Case Comparison via Image Differencing](https://community.sw.siemens.com/s/question/0D5Vb00001YuokeKAB/preparing-cfd-output-for-large-language-models-6b10-case-comparison-via-image-differencing) | `diff.json`, `diff/` |
 | 7a | [Automation, the Macro That Builds the Capsule](https://community.sw.siemens.com/s/question/0D5Vb00001dUIzpKAG/preparing-cfd-output-for-large-language-models-7a10-automation-the-macro-that-builds-the-capsule) | `manifest.json` |
 | 7b | [Four Reynolds Numbers, the Cube That Would Not Sit Still](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still) | no new file: every averaged number<br>in `summary.json` carries the run's<br>convergence state and its statistic |
-| 7c | Integrity, a Capsule Sealed to a Commit (not yet) | — |
+| 7c | [Integrity, a Capsule Sealed to a Commit](https://community.sw.siemens.com/s/question/0D5Vb00001fgMSYKA2/preparing-cfd-output-for-large-language-models-7c10-integrity-a-capsule-sealed-to-a-commit) | no new file: a capsule is publishable<br>only when it passes --strict and<br>its manifest names a commit |
 | 8 | Transient fields I: time as statistics (not yet) | `signals/` |
 | 9 | Transient fields II: modes (not yet) | `modes/`, `snapshots/` |
 | 10 | Confidentiality: what leaves the building (not yet) | `disclosure.json` |
@@ -165,8 +165,8 @@ form. That is the record, not a regression, and it is why the commands above nam
 ## Status
 
 The specification tracks the series and is incomplete by design: layers are
-specified as their tutorial publishes. Parts 1 to 6 are out, Part 6b with
-them, and Parts 7a and 7b. Everything from `setup.txt` through `views/` is
+specified as their tutorial publishes. Parts 1 to 7 are out (7a, 7b, 7c), and
+Part 6b with them. Everything from `setup.txt` through `views/` is
 settled, and so is the `diff` extension of 4.7. Section 4.8, the manifest, is
 still marked provisional. The transient layers and the disclosure audit are
 still moving.
