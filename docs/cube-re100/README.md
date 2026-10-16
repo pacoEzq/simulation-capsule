@@ -1,12 +1,12 @@
-# Refine the Corner and the Peak Grows: a Cube at $\mathrm{Re} = 100$
+# Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at $\mathrm{Re} = 100$
 
-*Four meshes, one corner, and a pressure coefficient that never settles.*
+*Refine the corner and the peak grows: four meshes, one vertex, and a pressure coefficient that never settles.*
 
 Francisco Ezquerra Larrodé · October 2026
 
 ## The question
 
-The Simulation Capsule of a cube at $\mathrm{Re} = 100$ reports two stagnation values that disagree. Its `cp_stagnation` reads 2.394, the largest cell value of $C_p$ on the cube. The symmetry plane, which passes through the real stagnation point, finds 1.068. From $\mathrm{Re} = 300$ upwards the two agree to 0.001; at $\mathrm{Re} = 100$ the larger one sits in a single cell at a corner of the front face. The note that ships with the capsule names the likely cause, the pressure singularity of viscous flow at a sharp corner, and says plainly that nobody had tested it.
+This is a mesh refinement study of the pressure coefficient at a sharp corner, run in Simcenter STAR-CCM+ on a cube in laminar flow, with and without prism layers. It starts from the Simulation Capsule of the cube at $\mathrm{Re} = 100$, which reports two stagnation values that disagree. Its `cp_stagnation` reads 2.394, the largest cell value of $C_p$ on the cube. The symmetry plane, which passes through the real stagnation point, finds 1.068. From $\mathrm{Re} = 300$ upwards the two agree to 0.001; at $\mathrm{Re} = 100$ the larger one sits in a single cell at a corner of the front face. The note that ships with the capsule names the likely cause, the pressure singularity of viscous flow at a sharp corner, and says plainly that nobody had tested it.
 
 There was a second suspect. That corner cell is not a good cell: the prism layers wrap around the vertex and fan out there. Was 2.394 the flow, or the mesh?
 
@@ -36,11 +36,13 @@ The decisive test drops the layers from the cube and lets the trimmer fill the c
 | lowest $C_p$ on the body | -3.513 | -2.534 | -3.124 | -3.911 |
 
 ![Cp in a plane through the front vertex of a cube at Re 100, on the prism-layer mesh with its fan of skewed cells at the vertex and on a trimmer mesh of cubes refined to D/512](cube-re100-corner-meshes.png)
+
 *C<sub>p</sub> in the plane through the vertex and the diagonal of the front face. The white region is the cube and the flow arrives from the right. Values outside -2.6 to 2.4 are clamped.*
 
 With perfect cells the vertex value grows by a factor of 1.7 at every halving of $h$, roughly as $h^{-0.7}$, and the cell beside the edge does the same. The corner is singular. On the coarse trimmer mesh the singularity simply went unresolved: 1.280 was not the true value, only the first point of a curve that keeps rising. That the prism mesh lands near 2.4 tells you its cell size at the vertex, nothing more. The four vertices agree on every trimmer mesh, so the odd vertex of the sweep mesh was the one real mesh effect in the story.
 
 ![Cp of the cell touching the front vertex of a cube at Re 100 against cell size, rising from 1.28 to 3.82 as the cell size halves twice](cube-re100-corner-refinement.png)
+
 *Vertex-cell C<sub>p</sub> on three trimmer meshes without prism layers. The dashed line is the stagnation value.*
 
 The theory gives a reference slope. Stokes flow around a two-dimensional convex corner of 270° has a pressure that grows as $r^{-0.46}$ towards the edge ([Dean and Montagnon 1949](https://www.cambridge.org/core/journals/mathematical-proceedings-of-the-cambridge-philosophical-society/article/abs/on-the-steady-motion-of-viscous-liquid-in-a-corner/4CBD05192CACC84E841D3953DE88EB45); [Moffatt 1964](https://doi.org/10.1017/S0022112064000015)). The measured slope is steeper. Three meshes do not separate the candidates: inertia at $\mathrm{Re} = 100$, the three-dimensional vertex, or a range of $h$ that is not yet asymptotic.
@@ -50,6 +52,7 @@ The theory gives a reference slope. Stokes flow around a two-dimensional convex 
 Everything a short distance away. Along the face diagonal, $C_p$ at $r\text{/}D = 0.04$ reads 0.571, 0.547 and 0.542 on the three trimmer meshes; at 0.02 it reads 0.95, 0.72 and 0.67. Only the last few cells next to the vertex keep climbing, and they get fewer and smaller with every level. Drag changes by 0.02% between the two finest meshes, so the singularity is integrable, and the stagnation point stays at 1.070. The recirculation length behind the cube reads 1.47D on all three.
 
 ![Cp along the diagonal of the front face of a cube at Re 100 towards one vertex, for the prism mesh and three trimmer meshes, collapsing beyond r/D 0.03 and rising without bound closer in](cube-re100-corner-diagonal.png)
+
 *C<sub>p</sub> of the front-face cells along the diagonal towards one vertex. Beyond r/D = 0.03 the four meshes agree; closer in, each finer mesh reaches higher.*
 
 ## Back to the sweep
@@ -57,11 +60,11 @@ Everything a short distance away. Along the face diagonal, $C_p$ at $r\text{/}D 
 The vertex cell of the sweep mesh can be read in every capsule of the sweep. It falls as $a + b\text{/}\mathrm{Re}$: 2.394 at $\mathrm{Re} = 100$, then 0.692, 0.186, -0.021 and -0.334 at 300, 600, 1000 and 3000. That is why the two stagnation values agree from 300 upwards. The singularity is still there; it weakens with Reynolds number and drops below the stagnation pressure, so the largest cell value happens to be the right one.
 
 > [!NOTE]
-> A maximum taken over the cells of a body with sharp edges is a property of the mesh at low Reynolds number. It grows without limit as the cells shrink. A capsule that wants a stagnation value has to read it where the flow stagnates, here the 1.068 of the symmetry plane.
+> On a body with sharp edges at low Reynolds number, the largest cell value of $C_p$ is not a property of the flow. It depends on the size of the cell that touches the corner, and it keeps rising as that cell gets smaller. To report a stagnation pressure, read $C_p$ where the flow actually stops: on this cube, the centre of the front face, where the symmetry plane gives 1.068.
 
 ## What to take away
 
-When the largest pressure on a bluff body sits in the cell that touches a sharp corner, refine the corner before you trust the number, and do it with cells that are good. Bad cells blur the answer in both directions: they made one vertex of this cube odd and the enhanced layers worse, and they hid the singularity's growth behind a value that looked plausible. Integrals such as drag converge long before the corner does, so they say nothing about it.
+If the highest pressure on a body sits in the cell next to a sharp corner, do not report it before refining that corner with good-quality cells. Distorted cells can mislead in either direction. Here they made one vertex differ from the other three, they made the enhanced-layer mesh worse rather than better, and they produced a value that looked reasonable while the true one was still growing. A converged drag coefficient does not settle the question: drag is an integral over the whole body and converges long before the corner does.
 
 The capsule is [`capsule_cube_re0100`](https://github.com/pacoEzq/simulation-capsule/blob/ef2252f/examples/capsule_cube_re0100/summary.json) in the `examples/` folder of the [simulation-capsule repository](https://github.com/pacoEzq/simulation-capsule), and its [note](https://github.com/pacoEzq/simulation-capsule/blob/ef2252f/examples/capsule_cube_re0100.md) already tells the reader to use 1.068. This article is the refinement study that note said was missing.
 
