@@ -1,4 +1,4 @@
-# Steady Solver, Unsteady Wake: a Cube at $\mathrm{Re} = 300$
+# Steady vs Transient CFD of Vortex Shedding: a Cube at $\mathrm{Re} = 300$
 
 *Same mesh, two solvers, and a side force that only one of them gets right.*
 
