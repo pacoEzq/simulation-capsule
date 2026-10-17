@@ -85,3 +85,7 @@ are recorded rather than patched.
 - **The material is labelled Air** while density is 1 and viscosity is set from
   the Reynolds number. It is a nondimensionalization device, not a physical air
   test at 1 m/s.
+- **Literature comparison.** Against Khan et al. (2020) the drag is 16% high and
+  the recirculation bubble 15% short, and against the Haider and Levenspiel cube
+  correlation the drag is 5% low; a lateral probe on the sweep mesh rules out the
+  lateral walls as the cause (see [docs/cube-literature-anchors](../docs/cube-literature-anchors/README.md)).

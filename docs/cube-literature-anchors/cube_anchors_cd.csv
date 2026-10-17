@@ -1,0 +1,23 @@
+source,Re,cd,note
+capsule_sweep,100,1.342,capsule_cube_re0100
+capsule_sweep,300,0.880,capsule_cube_re0300 iteration mean
+capsule_sweep,600,0.987,capsule_cube_re0600
+capsule_sweep,1000,1.071,capsule_cube_re1000
+capsule_sweep,3000,1.129,capsule_cube_re3000
+capsule_part3,200,0.967,capsule_cube_re200 other mesh
+transient,300,0.883,docs/cube-re300 time mean
+khan2020,84,1.02,read from Fig. 19
+khan2020,100,1.00,text: around 1
+khan2020,150,0.884,Table 4
+khan2020,178,0.852,Table 2 (12 points)
+khan2020,200,0.832,Table 4
+khan2020,215,0.821,Sec. 4.1.2
+khan2020,250,0.813,Sec. 4.1.2
+khan2020,276,0.8219,Sec. 4.1.3
+khan2020,300,0.83,Table 2 (12 points)
+khan2020,383,0.87,read from Fig. 18a
+khan2020,620,0.908,Sec. 2.2
+khan2020,770,0.95,read from Fig. 18c
+saha2004,150,1.00,via Khan Table 4
+saha2004,200,0.87,via Khan Table 4
+saha2004,250,0.81,via Khan Sec. 4.3

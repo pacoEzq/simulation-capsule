@@ -111,6 +111,7 @@ extension.
 
 - [Steady vs Transient CFD of Vortex Shedding: a Cube at Re = 300](docs/cube-re300/README.md) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
 - [Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at Re = 100](docs/cube-re100/README.md) tests the two stagnation values that `capsule_cube_re0100` reports.
+- [Cube Drag Coefficient from Re = 100 to 3000: Six Simulation Capsules Against the Literature](docs/cube-literature-anchors/README.md) anchors the cube capsules to Khan et al. 2020 and rules out the lateral walls as the cause of the Re 100 excess.
 
 ## Repository contents
 

@@ -24,3 +24,7 @@ pinned at commit `ee7ff59`. The grayscale frame it measures sits in
   81 and falls back to 62, so two different values can share a lightness. Hue
   still tells them apart; a reader of lightness alone cannot. Later capsules use
   a lightness-monotonic map.
+- **The capsule declares no domain extents.** The comparison with the literature
+  needed them and had to take them from Part 3. No published value exists at this
+  Reynolds number; the drag, 1.071, sits between the extrapolated Khan et al.
+  (2020) correlation and Haider and Levenspiel (see [docs/cube-literature-anchors](../docs/cube-literature-anchors/README.md)).

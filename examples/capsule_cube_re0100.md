@@ -36,3 +36,9 @@ Read 1.068 as the stagnation value of this capsule.
   81 and falls back to 62, so two different values can share a lightness. Hue
   still tells them apart; a reader of lightness alone cannot. Later capsules use
   a lightness-monotonic map.
+- **The capsule declares no domain extents.** The comparison with the literature
+  needed them (10D by 10D, inlet 5D upstream, inherited from Part 3) and had to
+  take them from Part 3. Against that literature the drag, 1.342, sits 34% above
+  Khan et al. (2020) and 9% above the Haider and Levenspiel cube correlation; a
+  lateral probe rules out the lateral walls, and the inlet distance and the
+  reference itself remain open (see [docs/cube-literature-anchors](../docs/cube-literature-anchors/README.md)).
