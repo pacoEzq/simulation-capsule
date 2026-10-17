@@ -1,0 +1,423 @@
+run_macro run_log -- mode=run
+re_target=300
+iterations=15000
+status=no_steady_state
+wallclock_solve_s=1149.851400459
+
+PRECONDITIONS CHECKED
+  - parameter D
+  - parameter U
+  - parameter rho
+  - parameter Re
+  - parameter mu
+  - physics continuum fluid_physics
+  - region fluid
+  - wall boundary cube_back
+  - wall boundary cube_bottom
+  - wall boundary cube_front
+  - wall boundary cube_left
+  - wall boundary cube_right
+  - wall boundary cube_top
+  - non-wall boundary inlet
+  - non-wall boundary outlet
+  - non-wall boundary lateral_yminus
+  - non-wall boundary lateral_yplus
+  - non-wall boundary lateral_zminus
+  - non-wall boundary lateral_zplus
+  - mesh operation mesh_cube
+  - custom mesh control cube_refinement
+  - custom mesh control wake_refinement
+  - field function cp
+  - field function u_over_U
+  - field function v_over_U
+  - field function w_over_U
+  - field function x_D
+  - field function y_D
+  - field function z_D
+  - derived part grid_x1
+  - derived part grid_x2
+  - derived part grid_x4
+  - derived part grid_y0
+  - derived part section_x1
+  - derived part section_x2
+  - derived part section_x4
+  - derived part section_y0
+  - derived part wake_reversed
+  - report cd
+  - report cd_friction
+  - report cd_pressure
+  - report cl
+  - report cy
+  - report cp_base
+  - report cp_min
+  - report cp_stagnation
+  - report mass_imbalance
+  - report mdot_in
+  - report mdot_out
+  - report recirculation_length_D
+  - report x_reattach
+  - monitor cd_monitor
+  - monitor cl_monitor
+  - stopping criterion cd_asymptotic
+  - stopping criterion cl_asymptotic
+  - stopping criterion Maximum Steps
+  - owned LLM_prism_off_nonwall
+  - owned LLM_probe_axis_x2D
+  - owned report LLM_u_over_U_axis_x2D
+  - owned report LLM_cell_count
+  - owned report LLM_cp_min_y0
+  - owned report LLM_cp_min_x1
+  - owned report LLM_cp_min_x2
+  - owned report LLM_cp_min_x4
+  - owned report LLM_cp_max_y0
+  - owned report LLM_cp_max_x1
+  - owned report LLM_cp_max_x2
+  - owned report LLM_cp_max_x4
+  - owned report LLM_u_over_U_min_y0
+  - owned report LLM_u_over_U_min_x1
+  - owned report LLM_u_over_U_min_x2
+  - owned report LLM_u_over_U_min_x4
+  - owned report LLM_u_over_U_max_y0
+  - owned report LLM_u_over_U_max_x1
+  - owned report LLM_u_over_U_max_x2
+  - owned report LLM_u_over_U_max_x4
+  - owned table LLM_table_y0
+  - owned table LLM_table_x1
+  - owned table LLM_table_x2
+  - owned table LLM_table_x4
+  - owned scene LLM_view_cp_y0
+  - owned displayer LLM_disp_cp_y0
+  - owned displayer LLM_body_cp_y0
+  - owned annotation LLM_title_cp_y0
+  - owned scene LLM_view_cp_x2
+  - owned displayer LLM_disp_cp_x2
+  - owned displayer LLM_body_cp_x2
+  - owned annotation LLM_title_cp_x2
+  - owned scene LLM_view_u_over_U_y0
+  - owned displayer LLM_disp_u_over_U_y0
+  - owned displayer LLM_body_u_over_U_y0
+  - owned annotation LLM_title_u_over_U_y0
+  - owned scene LLM_view_u_over_U_x2
+  - owned displayer LLM_disp_u_over_U_x2
+  - owned displayer LLM_body_u_over_U_x2
+  - owned annotation LLM_title_u_over_U_x2
+  - owned scene LLM_plane_u_over_U
+  - owned displayer LLM_disp_plane_u_over_U
+  - owned displayer LLM_body_plane_u_over_U
+  - owned annotation LLM_title_plane_u_over_U
+  - closed list of 44 owned objects
+  - mu holds ${rho}*${U}*${D}/${Re}
+
+OBJECTS CREATED
+  (none)
+
+OBJECTS MODIFIED (name | property | old | new)
+  - cd_asymptotic | Enabled | old=true | new=false
+  - cl_asymptotic | Enabled | old=true | new=false
+  - Stop File | Enabled | old=true | new=false
+  - Maximum Steps | Maximum Steps | old=5000 | new=15000
+  - LLM_title_cp_y0 | Text | old=cp on y0 | new=cp on y0, Re = 300, no_steady_state, snapshot at iteration 15000
+  - LLM_title_cp_x2 | Text | old=cp on x2 | new=cp on x2, Re = 300, no_steady_state, snapshot at iteration 15000
+  - LLM_title_u_over_U_y0 | Text | old=u_over_U on y0 | new=u_over_U on y0, Re = 300, no_steady_state, snapshot at iteration 15000
+  - LLM_title_u_over_U_x2 | Text | old=u_over_U on x2 | new=u_over_U on x2, Re = 300, no_steady_state, snapshot at iteration 15000
+
+TRACE
+  - mode=run
+  - properties_file_directory=session directory (Simulation.getSessionDir)
+  - re_target=300
+  - Re set: 200.0 -> 300
+  - inherited stopping criterion cd_asymptotic disabled (was in use: true); the window-stationarity criterion of this macro is the only stop decision in run mode
+  - inherited stopping criterion cl_asymptotic disabled (was in use: true); the window-stationarity criterion of this macro is the only stop decision in run mode
+  - stopping criterion Stop File (Stop File) disabled (was in use: true); the window-stationarity criterion of this macro is the only stop decision in run mode
+  - step ceiling raised for this session from 5000 to 15000: Maximum Steps would have stopped the solver before MAX_ITERATIONS
+  - window 1 closed at iteration 3000 with 200 samples per quantity: cd(m=0.8795941720324089 s=0.004869479895893591 n_cycles=32) cl(m=-0.031806737238454466 s=0.020762301302025832 n_cycles=18) cy(m=0.009252781487683756 s=0.034048089839013 n_cycles=0) cp_base(m=-0.18877674081563828 s=0.00506050465629054 n_cycles=32)
+  - window 2 closed at iteration 5000 with 200 samples per quantity: cd(m=0.879948697979432 s=0.004736121548040585 n_cycles=32) cl(m=0.023442522012411753 s=0.026013405892294308 n_cycles=11) cy(m=-0.014798066064158868 s=0.03610750383011073 n_cycles=0) cp_base(m=-0.18912789359312174 s=0.004907886942318171 n_cycles=32)
+  - window 3 closed at iteration 7000 with 200 samples per quantity: cd(m=0.8796641504215446 s=0.004863913154256368 n_cycles=32) cl(m=-0.02955359335536888 s=0.023640087009733666 n_cycles=17) cy(m=0.01437827091956235 s=0.03185878021454303 n_cycles=0) cp_base(m=-0.18885153125521698 s=0.005061223200242228 n_cycles=32)
+  - window 4 closed at iteration 9000 with 200 samples per quantity: cd(m=0.8800429462061315 s=0.004732125785040864 n_cycles=32) cl(m=0.02064022685115915 s=0.02903440000102764 n_cycles=6) cy(m=-0.020067999802456646 s=0.03394182841262377 n_cycles=0) cp_base(m=-0.18921852151987203 s=0.004899811482953812 n_cycles=32)
+  - window 5 closed at iteration 11000 with 200 samples per quantity: cd(m=0.8795551933133791 s=0.004844278358270128 n_cycles=32) cl(m=-0.026099742018521846 s=0.02722942217960986 n_cycles=15) cy(m=0.0198894951641123 s=0.02854309975556669 n_cycles=7) cp_base(m=-0.18874225358965174 s=0.005045432771680366 n_cycles=32)
+  - window 6 closed at iteration 13000 with 200 samples per quantity: cd(m=0.8801958893553332 s=0.00474815987994008 n_cycles=32) cl(m=0.016657780990767965 s=0.03223904050480565 n_cycles=3) cy(m=-0.025067429921919265 s=0.029866457665808442 n_cycles=11) cp_base(m=-0.1893700772765401 s=0.004913294941427947 n_cycles=32)
+  - window 7 closed at iteration 15000 with 200 samples per quantity: cd(m=0.8795743296469469 s=0.004812311216588291 n_cycles=32) cl(m=-0.021250872370600003 s=0.031292892621998754 n_cycles=13) cy(m=0.024691638523911187 s=0.024729606485531554 n_cycles=10) cp_base(m=-0.18875863920198235 s=0.005014460864687846 n_cycles=32)
+  - published statistic=iteration_mean window_iterations=14000 n_windows=7
+  - wallclock_solve_s=1149.851400459
+  - status=no_steady_state
+  - stop_reason=Reached 15000 iterations; cl failed the stationarity gate in windows 11000-13000 and 13000-15000 (n = 3 cycles < 10).
+  - summary.json written
+  - monitor_history_re0300.csv written
+  - title LLM_title_cp_y0: cp on y0, Re = 300, no_steady_state, snapshot at iteration 15000
+  - title LLM_title_cp_x2: cp on x2, Re = 300, no_steady_state, snapshot at iteration 15000
+  - title LLM_title_u_over_U_y0: u_over_U on y0, Re = 300, no_steady_state, snapshot at iteration 15000
+  - title LLM_title_u_over_U_x2: u_over_U on x2, Re = 300, no_steady_state, snapshot at iteration 15000
+  - simulation saved under its own name
+
+UNRESOLVED
+  (none)
+
+VERIFICATION LOG
+See the VERIFICATION LOG delivered with the source of run_macro.java: 
+every API member used is classified there as bench-verified, get_doc-verified, 
+or UNRESOLVED with a matching TODO marker in the source.
+
+constants as compiled
+  SAMPLING_INTERVAL=10
+  WINDOW_ITERATIONS=2000
+  DISCARD_ITERATIONS=1000
+  MAX_WINDOWS=7
+  MAX_ITERATIONS=15000
+  K_GATE=2.0
+  K_SD=3.0
+  MIN_CYCLES=10
+  HYSTERESIS_SD=0.1
+  CONVERGED_SD=1.0E-4
+  MASS_IMBALANCE_LIMIT=0.001
+  MASS_IMBALANCE_GRACE_ITERATIONS=100
+samples per closed window=200 (WINDOW_ITERATIONS / SAMPLING_INTERVAL)
+windows closed=7
+  window 1 (iterations 1000-3000, samples=200)
+    cd: m=0.8795941720324089 s=0.004869479895893591 n_cycles=32
+    cl: m=-0.031806737238454466 s=0.020762301302025832 n_cycles=18
+    cy: m=0.009252781487683756 s=0.034048089839013 n_cycles=0
+    cp_base: m=-0.18877674081563828 s=0.00506050465629054 n_cycles=32
+  window 2 (iterations 3000-5000, samples=200)
+    cd: m=0.879948697979432 s=0.004736121548040585 n_cycles=32
+    cl: m=0.023442522012411753 s=0.026013405892294308 n_cycles=11
+    cy: m=-0.014798066064158868 s=0.03610750383011073 n_cycles=0
+    cp_base: m=-0.18912789359312174 s=0.004907886942318171 n_cycles=32
+  window 3 (iterations 5000-7000, samples=200)
+    cd: m=0.8796641504215446 s=0.004863913154256368 n_cycles=32
+    cl: m=-0.02955359335536888 s=0.023640087009733666 n_cycles=17
+    cy: m=0.01437827091956235 s=0.03185878021454303 n_cycles=0
+    cp_base: m=-0.18885153125521698 s=0.005061223200242228 n_cycles=32
+  window 4 (iterations 7000-9000, samples=200)
+    cd: m=0.8800429462061315 s=0.004732125785040864 n_cycles=32
+    cl: m=0.02064022685115915 s=0.02903440000102764 n_cycles=6
+    cy: m=-0.020067999802456646 s=0.03394182841262377 n_cycles=0
+    cp_base: m=-0.18921852151987203 s=0.004899811482953812 n_cycles=32
+  window 5 (iterations 9000-11000, samples=200)
+    cd: m=0.8795551933133791 s=0.004844278358270128 n_cycles=32
+    cl: m=-0.026099742018521846 s=0.02722942217960986 n_cycles=15
+    cy: m=0.0198894951641123 s=0.02854309975556669 n_cycles=7
+    cp_base: m=-0.18874225358965174 s=0.005045432771680366 n_cycles=32
+  window 6 (iterations 11000-13000, samples=200)
+    cd: m=0.8801958893553332 s=0.00474815987994008 n_cycles=32
+    cl: m=0.016657780990767965 s=0.03223904050480565 n_cycles=3
+    cy: m=-0.025067429921919265 s=0.029866457665808442 n_cycles=11
+    cp_base: m=-0.1893700772765401 s=0.004913294941427947 n_cycles=32
+  window 7 (iterations 13000-15000, samples=200)
+    cd: m=0.8795743296469469 s=0.004812311216588291 n_cycles=32
+    cl: m=-0.021250872370600003 s=0.031292892621998754 n_cycles=13
+    cy: m=0.024691638523911187 s=0.024729606485531554 n_cycles=10
+    cp_base: m=-0.18875863920198235 s=0.005014460864687846 n_cycles=32
+exporter: start re_target=300 point=work/cube_re0300
+exporter: objects found
+exporter: plane y0 rows 415/429 missing_in_body 14
+exporter: plane x1 rows 169/169 missing_in_body 0
+exporter: plane x2 rows 169/169 missing_in_body 0
+exporter: plane x4 rows 169/169 missing_in_body 0
+exporter: layout LLM_view_cp_y0: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: views/view_cp_y0.png 1024x739 bytes=80461
+exporter: layout LLM_view_cp_x2: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: views/view_cp_x2.png 1024x739 bytes=63271
+exporter: layout LLM_view_u_over_U_y0: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: views/view_u_over_u_y0.png 1024x739 bytes=134007
+exporter: layout LLM_view_u_over_U_x2: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: views/view_u_over_u_x2.png 1024x739 bytes=127617
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_y0.png 1024x739 bytes=134007 camera {"focal_point": [2.0, 0.0, 0.0], "position": [2.0, -20.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 2.9, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x1.png 1024x739 bytes=133545 camera {"focal_point": [1.0, 0.0, 0.0], "position": [21.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x2.png 1024x739 bytes=127617 camera {"focal_point": [2.0, 0.0, 0.0], "position": [22.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x4.png 1024x739 bytes=93120 camera {"focal_point": [4.0, 0.0, 0.0], "position": [24.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: plane_render.json written
+exporter: setup.txt redactions=2
+exporter: setup.txt html_bytes=475577 setup_bytes=28012
+exporter: staleness.json iterations 15000/15000/15000 cd null/0.8797964827078824 cells 501860/501860/501860
+exporter: staleness: cells and iterations ok
+exporter: summary.json environment_placeholder replaced by environment (platform "linux-x86_64-2.28")
+exporter: done
+manifest: sweep.json points=[100, 300, 1000, 3000]
+manifest: start re_target=300 point=work/cube_re0300 capsule=capsule_cube_re0300
+manifest: summary.json sweep.value=300 convergence.iterations=15000 forces.cd=0.8797964827078824 mesh.cells=501860
+manifest: staleness.json read bytes=740
+manifest: setup.txt version=2606 build=21.04.007 platform=linux-x86_64-2.28 precision=double
+manifest: plane_render.json read bytes=1886
+manifest: LLM_cell_count=501860
+manifest: mesh_cube base_size_over_D=0.5
+manifest: field functions present: x_D,y_D,z_D,cp,u_over_U,v_over_U,w_over_U
+manifest: plane y0 part=grid_y0 rows 415/429 missing_in_body 14 png=planes/plane_y0.png
+manifest: plane x1 part=grid_x1 rows 169/169 missing_in_body 0 png=planes/plane_x1.png
+manifest: plane x2 part=grid_x2 rows 169/169 missing_in_body 0 png=planes/plane_x2.png
+manifest: plane x4 part=grid_x4 rows 169/169 missing_in_body 0 png=planes/plane_x4.png
+manifest: LLM_view_cp_y0 projection read as integer 1, mapping unverified, written as read
+manifest: LLM_disp_cp_y0 clip reads 0, not NONE
+manifest: LLM_disp_cp_y0 contour style reads 1, not NODE_FILLED
+manifest: view cp_y0 size 1024x739
+manifest: LLM_view_u_over_U_y0 projection read as integer 1, mapping unverified, written as read
+manifest: LLM_disp_u_over_U_y0 clip reads 0, not NONE
+manifest: LLM_disp_u_over_U_y0 contour style reads 1, not NODE_FILLED
+manifest: view u_over_U_y0 size 1024x739
+manifest: LLM_view_cp_x2 projection read as integer 1, mapping unverified, written as read
+manifest: LLM_disp_cp_x2 clip reads 0, not NONE
+manifest: LLM_disp_cp_x2 contour style reads 1, not NODE_FILLED
+manifest: view cp_x2 size 1024x739
+manifest: LLM_view_u_over_U_x2 projection read as integer 1, mapping unverified, written as read
+manifest: LLM_disp_u_over_U_x2 clip reads 0, not NONE
+manifest: LLM_disp_u_over_U_x2 contour style reads 1, not NODE_FILLED
+manifest: view u_over_U_x2 size 1024x739
+manifest: cube_re0300.sim sha256 efec07595d9d4ee42776bc330b5e008ad34de86c310f8799893ae07a7ca35f3e
+manifest: cube_sweep_template.sim sha256 c280377613abd599335a4e42c03fc05357377a1b39cfcc1ec121a3376f11602f
+manifest: run_macro.java sha256 3fa47d5323373b5ab5cd020686b68648d9551afa87aee08f4ddd7245e17960ac
+manifest: output_exporter.java sha256 41b45731eefdd83dd624696f49cf0e01f7bff2361122878f1550f61544ddcb6e
+manifest: manifest_writer.java sha256 51eb83d004b11e684340f88898863c1f91b45d143632fef136197b7823d05307
+manifest: object_audit.java sha256 ae50ccc390b300ee9084e12877f57f518be299fd0ab8e5b32df045b842511bb3
+manifest: sweep_driver.sh sha256 b58f7513ec4e044aaddbf880dd19e7e1eee2d6ca7180993dffc31959818e50ed
+manifest: build_capsule.py sha256 8855afd86e14ab318ca49b6c36674d14dc250689061ddba82c7bd07f87ca7d5a
+manifest: manifest.json bytes=9491
+manifest: done
+audit: reports ReportManager count=31
+audit: parts PartManager count=11
+audit: tables TableManager count=4
+audit: scenes SceneManager count=5
+audit: field_functions FieldFunctionManager count=122
+audit: monitors MonitorManager count=8
+audit: stopping_criteria SolverStoppingCriterionManager count=4
+audit: global_parameters GlobalParameterManager count=5
+audit: custom_mesh_controls CustomMeshControlManager count=3
+audit: displayers:LLM_plane_u_over_U DisplayerManager count=2
+audit: displayers:LLM_view_cp_x2 DisplayerManager count=2
+audit: displayers:LLM_view_cp_y0 DisplayerManager count=2
+audit: displayers:LLM_view_u_over_U_x2 DisplayerManager count=2
+audit: displayers:LLM_view_u_over_U_y0 DisplayerManager count=2
+audit: annotations AnnotationManager count=10
+audit: prism guard pass: parts ok [inlet, lateral_yminus, lateral_yplus, lateral_zminus, lateral_zplus, outlet], option DISABLE
+audit: RESULT PASS
+audit: done
+exporter: start re_target=300 point=work/cube_re0300
+exporter: objects found
+exporter: plane y0 rows 415/429 missing_in_body 14
+exporter: plane x1 rows 169/169 missing_in_body 0
+exporter: plane x2 rows 169/169 missing_in_body 0
+exporter: plane x4 rows 169/169 missing_in_body 0
+exporter: transient scene view_cp_body created (not saved)
+exporter: layout view_cp_body: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: views/view_cp_body.png 1024x739 bytes=79657 camera {"focal_point": [0.07, 0.099, -0.008], "position": [37.781, -25.043, 20.107], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 0.988, "projection": 1} corners (255,255,255) (255,255,255) (255,255,255) (255,255,255)
+exporter: diffsrc/view_cp_body.png 1024x739 bytes=47966 lookup 'grayscale' background [1.0, 0.0, 1.0] no title corners (255,0,255) (255,0,255) (255,0,255) (255,0,255)
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_y0.png 1024x739 bytes=134007 camera {"focal_point": [2.0, 0.0, 0.0], "position": [2.0, -20.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 2.9, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x1.png 1024x739 bytes=133545 camera {"focal_point": [1.0, 0.0, 0.0], "position": [21.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x2.png 1024x739 bytes=127617 camera {"focal_point": [2.0, 0.0, 0.0], "position": [22.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x4.png 1024x739 bytes=93120 camera {"focal_point": [4.0, 0.0, 0.0], "position": [24.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: plane_render.json written
+exporter: setup.txt redactions=2
+exporter: setup.txt html_bytes=475576 setup_bytes=28011
+exporter: staleness.json iterations 15000/15000/15000 cd null/0.8797964827078824 cells 501860/501860/501860
+exporter: staleness: cells and iterations ok
+exporter: summary.json environment replaced by environment (platform "linux-x86_64-2.28")
+exporter: done
+manifest: sweep.json points=[100, 300, 1000, 3000]
+manifest: sweep.json baseline=100
+manifest: start re_target=300 point=work/cube_re0300 capsule=capsule_cube_re0300
+manifest: manifest.json already present, it will be replaced
+manifest: summary.json sweep.value=300 convergence.iterations=15000 forces.cd=0.8797964827078824 mesh.cells=501860
+manifest: staleness.json read bytes=740
+manifest: setup.txt version=2606 build=21.04.007 platform=linux-x86_64-2.28 precision=double
+manifest: plane_render.json read bytes=2520
+manifest: LLM_cell_count=501860
+manifest: mesh_cube base_size_over_D=0.5
+manifest: field functions present: x_D,y_D,z_D,cp,u_over_U,v_over_U,w_over_U
+manifest: plane y0 part=grid_y0 rows 415/429 missing_in_body 14 png=planes/plane_y0.png
+manifest: plane x1 part=grid_x1 rows 169/169 missing_in_body 0 png=planes/plane_x1.png
+manifest: plane x2 part=grid_x2 rows 169/169 missing_in_body 0 png=planes/plane_x2.png
+manifest: plane x4 part=grid_x4 rows 169/169 missing_in_body 0 png=planes/plane_x4.png
+manifest: view views/view_cp_body.png size 1024x739
+manifest: cube_re0300.sim sha256 efec07595d9d4ee42776bc330b5e008ad34de86c310f8799893ae07a7ca35f3e
+manifest: cube_sweep_template.sim sha256 c280377613abd599335a4e42c03fc05357377a1b39cfcc1ec121a3376f11602f
+manifest: run_macro.java sha256 3fa47d5323373b5ab5cd020686b68648d9551afa87aee08f4ddd7245e17960ac
+manifest: output_exporter.java sha256 41b45731eefdd83dd624696f49cf0e01f7bff2361122878f1550f61544ddcb6e
+manifest: manifest_writer.java sha256 51eb83d004b11e684340f88898863c1f91b45d143632fef136197b7823d05307
+manifest: object_audit.java sha256 ae50ccc390b300ee9084e12877f57f518be299fd0ab8e5b32df045b842511bb3
+manifest: sweep_driver.sh sha256 b58f7513ec4e044aaddbf880dd19e7e1eee2d6ca7180993dffc31959818e50ed
+manifest: build_capsule.py sha256 8855afd86e14ab318ca49b6c36674d14dc250689061ddba82c7bd07f87ca7d5a
+manifest: manifest.json bytes=7522
+manifest: done
+exporter: start re_target=300 point=work/cube_re0300
+exporter: objects found
+exporter: plane y0 rows 415/429 missing_in_body 14
+exporter: plane x1 rows 169/169 missing_in_body 0
+exporter: plane x2 rows 169/169 missing_in_body 0
+exporter: plane x4 rows 169/169 missing_in_body 0
+exporter: transient scene view_cp_body created (not saved)
+exporter: layout view_cp_body: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: views/view_cp_body.png 1024x739 bytes=79657 camera {"focal_point": [0.07, 0.099, -0.008], "position": [37.781, -25.043, 20.107], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 0.988, "projection": 1} corners (255,255,255) (255,255,255) (255,255,255) (255,255,255)
+exporter: diffsrc/view_cp_body.png 1024x739 bytes=47966 lookup 'grayscale' background [1.0, 0.0, 1.0] no title corners (255,0,255) (255,0,255) (255,0,255) (255,0,255)
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_y0.png 1024x739 bytes=148951 camera {"focal_point": [2.0, 0.0, 0.0], "position": [2.0, -20.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 2.9, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x1.png 1024x739 bytes=137699 camera {"focal_point": [1.0, 0.0, 0.0], "position": [21.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x2.png 1024x739 bytes=129434 camera {"focal_point": [2.0, 0.0, 0.0], "position": [22.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: layout LLM_plane_u_over_U: title font 'Siemens Sans Global-Plain' height 0.04, legend width 0.3 position [0.6, 0.08] shadow false label format '%.2f'
+exporter: planes/plane_x4.png 1024x739 bytes=98006 camera {"focal_point": [4.0, 0.0, 0.0], "position": [24.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1}
+exporter: plane_render.json written
+exporter: setup.txt redactions=2
+exporter: setup.txt html_bytes=475576 setup_bytes=28011
+exporter: staleness.json iterations 15000/15000/15000 cd null/0.8797964827078824 cells 501860/501860/501860
+exporter: staleness: cells and iterations ok
+exporter: summary.json environment replaced by environment (platform "linux-x86_64-2.28")
+exporter: done
+manifest: sweep.json points=[100, 300, 1000, 3000]
+manifest: sweep.json baseline=100
+manifest: start re_target=300 point=work/cube_re0300 capsule=capsule_cube_re0300
+manifest: manifest.json already present, it will be replaced
+manifest: summary.json sweep.value=300 convergence.iterations=15000 forces.cd=0.8797964827078824 mesh.cells=501860
+manifest: staleness.json read bytes=740
+manifest: setup.txt version=2606 build=21.04.007 platform=linux-x86_64-2.28 precision=double
+manifest: plane_render.json read bytes=2520
+manifest: LLM_cell_count=501860
+manifest: mesh_cube base_size_over_D=0.5
+manifest: field functions present: x_D,y_D,z_D,cp,u_over_U,v_over_U,w_over_U
+manifest: plane y0 part=grid_y0 rows 415/429 missing_in_body 14 png=planes/plane_y0.png
+manifest: plane x1 part=grid_x1 rows 169/169 missing_in_body 0 png=planes/plane_x1.png
+manifest: plane x2 part=grid_x2 rows 169/169 missing_in_body 0 png=planes/plane_x2.png
+manifest: plane x4 part=grid_x4 rows 169/169 missing_in_body 0 png=planes/plane_x4.png
+manifest: view views/view_cp_body.png size 1024x739
+manifest: cube_re0300.sim sha256 efec07595d9d4ee42776bc330b5e008ad34de86c310f8799893ae07a7ca35f3e
+manifest: cube_sweep_template.sim sha256 c280377613abd599335a4e42c03fc05357377a1b39cfcc1ec121a3376f11602f
+manifest: run_macro.java sha256 ba98e5b70fb499f5dec235b0cec7580b178446c20b1bf04d08535a56c140d69b
+manifest: output_exporter.java sha256 e53ec3fc2678be5e44923ad1802993d536b7f554bc66a0bb205fae123be1b12f
+manifest: manifest_writer.java sha256 ec626f0d894d9a220d53555155322f626cfa10a25e5c12cd6445d7656fea1169
+manifest: object_audit.java sha256 09669ead7a4adceb9a6f2add1d7593684c396adaaeef5975e6ecbe0c481038de
+manifest: sweep_driver.sh sha256 467150012fef8adfec2ecc4425a5cf0340515fa53c6382346e20779b2b3f74cf
+manifest: build_capsule.py sha256 8855afd86e14ab318ca49b6c36674d14dc250689061ddba82c7bd07f87ca7d5a
+manifest: manifest.json bytes=7522
+manifest: done
+manifest: sweep.json points=[100, 300, 1000, 3000]
+manifest: sweep.json baseline=100
+manifest: start re_target=300 point=work/cube_re0300 capsule=capsule_cube_re0300
+manifest: manifest.json already present, it will be replaced
+manifest: summary.json sweep.value=300 convergence.iterations=15000 forces.cd=0.8797964827078824 mesh.cells=501860
+manifest: staleness.json read bytes=740
+manifest: setup.txt version=2606 build=21.04.007 platform=linux-x86_64-2.28 precision=double
+manifest: plane_render.json read bytes=2520
+manifest: LLM_cell_count=501860
+manifest: mesh_cube base_size_over_D=0.5
+manifest: field functions present: x_D,y_D,z_D,cp,u_over_U,v_over_U,w_over_U
+manifest: plane y0 part=grid_y0 rows 415/429 missing_in_body 14 png=planes/plane_y0.png
+manifest: plane x1 part=grid_x1 rows 169/169 missing_in_body 0 png=planes/plane_x1.png
+manifest: plane x2 part=grid_x2 rows 169/169 missing_in_body 0 png=planes/plane_x2.png
+manifest: plane x4 part=grid_x4 rows 169/169 missing_in_body 0 png=planes/plane_x4.png
+manifest: view views/view_cp_body.png size 1024x739
+manifest: cube_re0300.sim sha256 efec07595d9d4ee42776bc330b5e008ad34de86c310f8799893ae07a7ca35f3e
+manifest: cube_sweep_template.sim sha256 c280377613abd599335a4e42c03fc05357377a1b39cfcc1ec121a3376f11602f
+manifest: run_macro.java sha256 cbdbb47f3b5d030d47044ae340ecd024a816538c5b9e76b606c892e96970c488
+manifest: output_exporter.java sha256 7844bbe778d040464f9453bc2179e2e8acb89bf3f72aa106e138940f42aefc76
+manifest: manifest_writer.java sha256 ec626f0d894d9a220d53555155322f626cfa10a25e5c12cd6445d7656fea1169
+manifest: object_audit.java sha256 09669ead7a4adceb9a6f2add1d7593684c396adaaeef5975e6ecbe0c481038de
+manifest: sweep_driver.sh sha256 467150012fef8adfec2ecc4425a5cf0340515fa53c6382346e20779b2b3f74cf
+manifest: build_capsule.py sha256 6f184a02f32d6ffdb2e8f4f3c282cebfa6ae11660962833bb3f3a70ecf4548e8
+manifest: manifest.json bytes=7522
+manifest: done

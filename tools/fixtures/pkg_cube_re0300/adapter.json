@@ -1,0 +1,63 @@
+{
+  "adapter": "starccm",
+  "solver": "Simcenter STAR-CCM+",
+  "version": "2606",
+  "build": "21.04.007",
+  "platform": "linux-x86_64-2.28",
+  "precision": "double",
+  "sim": {
+    "file": "cube_re0300.sim",
+    "sha256": "efec07595d9d4ee42776bc330b5e008ad34de86c310f8799893ae07a7ca35f3e"
+  },
+  "chain": [
+    {
+      "file": "run_macro",
+      "path": "macros/t7/run_macro.java",
+      "sha256": "cbdbb47f3b5d030d47044ae340ecd024a816538c5b9e76b606c892e96970c488"
+    },
+    {
+      "file": "output_exporter",
+      "path": "macros/t7/output_exporter.java",
+      "sha256": "7844bbe778d040464f9453bc2179e2e8acb89bf3f72aa106e138940f42aefc76"
+    },
+    {
+      "file": "manifest_writer",
+      "path": "macros/t7/manifest_writer.java",
+      "sha256": "ec626f0d894d9a220d53555155322f626cfa10a25e5c12cd6445d7656fea1169"
+    },
+    {
+      "file": "object_audit",
+      "path": "macros/t7/object_audit.java",
+      "sha256": "09669ead7a4adceb9a6f2add1d7593684c396adaaeef5975e6ecbe0c481038de"
+    },
+    {
+      "file": "sweep_driver",
+      "path": "macros/t7/sweep_driver.sh",
+      "sha256": "467150012fef8adfec2ecc4425a5cf0340515fa53c6382346e20779b2b3f74cf"
+    },
+    {
+      "file": "build_capsule",
+      "path": "macros/t7/build_capsule.py",
+      "sha256": "6f184a02f32d6ffdb2e8f4f3c282cebfa6ae11660962833bb3f3a70ecf4548e8"
+    }
+  ],
+  "mesh": {
+    "operation": "mesh_cube",
+    "base_size_over_D": 0.5,
+    "cells": 501860,
+    "identical_across_sweep": true,
+    "prism_guard": "LLM_prism_off_nonwall"
+  },
+  "audit": {
+    "result": "PASS",
+    "summary": {
+      "owned": 44,
+      "unlisted": 0,
+      "inherited": 42,
+      "inherited_unused": 1,
+      "system": 126,
+      "unknown": 0,
+      "missing_owned": []
+    }
+  }
+}

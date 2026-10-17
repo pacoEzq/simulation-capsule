@@ -1,0 +1,15 @@
+{
+  "iterations": {"setup_txt": 15000, "summary_json": 15000, "sim_report": 15000},
+  "cd": {"setup_txt": null, "summary_json": 0.8797964827078824, "sim_report": 0.876127510593043},
+  "cells": {"setup_txt": 501860, "summary_json": 501860, "sim_report": 501860},
+  "planes": {
+    "y0": {"rows_written": 415, "rows_expected": 429, "missing_in_body": 14},
+    "x1": {"rows_written": 169, "rows_expected": 169, "missing_in_body": 0},
+    "x2": {"rows_written": 169, "rows_expected": 169, "missing_in_body": 0},
+    "x4": {"rows_written": 169, "rows_expected": 169, "missing_in_body": 0}
+  },
+  "enforced": {"cells": true, "iterations": true, "cd": false},
+  "cells_equal": true,
+  "iterations_equal": true,
+  "written_by": "output_exporter"
+}

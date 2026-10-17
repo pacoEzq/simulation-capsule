@@ -1,0 +1,164 @@
+{
+  "card_version": 0,
+  "card_source": "user",
+  "body": {
+    "alias": "cube_re0300",
+    "length": {
+      "symbol": "D",
+      "meaning": "cube edge",
+      "source": "read"
+    },
+    "velocity": {
+      "symbol": "U",
+      "meaning": "inlet speed",
+      "source": "read"
+    },
+    "group": {
+      "symbol": "Re",
+      "value": 300,
+      "definition": "rho*U*D/mu",
+      "source": "read"
+    },
+    "regime": {
+      "value": "steady solver, flow not stationary (no_steady_state)",
+      "source": "read"
+    },
+    "formation": {
+      "scalars": "window_mean over iterations 13001-15000 (status no_steady_state, 7 windows of 2000)",
+      "fields": "instantaneous at iteration 15000",
+      "source": "read"
+    },
+    "fluid_region": {
+      "name": "fluid",
+      "source": "read"
+    },
+    "body_boundaries": {
+      "names": [
+        "cube_front",
+        "cube_back",
+        "cube_top",
+        "cube_bottom",
+        "cube_left",
+        "cube_right"
+      ],
+      "group": "cube",
+      "source": "read"
+    },
+    "colormap": "blue-red uniform perception"
+  },
+  "references": [
+    {
+      "key": "cd",
+      "from": "report cd",
+      "source": "read"
+    },
+    {
+      "key": "cells",
+      "from": "report LLM_cell_count",
+      "source": "read"
+    }
+  ],
+  "stations": [
+    {
+      "stem": "y0",
+      "axis": "y",
+      "value": 0.0,
+      "grid": [
+        33,
+        13
+      ],
+      "spacing": 0.25,
+      "fields": [
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "source": "read"
+    },
+    {
+      "stem": "x1",
+      "axis": "x",
+      "value": 1.0,
+      "grid": [
+        13,
+        13
+      ],
+      "spacing": 0.25,
+      "fields": [
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "source": "read"
+    },
+    {
+      "stem": "x2",
+      "axis": "x",
+      "value": 2.0,
+      "grid": [
+        13,
+        13
+      ],
+      "spacing": 0.25,
+      "fields": [
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "source": "read"
+    },
+    {
+      "stem": "x4",
+      "axis": "x",
+      "value": 4.0,
+      "grid": [
+        13,
+        13
+      ],
+      "spacing": 0.25,
+      "fields": [
+        "cp",
+        "u_over_U",
+        "v_over_U",
+        "w_over_U"
+      ],
+      "source": "read"
+    }
+  ],
+  "views": [
+    {
+      "file": "view_cp_body.png",
+      "question": "Where does the flow push and where does it pull on the body surface?",
+      "field": "cp",
+      "parts": "cube_back, cube_bottom, cube_front, cube_left, cube_right, cube_top",
+      "range": [
+        -2.8,
+        1.1
+      ],
+      "diff": true,
+      "camera": {
+        "focal_point": [
+          0.07,
+          0.099,
+          -0.008
+        ],
+        "position": [
+          37.781,
+          -25.043,
+          20.107
+        ],
+        "view_up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "parallel_scale": 0.988,
+        "projection": 1
+      },
+      "source": "read"
+    }
+  ]
+}

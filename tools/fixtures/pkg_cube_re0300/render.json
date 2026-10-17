@@ -1,0 +1,30 @@
+{
+  "scene": "LLM_plane_u_over_U",
+  "displayer": "LLM_disp_plane_u_over_U",
+  "field": "u_over_U",
+  "export": {"call": "printAndWait(file, 1, 1024, 739)"},
+  "colorbar": {"range": [-0.8, 1.4], "levels": 256, "clip": "0", "labels": 6, "label_format": "%.2f", "contour_style": "1", "colormap": "blue-red uniform perception"},
+  "layout": {"scenes": ["view_cp_body", "LLM_plane_u_over_U"], "title": {"font_string": "Siemens Sans Global-Plain", "height": 0.04}, "colorbar": {"width": 0.3, "position": [0.6, 0.08], "shadow": false, "label_format": "%.2f"}},
+  "planes": {
+    "y0": {"file": "planes/plane_y0.png", "part": "section_y0",
+      "camera": {"focal_point": [2.0, 0.0, 0.0], "position": [2.0, -20.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 2.9, "projection": 1},
+      "title": "u_over_U on y0, Re = 300, no_steady_state, snapshot at iteration 15000"},
+    "x1": {"file": "planes/plane_x1.png", "part": "section_x1",
+      "camera": {"focal_point": [1.0, 0.0, 0.0], "position": [21.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1},
+      "title": "u_over_U on x1, Re = 300, no_steady_state, snapshot at iteration 15000"},
+    "x2": {"file": "planes/plane_x2.png", "part": "section_x2",
+      "camera": {"focal_point": [2.0, 0.0, 0.0], "position": [22.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1},
+      "title": "u_over_U on x2, Re = 300, no_steady_state, snapshot at iteration 15000"},
+    "x4": {"file": "planes/plane_x4.png", "part": "section_x4",
+      "camera": {"focal_point": [4.0, 0.0, 0.0], "position": [24.0, 0.0, 0.0], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 1.8, "projection": 1},
+      "title": "u_over_U on x4, Re = 300, no_steady_state, snapshot at iteration 15000"}
+  },
+  "views": [
+    {"file": "views/view_cp_body.png", "scene": "view_cp_body", "displayer": "disp_cp_body", "field": "cp", "part": "cube_back, cube_bottom, cube_front, cube_left, cube_right, cube_top",
+      "camera": {"focal_point": [0.07, 0.099, -0.008], "position": [37.781, -25.043, 20.107], "view_up": [0.0, 0.0, 1.0], "parallel_scale": 0.988, "projection": 1},
+      "colorbar": {"range": [-2.8, 1.1], "levels": 256, "clip": "0", "labels": 6, "label_format": "%.2f", "contour_style": "1", "colormap": "blue-red uniform perception"},
+      "title": "cp on body, Re = 300, no_steady_state, snapshot at iteration 15000",
+      "export": {"call": "printAndWait(file, 1, 1024, 739, true, false)"}}
+  ],
+  "written_by": "output_exporter"
+}
