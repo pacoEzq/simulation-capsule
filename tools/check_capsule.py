@@ -35,8 +35,8 @@ import re
 import subprocess
 import sys
 
-SPEC_VERSION = "0.6"
-TOOL_VERSION = "1.7"
+SPEC_VERSION = "0.7"
+TOOL_VERSION = "1.8"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -48,7 +48,6 @@ ROOT_FILES = {
     "summary.json": "T2",
     "samples.csv": "T4",
     "features.json": "T5",
-    "run_macro.java": "T7",
     "manifest.json": "T7",
     "disclosure.json": "T10",
     "diff.json": "T6",

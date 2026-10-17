@@ -38,7 +38,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from check_capsule import walk_capsule, read_text  # noqa: E402
 
-TOOL_VERSION = "1.0"
+TOOL_VERSION = "1.1"
 DEFAULT_BUDGET = 60000
 DEFAULT_WINDOW = 200000
 IMAGE_TOKENS = 1200
@@ -62,7 +62,6 @@ PART = {
     "features.json": "T5",
     "views": "T6",
     "diff": "T6b",
-    "run_macro.java": "T7",
     "manifest.json": "T7",
     "signals": "T8",
     "modes": "T9",

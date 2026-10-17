@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.6. Draft.**
+**Version 0.7. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -39,17 +39,6 @@ The alias is neutral: never a project name, a customer, or a program. It follows
 the case, not the geometry, so a case run at two Reynolds numbers gets two aliases.
 The published examples use `capsule_ahmed25_re1e6`, not `capsule_ahmed25`.
 
-Numbers in an alias follow the conventions already in use: a decimal point is
-written `p` (`a13p3`), a power of ten `e` (`re1e6`), and the points of a sweep
-are zero-padded to the width of the largest, so that they sort in parameter
-order: `capsule_cube_re0100` to `capsule_cube_re3000`. A single case carries its
-number unpadded, `capsule_cube_re200`.
-
-Two capsules of the same case that differ in how they were produced, a mesh, a
-precision, a solver, share the alias and add a suffix naming the difference:
-`_m2`, `_double`. A sequence letter or number says that something differs
-without saying what, and is not an alias.
-
 **Files.** `snake_case`, lowercase, with the extension declaring the format. No
 spaces, no dates in filenames, no `_final_v2`.
 
@@ -69,6 +58,50 @@ capsule, notes to the reader, license files and anything else addressed to a hum
 belong outside the directory, because the capsule travels whole and everything
 inside it is spent from the token budget. A `README.md` sitting next to
 `summary.json` is a contract violation, not a courtesy.
+
+### 2.1 Naming a capsule
+
+An alias is an identifier, not a record. It names what distinguishes this
+capsule from the others it will sit beside; everything else about how it was
+made is inside, in `environment` (4.2.1) and `manifest.json` (4.8). Four rules
+cover every case so far.
+
+**A capsule on its own** is `capsule_<case>`, the case with the parameter
+that defines it: `capsule_naca0012_aoa5`, `capsule_cube_re0300`. Nothing
+about the solver, the mesh or the build goes in the name. A capsule built with
+another solver, alone in its repository, is still `capsule_cube_re0300`.
+
+**A sweep** adds the swept variable to every alias, zero-padded to the width
+of the largest value so the names sort in parameter order:
+`capsule_cube_re0100` to `capsule_cube_re3000`. A decimal point is written
+`p` (`a13p3`), a power of ten `e` (`re1e6`). A single case carries its number
+unpadded, `capsule_cube_re200`.
+
+**A pair or family that varies something other than the case** keeps the
+alias on the reference and adds, on each variant, a suffix naming the
+variable and its value: `_ofm` for a second solver, `_m2` for a second mesh,
+`_single` for a second precision. Several suffixes go in a fixed order:
+solver, mesh, precision (`_ofm_m2`). The suffix repeats what `summary.json`
+already states, on purpose: the Reynolds number in `re0300` is also a key
+inside, and the alias is where a reader sees the variable before opening
+anything.
+
+**A solver code** is the short form of `environment.solver`, three
+lowercase letters. The table lists the codes defined so far; the product name
+is written as its vendor writes it, the same string `environment.solver`
+carries. A solver not listed here takes a code of the same shape, declared
+in the capsule's case card until the table catches up.
+
+| `environment.solver` | code |
+|---|---|
+| Simcenter STAR-CCM+ | `scm` |
+| OpenFOAM | `ofm` |
+| Ansys Fluent | `flu` |
+| COMSOL Multiphysics | `cms` |
+
+A suffix that does not name a variable is not an alias: `_b`, `_v2`,
+`_final` and `_new` say that something differs without saying what, and the
+validator may warn on them.
 
 ## 3. Global rules
 
@@ -632,10 +665,18 @@ A worked baseline: for a converged case with a limit cycle, 0.135 percent of pix
 changed between two instants of the same run. That is the noise floor a real
 difference has to stand out against.
 
-### 4.8 `run_macro.java` and `manifest.json` (provisional)
+### 4.8 `manifest.json` (provisional)
 
-Reproduction and provenance. The manifest carries seeds, colorbar ranges, solver and
-tool versions, and the measured token weight of each artifact.
+The build record: what produced the capsule and with what. It carries the chain,
+each script or macro by path and sha256, the seeds, the colorbar ranges and
+colormaps, the solver and tool versions, and the measured token weight of each
+artifact (3.5). The scripts themselves stay outside the capsule.
+
+The manifest follows the preamble. Its keys describe the build in terms no
+solver owns; whatever names an object, a call or a setting of the producing
+software, a scene, a table, a font, an export call, a compiler version, goes in
+a `recipe` object inside the block it belongs to. A reader comparing two
+capsules reads the manifest and skips every `recipe`.
 
 Macros are idempotent, fail loudly on missing preconditions, and never invent object
 names. Each script or macro in the chain declares the solver build it was verified
@@ -694,6 +735,7 @@ run it on the expanded directory.
 | 0.4 | Unit suffixes inside `reference` accepted as written, `_per_` recommended (3.1). Root block `environment` (4.2.1), window statistics (4.2.2), `convergence` with its `uncertainty` (4.2.3), view and frame hashes in `diff.json`, full-SHA `base.commit` (4.7). Not purely additive: see below. |
 | 0.5 | Definition separated from recipe (preamble): each artifact is defined in terms no solver owns, with the STAR-CCM+ steps under **Recipe**; `setup.txt` (4.1) and `environment` (4.2.1) restated that way. A key names the quantity, never the instrument (4.2). Token budget as a design target, not a gate (3.5). Numbers and production suffixes in an alias (2). Additive over 0.4; every capsule valid under 0.4 is valid under 0.5. |
 | 0.6 | How each value was formed (3.6): a file holding a field declares whether it is one instant or a statistic, and over which window. Plane header and nodes in the body (4.3). Force coefficients and the pressure and friction split (4.2). No check changes; capsules published before 0.6 stay valid as published: see below. |
+| 0.7 | Naming a capsule (2.1): the alias names what varies in the collection, with solver codes for the variant suffix; the 0.5 paragraphs on numbers and suffixes are absorbed. `manifest.json` is the build record, with whatever names the producing software under `recipe` (4.8); the scripts stay outside the capsule. No new check: see below. |
 
 ### 0.3 → 0.4
 
@@ -750,3 +792,17 @@ run it on the expanded directory.
   before 0.6, stay valid as published: their plane headers do not say how the
   values were formed, and `plane_y0.csv` keeps 11 nodes on the cube surface,
   415 of 429.
+
+### 0.6 → 0.7
+
+- 2.1: one principle for aliases, four rules (a capsule on its own, a sweep, a
+  variant that differs in how it was produced, a solver code) and the table of
+  solver codes. It restates the 0.5 paragraphs on numbers and suffixes, which
+  it replaces; every published alias already follows it.
+- 4.8: `manifest.json` names the chain by path and sha256 and keeps
+  solver-specific names in `recipe` objects. `run_macro.java` is no longer a
+  capsule artifact.
+- Compatibility: no new check. The validator and the ledger no longer accept
+  `run_macro.java` at the capsule root; no published capsule carries one. The
+  five Part 7 manifests, published before 0.7, keep their form and carry no
+  `recipe` object.
