@@ -19,36 +19,35 @@ the upstream face. They parted on one question: which way the artifact moves
 under refinement. A said up, which is right; B said down. A scored 4 of 4, B 3
 of 4, and the naive reading of the labels 0 of 3.
 
-The two runs are not a head to head. The tiers were not recorded, and the
-grading compares each reader with the solver and with the naive reading, never
-the readers with each other.
+The two runs are not a head to head. A ran at extra effort and B in Expert
+mode, on the same day, under the same kit, and the grading compares each reader
+with the solver and with the naive reading, never the readers with each other.
 
 ## Provenance
 
 | Reader | Family | Version | Tier | Date | Conversation |
 |---|---|---|---|---|---|
-| A | Anthropic Claude | Fable 5.1 | not recorded | 2026-10-16 | [shared](https://claude.ai/share/eab9616d-e229-4bea-b82d-dbe031468aa6) |
-| B | xAI Grok | 4.7 | not recorded | 2026-10-16 | [shared](https://grok.com/share/c2hhcmQtMg_87804f7b-042a-4261-bc1c-a6b7b816aa0e) |
+| A | Anthropic Claude | Fable 5.1 | extra effort | 2026-10-16 | [shared](https://claude.ai/share/eab9616d-e229-4bea-b82d-dbe031468aa6) |
+| B | xAI Grok | 4.7 | Expert | 2026-10-16 | [shared](https://grok.com/share/c2hhcmQtMg_87804f7b-042a-4261-bc1c-a6b7b816aa0e) |
 
 Letters are used below. The table exists so the reading can be checked, not so
-the readers can be ranked, and here they cannot be: the tiers are unknown.
+the readers can be ranked, and here they cannot be: the tiers differ.
 
 The probe is also reported in Appendix B of the [Part 7c
 post](https://community.sw.siemens.com/s/question/0D5Vb00001fgMSYKA2/preparing-cfd-output-for-large-language-models-7c10-integrity-a-capsule-sealed-to-a-commit).
 
 ## The kit as issued
 
-Kit v3, frozen on 2026-10-16. One archive, `probe_inputs.zip`: the four
-capsules `capsule_cube_re0100`, `capsule_cube_re0300`, `capsule_cube_re1000`
-and `capsule_cube_re3000` as they stood at `de2a834`, 54 files, 2,382,824
-bytes, the same archive as in Parts 7a and 7b. It was rebuilt from a public
-clone of that commit with the same script and the same sha256, and checked
-before the probe. It contains no Side Run: the refinement series was published
-afterwards, so neither reader could have read the answer in the archive. The
-prompt travelled with the archive; one follow-up was allowed, only if the
-format was missing, and neither reader used it. One message each. The expected
-answers and tolerances the operator graded against were never shown to the
-reader and are not reproduced.
+Kit v3, frozen on 2026-10-16. One archive, `probe_inputs.zip`: the four capsules
+`capsule_cube_re0100`, `capsule_cube_re0300`, `capsule_cube_re1000` and
+`capsule_cube_re3000` as they stood at `de2a834`, 54 files, 2,382,824 bytes, the
+same archive as in Parts 7a and 7b. It was rebuilt from a public clone of that
+commit with the same script and the same sha256, and checked before the probe.
+It contains no Side Run: the refinement series was published afterwards, so
+neither reader could have read the answer in the archive. The prompt travelled
+with the archive; one follow-up was allowed, only if the format was missing, and
+neither reader used it. One message each. The expected answers and tolerances I
+graded against were never shown to the reader and are not reproduced.
 
 Kit v3 replaces v2, which was never run, and adds P3 to v2's P1 and P2. An
 earlier kit of 2026-10-02 (three integrity questions) was retired before.
@@ -205,9 +204,8 @@ Side Run measured, and no file in the archive says either way.
 
 ## Conflict of interest
 
-Reader A is a Claude model, and this record was written with the assistance of
-a Claude model. The probes were issued, the sessions run and the scoring
-approved by the author. The transcripts are linked. The capsule fields above
-are checkable against `examples/capsule_cube_re0100/summary.json`; the
-refinement series and the point probe are the solver's, and the Side Run holds
-the former.
+Reader A is a Claude model, and a Claude model helped me write this record. I
+issued the probes, ran the sessions and approved the scoring. The transcripts
+are linked. The capsule fields above are checkable against
+`examples/capsule_cube_re0100/summary.json`; the refinement series and the point
+probe are the solver's, and the Side Run holds the former.

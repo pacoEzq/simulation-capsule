@@ -70,8 +70,8 @@ the three reader draft of the Part 6 record. The four reader record replaced
 it, and the draft is gone from the tree and kept in the history.
 
 The single reader in Parts 1 to 5, reader D in Part 6, reader A in Part 6b and
-reader A in Parts 7a, 7b and 7c share a family with the assistant that helped
-write these records. The conflict is in the judgement, not in `tools/`, which is
+reader A in Parts 7a, 7b and 7c share a family with the Claude model that
+helped me write these records. The conflict is in the judgement, not in `tools/`, which is
 deterministic and runnable by anyone. Every transcript is linked for the same
 reason.
 

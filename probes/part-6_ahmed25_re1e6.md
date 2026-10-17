@@ -113,9 +113,8 @@ follows from the Probe 2 error, not from a separate one.
 
 ## Conflict of interest
 
-Reader D is a Claude model, and this record was written with the assistance of
-a Claude model. The probes were issued, the sessions run and the scoring
-approved by the author. The transcripts are linked and the scoring is
-checkable against the capsule, which is the only reason it need not be taken on
-trust. The same holds for Parts 1 to 5, where the single reader is from that
-family throughout.
+Reader D is a Claude model, and a Claude model helped me write this record. I
+issued the probes, ran the sessions and approved the scoring. The transcripts
+are linked and the scoring is checkable against the capsule, which is the only
+reason it need not be taken on trust. The same holds for Parts 1 to 5, where the
+single reader is from that family throughout.

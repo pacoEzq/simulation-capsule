@@ -14,31 +14,31 @@ and B six. Taking the summary at face value, the naive reading, got three of
 eight and was 9.5 to 43 times low on every magnitude. Both readers said that no
 field of the capsule ties the planes to an iteration.
 
-The two runs are not a head to head. They ran in separate new chats on the same
-day, under the same kit, and the tier of each was not recorded.
+The two runs are not a head to head. A ran at maximum effort and B in Expert
+mode, in separate new chats on the same day, under the same kit.
 
 ## Provenance
 
 | Reader | Family | Version | Tier | Date | Conversation |
 |---|---|---|---|---|---|
-| A | Anthropic Claude | Fable 5.1 | not recorded | 2026-10-09 | [shared](https://claude.ai/share/77d9c15f-e444-4f21-93de-e191b5518626) |
-| B | xAI Grok | 4.7 | not recorded | 2026-10-09 | [shared](https://grok.com/share/c2hhcmQtMg_9317e835-aee4-4d9c-899c-29cf596f124b) |
+| A | Anthropic Claude | Fable 5.1 | maximum effort | 2026-10-09 | [shared](https://claude.ai/share/77d9c15f-e444-4f21-93de-e191b5518626) |
+| B | xAI Grok | 4.7 | Expert | 2026-10-09 | [shared](https://grok.com/share/c2hhcmQtMg_9317e835-aee4-4d9c-899c-29cf596f124b) |
 
 Letters are used below. The table exists so the reading can be checked, not so
-the readers can be ranked, and here they cannot be: the tiers are unknown.
+the readers can be ranked, and here they cannot be: the tiers differ.
 
 The probe is also reported in Appendix B of the [Part 7b
 post](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still).
 
 ## The kit as issued
 
-Kit v2, frozen on 2026-10-08. One archive, `probe_inputs.zip`: the four
-capsules `capsule_cube_re0100`, `capsule_cube_re0300`, `capsule_cube_re1000`
-and `capsule_cube_re3000` as they stood at `de2a834`, 54 files, 2,382,824
-bytes, the same archive as in Part 7a. The sha256 of the archive was checked
-before it was uploaded. The prompt travelled with the archive; one follow-up was
-allowed, only if the format was missing. The expected answers and tolerances the
-operator graded against were never shown to the reader and are not reproduced.
+Kit v2, frozen on 2026-10-08. One archive, `probe_inputs.zip`: the four capsules
+`capsule_cube_re0100`, `capsule_cube_re0300`, `capsule_cube_re1000` and
+`capsule_cube_re3000` as they stood at `de2a834`, 54 files, 2,382,824 bytes, the
+same archive as in Part 7a. The sha256 of the archive was checked before it was
+uploaded. The prompt travelled with the archive; one follow-up was allowed, only
+if the format was missing. The expected answers and tolerances I graded against
+were never shown to the reader and are not reproduced.
 
 An earlier single-reader probe of 2026-10-02 (kit v1, three questions about the
 pedigree of the numbers) was retired before this kit and is not part of this
@@ -233,8 +233,8 @@ digit. A's reconstruction from the image was not rerun.
 
 ## Conflict of interest
 
-Reader A is a Claude model, and this record was written with the assistance of
-a Claude model. The probes were issued, the sessions run and the scoring
-approved by the author. The transcripts are linked. The capsule figures above
-are checkable against `examples/`; the recorded side forces are not, since the
-monitor histories they come from are not in this repository.
+Reader A is a Claude model, and a Claude model helped me write this record. I
+issued the probes, ran the sessions and approved the scoring. The transcripts
+are linked. The capsule figures above are checkable against `examples/`; the
+recorded side forces are not, since the monitor histories they come from are not
+in this repository.

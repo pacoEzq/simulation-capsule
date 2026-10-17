@@ -31,12 +31,12 @@ post](https://community.sw.siemens.com/s/question/0D5Vb00001dUIzpKAG/preparing-c
 
 ## The kit as issued
 
-Kit v4. One archive, `probe_inputs.zip`: the four capsules `capsule_cube_re0100`,
-`capsule_cube_re0300`, `capsule_cube_re1000` and `capsule_cube_re3000` as they
-stood at `de2a834`, 54 files, 2,382,824 bytes. The prompt travelled with the
-archive; one follow-up was allowed, only if the format was missing, and neither
-reader used it. The expected answers and tolerances the operator graded against
-were never shown to the reader and are not reproduced.
+Kit v4. One archive, `probe_inputs.zip`: the four capsules
+`capsule_cube_re0100`, `capsule_cube_re0300`, `capsule_cube_re1000` and
+`capsule_cube_re3000` as they stood at `de2a834`, 54 files, 2,382,824 bytes. The
+prompt travelled with the archive; one follow-up was allowed, only if the format
+was missing, and neither reader used it. The expected answers and tolerances I
+graded against were never shown to the reader and are not reproduced.
 
 A first attempt under kit v3 was voided before any data existed. The chain at
 `7ff5be1` accepted only Re 100, 300, 1000 and 3000, so a fifth point could not
@@ -242,9 +242,9 @@ code gives -0.0234.
 
 ## Conflict of interest
 
-Reader A is a Claude model, and this record was written with the assistance of
-a Claude model. The probes were issued, the sessions run and the scoring
-approved by the author. The transcripts are linked, and every measured figure
-above is checkable against `examples/capsule_cube_re0600/`: the `summary.json`
-and `manifest.json` published there carry the sha256 prefixes of the graded
-files, `39f38ccc` and `0b113dbc`.
+Reader A is a Claude model, and a Claude model helped me write this record. I
+issued the probes, ran the sessions and approved the scoring. The transcripts
+are linked, and every measured figure above is checkable against
+`examples/capsule_cube_re0600/`: the `summary.json` and `manifest.json`
+published there carry the sha256 prefixes of the graded files, `39f38ccc` and
+`0b113dbc`.
