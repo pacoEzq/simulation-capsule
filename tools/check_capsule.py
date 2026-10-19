@@ -35,8 +35,8 @@ import re
 import subprocess
 import sys
 
-SPEC_VERSION = "0.8"
-TOOL_VERSION = "1.9"
+SPEC_VERSION = "0.9"
+TOOL_VERSION = "1.10"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -144,6 +144,8 @@ QUINTET_SUFFIXES = ("_sd", "_window_iterations", "_n_windows", "_statistic")
 WINDOW_SUFFIXES = ("_window_iterations", "_window_tU_over_L")
 WINDOWED_BLOCKS = ("forces", "pressure", "wake", "mass")
 UNCERTAINTY_SOURCES = ("measured", "declared")
+DISCRETIZATION_STATUSES = ("converged", "reduced_order", "nominal",
+                           "not_asymptotic")
 
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
@@ -1182,7 +1184,8 @@ def check_window_entry(check, rel, where, entry, prefix, windowed):
 
 def check_summary_blocks(root, entries):
     check = Check("summary_blocks", "Windowed scalars carry their window, "
-                  "mass and mesh their 0.4 form", "SPEC 4.2.2, 4.2.3")
+                  "mass and mesh their 0.4 form, a discretization study "
+                  "its four states", "SPEC 4.2.2, 4.2.3, 4.2.4")
     if "summary.json" not in entries:
         check.skip("no summary.json")
         return check
@@ -1281,7 +1284,50 @@ def check_summary_blocks(root, entries):
                            "allows %s"
                            % (uncertainty.get("source"),
                               " or ".join(UNCERTAINTY_SOURCES)), rel)
+
+    # New in SPEC 0.9, and only where the block exists: a capsule published
+    # before 0.9 carries none and is read as it was written.
+    if "discretization" in data:
+        check_discretization(check, rel, data["discretization"])
     return check
+
+
+def check_discretization(check, rel, block):
+    if not isinstance(block, dict):
+        check.warn("discretization is not an object", rel)
+        return
+    space = block.get("space")
+    if not isinstance(space, dict):
+        return
+    family = space.get("family")
+    errors = space.get("iteration_error")
+    if "iteration_error" in space and isinstance(family, list) and not (
+            isinstance(errors, list) and len(errors) == len(family)):
+        check.warn("discretization/space/iteration_error needs one entry "
+                   "per mesh, %d in family" % len(family), rel)
+    quantities = space.get("quantities")
+    if not isinstance(quantities, dict):
+        return
+    for name, entry in quantities.items():
+        if not isinstance(entry, dict):
+            continue
+        where = "discretization/space/quantities/%s" % name
+        status = entry.get("status")
+        if status not in DISCRETIZATION_STATUSES:
+            check.warn("%s: status %r, the SPEC allows %s"
+                       % (where, status, ", ".join(DISCRETIZATION_STATUSES)),
+                       rel)
+        if status == "not_asymptotic":
+            extra = [k for k in ("extrapolated", "gci_fine") if k in entry]
+            if extra:
+                check.warn("%s: not_asymptotic carries no %s"
+                           % (where, " or ".join(extra)), rel)
+        if entry.get("behaviour") == "oscillatory" and "extrapolated" in entry:
+            check.warn("%s: an oscillatory quantity carries no extrapolated"
+                       % where, rel)
+        if status == "reduced_order" and entry.get("assumed") is not True:
+            check.warn("%s: reduced_order publishes its extrapolate with "
+                       "assumed: true" % where, rel)
 
 
 def check_publication_residue(root, entries):

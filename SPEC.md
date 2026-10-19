@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.8. Draft.**
+**Version 0.9. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -302,6 +302,15 @@ purpose. Capsules published before 0.8 carry it as `reynolds_number`,
 `reynolds_L` or `re_cr`; they stay as published, and a reader meets the
 variants in `examples/README.md`.
 
+**Sampling.** A derived quantity read off something coarser than the solver's
+own cells declares it: `"cell"` for a cell or face value, or
+`{"grid_spacing_D": 0.25}`, `{"line_points": 400}`, `{"wall_points": 180}`
+for a value read off a sampled grid, line or set of wall points. In an
+object such as `probes.<name>` the key is `sampling`; next to a scalar in a
+flat block it is `<name>_sampling`. A derived quantity read off a grid cannot
+show an order of convergence finer than that grid, and the reader needs to
+know which it is before trusting a `p` in 4.2.4.
+
 A single scalar that aggregates a worst case is an antipattern. Where a distribution
 matters, expose the distribution: a minimum cell quality alone says nothing useful
 without threshold counts at several levels.
@@ -453,6 +462,10 @@ Each entry of `quantities`, named after the scalar it gates (`cd`, `cp_base`):
 | `drift_over_se` | `drift_last` over the standard error of that difference |
 | `sd_log_ratio_over_tol` | absolute log ratio of the last two window standard deviations, over its tolerance |
 | `pass` | boolean, the entry met every gate |
+| `n_e` | optional: iterations per e-fold of the slowest decaying mode of the quantity |
+| `n_e_source` | with `n_e`: `residual`, `quantity` or `eigenvalue`, what the fit was made on; a residual fit need not be asymptotic and a quantity fit need not see the slowest mode, so the source travels with the number |
+| `n_e_window` | with `n_e`: the iteration range of the fit; when the slow mode oscillates, the window spans several of its periods or `n_e` is not declared |
+| `residual_error_est` | with `n_e`: the extrapolated remaining change, `drift_last` times `n_e` over `window_iterations` |
 
 `status` is `converged` when the run reached a fixed point and its values are
 single values; `stationary` when every entry of `quantities` passes and the
@@ -465,6 +478,9 @@ way to steady: it is not steady, and its published values are window statistics
 all the same. `solver_regime_mismatch` is not a
 comparison of `solver` and `regime_expected`: the reference sample pairs a steady
 solver with an expected unsteady regime and writes `false`.
+`converged` says the gate closed; `n_e` says how far from the fixed point it
+closed, and a run whose `n_e` is of the order of the whole run has not
+necessarily reached the limit.
 
 `stop_reason` for `stationary`, with the gated names in the order of `quantities`,
 the two windows compared as iteration ranges, and the largest `drift_over_se`
@@ -502,6 +518,65 @@ uncertainty was measured or taken from a stated source; elsewhere the key is
 absent, never null or estimated. It is not the gate statistic: the standard error
 between windows decides when to stop and says nothing about how far the published
 value sits from a second run of the same case.
+
+#### 4.2.4 `discretization`
+
+How far the published values sit from the continuum, as far as the author
+measured it. A capsule that measured nothing writes the block with
+`study: "none"` and nothing else; the key is never absent, because absence
+would read as an oversight rather than a statement.
+
+```
+discretization { study, space, time }
+space { family, cells, ratios, method, iteration_error, quantities }
+time  { levels, deltas_tU_over_L, method, max_delta }
+```
+
+- `study`: `none`, `space`, `time` or `space_time`.
+- `space.family`: the mesh labels, coarse to fine; `cells` their counts;
+  `ratios` the refinement ratios between neighbours, as the method defines
+  them; `method` the procedure and its reference, `Celik 2008, Fs 1.25`.
+- `space.iteration_error`: optional, one entry per mesh in `family` order,
+  the remaining iteration error of that run on the quantity the study leans
+  on most (`residual_error_est` of 4.2.3, or the last drift where `n_e` was
+  not fitted), with the key named. The finest mesh is usually the least
+  converged, and a reader of the GCI needs to see that the iteration error
+  sits well below the differences between meshes.
+- `space.quantities`: one entry per published key the study covered, named
+  by that key (`cd`, not `drag`):
+
+| Key | Holds |
+|-----|-------|
+| `values` | the quantity on each mesh, in `family` order |
+| `behaviour` | `monotone` or `oscillatory`, from the sign of successive differences |
+| `p` | observed order |
+| `expected_order` | optional: the order this quantity should show, where it differs from the scheme's (a wall derivative is first order by construction); the method's band applies otherwise |
+| `extrapolated` | Richardson extrapolate, where `status` allows one |
+| `gci_fine` | GCI on the finest mesh, as a fraction of the value; half the oscillation amplitude when `behaviour` is `oscillatory` |
+| `status` | `converged`, `reduced_order`, `nominal` or `not_asymptotic` |
+| `assumed` | `true` when `status` is `reduced_order`: three meshes cannot prove the order stable |
+| `note` | one sentence when `status` is not `converged` |
+
+`status` is `converged` when `p` sits in the expected band and the
+extrapolate is meaningful; `reduced_order` when `p` sits below the band but
+successive differences fall in a constant ratio, so the extrapolate is
+published with `assumed: true`; `nominal` when `p` was computed but the
+differences between meshes sit below the resolution of the instrument that
+measured the quantity, so `p` is reported and not trusted; `not_asymptotic`
+when the differences follow no order, in which case `extrapolated` and
+`gci_fine` are absent and the published value says so in its own `note`.
+An `oscillatory` quantity carries no extrapolate; its `gci_fine` is the
+uncertainty the method assigns to oscillation.
+
+- `time.levels` and `time.deltas_tU_over_L`: the time steps compared;
+  `time.method` how, `two-level difference` when there are two;
+  `time.max_delta`: the largest change in any published key between the two
+  levels, with the key named.
+
+The block measures the capsule's own discretization. Which mesh the
+published values come from is `mesh.cells`; the study says how far that
+mesh is from the limit. `mesh.note` free text about independence is retired
+by this block.
 
 ### 4.3 `planes/` (settled)
 
@@ -767,6 +842,7 @@ run it on the expanded directory.
 | 0.6 | How each value was formed (3.6): a file holding a field declares whether it is one instant or a statistic, and over which window. Plane header and nodes in the body (4.3). Force coefficients and the pressure and friction split (4.2). No check changes; capsules published before 0.6 stay valid as published: see below. |
 | 0.7 | Naming a capsule (2.1): the alias names what varies in the collection, with solver codes for the variant suffix; the 0.5 paragraphs on numbers and suffixes are absorbed. `manifest.json` is the build record, with whatever names the producing software under `recipe` (4.8); the scripts stay outside the capsule. No new check: see below. |
 | 0.8 | Time statistics: `time_mean`, `time_rms` and `_window_tU_over_L` (4.2.2), and the written form of a span (3.6, 4.3, 4.6). A colormap is a measurable property, named in `manifest.json` as the producing software names it (3.3). The Reynolds number is `re` in `reference` (4.2). No new check: see below. |
+| 0.9 | Discretization declared (4.2.4): a study in space, time or both, four states per quantity and the iteration error of each mesh, or `study: "none"` when nothing was measured. Decay of the slowest mode, `n_e` with its source and window (4.2.3). Sampling of a derived quantity (4.2). One new check: see below. |
 
 ### 0.3 → 0.4
 
@@ -844,7 +920,8 @@ run it on the expanded directory.
   carries no `_sd`. A span over physical time is `_window_tU_over_L: [a, b]`,
   in place of `_window_iterations`, never next to it.
 - 3.6, 4.3, 4.6: a span is written `over iterations <a>-<b>` or
-  `over tU/D <a> to <b>`, with the case's own reference length.
+  `over tU/L <a> to <b>`, with the reference length named as the case
+  names it.
 - 3.3: lightness-monotonic means L* only rises or only falls along the bar; the
   manifest names the map as the producing software names it.
 - 4.2: the Reynolds number is `re` in `reference`; a sweep repeats it in
@@ -853,3 +930,25 @@ run it on the expanded directory.
   and the time window. Capsules published before 0.8 keep their Reynolds keys,
   `reynolds_number`, `reynolds_L` or `re_cr`, as published; `examples/README.md`
   lists them.
+
+### 0.8 → 0.9
+
+- 4.2.4: `discretization` says how far the published values sit from the
+  continuum. `study` is `none`, `space`, `time` or `space_time`; each quantity
+  of a space study carries `values`, `behaviour`, `p`, `extrapolated`,
+  `gci_fine` and a `status` of `converged`, `reduced_order`, `nominal` or
+  `not_asymptotic`, and `iteration_error` may give each mesh its remaining
+  iteration error. The block retires `mesh.note` as free text about
+  independence.
+- 4.2.3: an entry of `convergence.quantities` may carry `n_e`, with
+  `n_e_source`, `n_e_window` and `residual_error_est`.
+- 4.2: a derived quantity read off a sampled grid, line or set of wall points
+  declares `sampling`, or `<name>_sampling` next to a scalar in a flat block.
+- 0.7 → 0.8 above: the written span reads `over tU/L`, as 3.6 has it.
+- Compatibility: one new check, inside `summary_blocks` and only where
+  `discretization` exists: `status` takes one of the four values,
+  `not_asymptotic` carries no `extrapolated` or `gci_fine`, an `oscillatory`
+  quantity no `extrapolated`, `reduced_order` carries `assumed: true`, and
+  `iteration_error` has as many entries as `family`. Capsules published
+  before 0.9 carry no `discretization` block and keep `mesh.note`; they stay
+  valid as published.

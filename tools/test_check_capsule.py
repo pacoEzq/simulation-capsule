@@ -452,6 +452,8 @@ def main():
         odd_status = os.path.join(workspace, "capsule_odd_status")
         pre_status = os.path.join(workspace, "capsule_pre_status")
         timed_ok = os.path.join(workspace, "capsule_timed_ok")
+        studied_ok = os.path.join(workspace, "capsule_studied_ok")
+        studied_bad = os.path.join(workspace, "capsule_studied_bad")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -503,6 +505,43 @@ def main():
             plane_extremes={"y0": {"cp": [-1.5, 1.0]},
                             "statistic": "window_min_max",
                             "window_tU_over_L": span, "n_windows": 4}))
+        mono = {"behaviour": "monotone"}
+        study = {"study": "space_time", "space": {
+            "family": ["coarse", "medium", "fine"],
+            "cells": [100000, 200000, 400000], "ratios": [1.26, 1.26],
+            "method": "Celik 2008, Fs 1.25",
+            "iteration_error": [{"key": "cd", "value": 1.0e-6},
+                                {"key": "cd", "value": 2.0e-6},
+                                {"key": "cd", "value": 1.0e-5}],
+            "quantities": {
+                "cd": dict(mono, values=[1.30, 1.25, 1.24], p=2.0,
+                           extrapolated=1.235, gci_fine=0.005,
+                           status="converged"),
+                "cp_base": dict(mono, values=[-0.50, -0.45, -0.42], p=1.0,
+                                extrapolated=-0.40, gci_fine=0.05,
+                                status="reduced_order", assumed=True,
+                                note="p below the band, constant ratio"),
+                "st1": dict(mono, values=[0.200, 0.201, 0.2015], p=2.0,
+                            extrapolated=0.202, gci_fine=0.002,
+                            status="nominal", note="below resolution"),
+                "cl": dict(mono, values=[0.10, 0.09, 0.08], p=0.1,
+                           status="not_asymptotic", note="no order"),
+                "cy": {"values": [0.01, 0.02, 0.015],
+                       "behaviour": "oscillatory", "p": 1.0,
+                       "gci_fine": 0.3, "status": "converged"}}},
+            "time": {"levels": ["dt1", "dt2"],
+                     "deltas_tU_over_L": [0.05, 0.025],
+                     "method": "two-level difference",
+                     "max_delta": {"key": "st1", "value": 0.0001}}}
+        build_windowed(studied_ok, windowed_summary(discretization=study))
+        bad = json.loads(json.dumps(study))
+        q = bad["space"]["quantities"]
+        q["cd"]["status"] = "independent"
+        q["cl"].update(extrapolated=0.07, gci_fine=0.02)
+        q["cy"]["extrapolated"] = 0.015
+        del q["cp_base"]["assumed"]
+        bad["space"]["iteration_error"].pop()
+        build_windowed(studied_bad, windowed_summary(discretization=bad))
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -785,6 +824,31 @@ def main():
                                                      "summary_blocks")))
         else:
             print("PASS  time_mean, time_rms and a tU/L window pass strict")
+
+        got = failed_checks(studied_ok, strict=True)
+        if got:
+            failures.append("a discretization study in its four states "
+                            "should pass strict, failed %s: %s"
+                            % (sorted(got), findings(studied_ok,
+                                                     "summary_blocks")))
+        else:
+            print("PASS  a discretization study in its four states passes "
+                  "strict")
+
+        msgs = [f["message"] for f in findings(studied_bad, "summary_blocks")]
+        wanted = ("'independent'", "not_asymptotic carries no",
+                  "oscillatory quantity", "assumed: true",
+                  "one entry per mesh")
+        absent = [w for w in wanted if not any(w in m for m in msgs)]
+        if absent:
+            failures.append("discretization missed %s: %s" % (absent, msgs))
+        elif "summary_blocks" in failed_checks(studied_bad):
+            failures.append("discretization should warn, not fail")
+        elif "summary_blocks" not in failed_checks(studied_bad, strict=True):
+            failures.append("discretization should fail under --strict")
+        else:
+            print("PASS  status, extrapolate, assumed and iteration_error "
+                  "warn, fail strict")
 
         msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
         if not any("the SPEC allows" in m for m in msgs):
