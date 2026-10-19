@@ -72,6 +72,12 @@ waiting to be filled in.
 
 ---
 
+## extractor/
+
+The Simulation Capsule extractor's adapter for Simcenter STAR-CCM+: three macros that read a solved
+`.sim` and its extraction card and leave the neutral package that `tools/extract_capsule.py` turns
+into `capsule_<alias>/`. Order, inputs and v0 limitations are in `extractor/README.md`.
+
 ## Terms
 
 The macros in this directory ask you to operate Simcenter STAR-CCM+, and they
