@@ -48,6 +48,12 @@ the underlying geometry and setup. A features file leaks least, a rendered view
 leaks most. The capsule makes that gradient explicit rather than leaving it to
 whoever packs the zip.
 
+**A capsule can be built again.** `manifest.json` names every step of the chain
+that built it, each by its sha256, and the commit that holds that code. The code
+stays outside the capsule. A capsule is published only when it passes `--strict`
+and its manifest names a commit, so anyone holding the solved case and that
+commit can build it again and compare.
+
 ## Structure
 
 ```
