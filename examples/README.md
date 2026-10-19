@@ -61,6 +61,13 @@ decent argument for publishing them together. What made it urgent was the compar
 pair: two capsules that answer a question about each other cannot disagree about
 what their numbers are scaled by.
 
+One name still differs, and stays as published. SPEC 0.8 writes the Reynolds
+number as `re` inside `reference`; these capsules predate it and carry
+`reynolds_number` (`capsule_naca0012_aoa5`, `capsule_naca0012_aoa7`,
+`capsule_cube_re200`, `capsule_jet_r2_re100`), `reynolds_L`
+(`capsule_ahmed25_re1e6`) or `re_cr` (`capsule_delta65_a13p3_re1e6`). The five
+Part 7 cube capsules carry it only in `sweep.value`.
+
 The claim is measured, not eyeballed. Run the validator yourself, from the
 repository root:
 

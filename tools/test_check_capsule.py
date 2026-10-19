@@ -451,6 +451,7 @@ def main():
         no_steady = os.path.join(workspace, "capsule_no_steady")
         odd_status = os.path.join(workspace, "capsule_odd_status")
         pre_status = os.path.join(workspace, "capsule_pre_status")
+        timed_ok = os.path.join(workspace, "capsule_timed_ok")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -489,6 +490,19 @@ def main():
             convergence=dict(good["convergence"], status="no_steady_state")))
         build_windowed(odd_status, windowed_summary(
             convergence=dict(good["convergence"], status="not_steady")))
+        span = [50.0, 150.0]
+        build_windowed(timed_ok, windowed_summary(
+            forces={"cd": 1.33, "cd_sd": 0.01, "cd_window_tU_over_L": span,
+                    "cd_n_windows": 4, "cd_statistic": "time_mean",
+                    "cl_rms": 0.23, "cl_rms_window_tU_over_L": span,
+                    "cl_rms_n_windows": 4, "cl_rms_statistic": "time_rms"},
+            probes={"u_over_U_wake_x2D": {
+                "value": 0.4, "sd": 0.1, "window_tU_over_L": span,
+                "n_windows": 4, "statistic": "time_mean",
+                "position_D": [2.0, 0.0, 0.0]}},
+            plane_extremes={"y0": {"cp": [-1.5, 1.0]},
+                            "statistic": "window_min_max",
+                            "window_tU_over_L": span, "n_windows": 4}))
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -762,6 +776,15 @@ def main():
                                                      "summary_blocks")))
         else:
             print("PASS  a no_steady_state run with its quintets passes strict")
+
+        got = failed_checks(timed_ok, strict=True)
+        if got:
+            failures.append("a run judged over physical time should pass "
+                            "strict, failed %s: %s"
+                            % (sorted(got), findings(timed_ok,
+                                                     "summary_blocks")))
+        else:
+            print("PASS  time_mean, time_rms and a tU/L window pass strict")
 
         msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
         if not any("the SPEC allows" in m for m in msgs):

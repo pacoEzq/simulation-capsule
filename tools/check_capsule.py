@@ -35,8 +35,8 @@ import re
 import subprocess
 import sys
 
-SPEC_VERSION = "0.7"
-TOOL_VERSION = "1.8"
+SPEC_VERSION = "0.8"
+TOOL_VERSION = "1.9"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -136,9 +136,12 @@ PRECISIONS = ("single", "double", "mixed")
 CONVERGENCE_STATUSES = ("converged", "stationary", "not_stationary",
                         "no_steady_state")
 STATISTICS = ("iteration_mean", "window_min", "window_max",
-              "window_min_max", "instantaneous")
+              "window_min_max", "instantaneous", "time_mean", "time_rms")
 EXTREME_STATISTICS = ("window_min", "window_max", "window_min_max")
 QUINTET_SUFFIXES = ("_sd", "_window_iterations", "_n_windows", "_statistic")
+# SPEC 4.2.2 since 0.8: a span over physical time replaces the iteration
+# count, so a windowed value carries one of these two.
+WINDOW_SUFFIXES = ("_window_iterations", "_window_tU_over_L")
 WINDOWED_BLOCKS = ("forces", "pressure", "wake", "mass")
 UNCERTAINTY_SOURCES = ("measured", "declared")
 
@@ -1166,7 +1169,10 @@ def check_window_entry(check, rel, where, entry, prefix, windowed):
                    "no spread of its own" % where, rel)
     if not windowed:
         return
-    missing = [key(s) for s in QUINTET_SUFFIXES[1:] if key(s) not in entry]
+    missing = [key(s) for s in ("_n_windows", "_statistic")
+               if key(s) not in entry]
+    if not any(key(s) in entry for s in WINDOW_SUFFIXES):
+        missing.insert(0, " or ".join(key(s) for s in WINDOW_SUFFIXES))
     if statistic == "iteration_mean" and key("_sd") not in entry:
         missing.insert(0, key("_sd"))
     if missing:
@@ -1206,7 +1212,7 @@ def check_summary_blocks(root, entries):
         for name, value in values.items():
             if not is_number(value) or any(
                     name.endswith(s) and name[:-len(s)] in values
-                    for s in QUINTET_SUFFIXES):
+                    for s in QUINTET_SUFFIXES + WINDOW_SUFFIXES):
                 continue
             check_window_entry(check, rel, "%s/%s" % (block, name), values,
                                name, windowed)
@@ -1227,8 +1233,10 @@ def check_summary_blocks(root, entries):
         if "statistic" in extremes and statistic not in STATISTICS:
             check.warn("plane_extremes: statistic %r is not one of %s"
                        % (statistic, ", ".join(STATISTICS)), rel)
-        missing = [k for k in ("statistic", "window_iterations", "n_windows")
-                   if k not in extremes]
+        missing = [k for k in ("statistic", "n_windows") if k not in extremes]
+        if not any(k in extremes
+                   for k in ("window_iterations", "window_tU_over_L")):
+            missing.insert(1, "window_iterations or window_tU_over_L")
         if windowed and missing:
             check.warn("plane_extremes: the block carries %s once for all "
                        "planes" % ", ".join(missing), rel)

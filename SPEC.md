@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.7. Draft.**
+**Version 0.8. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -178,8 +178,14 @@ when the case converged to a steady limit cycle of the iterative solver. One of
 four readers in the Part 6 probe made that inference, and every later error in its
 answers followed from it.
 
-Colormaps are lightness-monotonic. Rainbow maps invent structure that is not in the
-data and mislead a model reading pixel values as magnitudes.
+Colormaps are lightness-monotonic: along the bar, L* only rises or only falls.
+Rainbow maps invent structure that is not in the data and mislead a model
+reading pixel values as magnitudes. The property is what the capsule
+promises; the map that delivers it is whatever the producing software has or
+the adapter builds, and `manifest.json` names it as that software names it.
+A name from another library proves nothing about the image: `viridis` in a
+manifest means the solver shipped a map by that name or the chain built one
+with those control points, not that the author meant something like it.
 
 Colorbar ranges are fixed and declared, never autoscaled per image. Two images of
 the same field with different autoscaled ranges cannot be compared, and a model has
@@ -227,6 +233,9 @@ that holds a field rather than a scalar, a plane, a sample or a view, declares
 whether it is one instant or a statistic, and over which iterations or which
 nondimensional time window: in the header comment of a CSV, in the burned-in
 title of an image (3.3). The names are those of 4.2.2.
+Written out, a span reads `over iterations <a>-<b>` for a steady run and
+`over tU/L <a> to <b>` for an unsteady one, with the reference length named
+as the case names it (`tU/D`, `tU/c`).
 
 Two artifacts of one capsule may be formed differently, and often are: the
 scalars of a run judged by window statistics are window means, while its planes
@@ -286,6 +295,13 @@ normal part of the viscous traction belongs to neither. In incompressible flow
 it vanishes on a no-slip wall, so a nonzero value there is numerical, not
 physical. The same split holds for every force coefficient a capsule carries.
 
+**The Reynolds number** is `re` in `reference`, with the length scale it uses
+named in the key of that scale (`length_scale_D_m`, `chord_m`). A sweep that
+varies it also carries `sweep.parameter` and `sweep.value`, which repeat it on
+purpose. Capsules published before 0.8 carry it as `reynolds_number`,
+`reynolds_L` or `re_cr`; they stay as published, and a reader meets the
+variants in `examples/README.md`.
+
 A single scalar that aggregates a worst case is an antipattern. Where a distribution
 matters, expose the distribution: a minimum cell quality alone says nothing useful
 without threshold counts at several levels.
@@ -344,13 +360,18 @@ statistic without its window is a number nobody can check. Wherever
 | `<name>_n_windows` | number of windows pooled |
 | `<name>_statistic` | how the value was formed |
 
-`_statistic` takes one of five values:
+`_statistic` takes one of seven values. Five describe a steady run judged over
+iterations, two describe an unsteady run judged over physical time:
 
 - `iteration_mean`: mean over the sampled iterations of the span.
 - `window_min`, `window_max`: the lowest or highest value reached at any sampled
   iteration of the span.
 - `window_min_max`: both, as a `[min, max]` pair.
-- `instantaneous`: the value at the last iteration.
+- `instantaneous`: the value at the last iteration, or at the last time step.
+- `time_mean`: mean over the sampled time steps of the span.
+- `time_rms`: root mean square of the fluctuation about `time_mean` over the
+  same span; it is the spread of the signal, so a `time_rms` value carries no
+  `_sd`.
 
 Extremes carry no `_sd`: a minimum over a span has no spread of its own to report.
 The quintet of `cp_min` is therefore four keys:
@@ -364,6 +385,14 @@ The quintet of `cp_min` is therefore four keys:
 
 `_window_iterations` counts the whole span, two windows of 2000 iterations give
 4000; `convergence.window_iterations` is the length of one window.
+
+**Time windows.** A statistic over physical time declares its span as
+`<name>_window_tU_over_L: [a, b]`, the nondimensional start and end of the span
+with the reference length of 3.1, and `<name>_n_windows` as before.
+`_window_iterations` is for spans measured in iterations; a key carries one or
+the other, never both, and which one is a property of the run (4.2.3
+`time_basis`), not of the key. Probes and plane extremes carry the same
+keys unprefixed.
 
 **Probes.** `probes.<name>` is an object and carries the same keys unprefixed:
 `value`, `sd`, `window_iterations`, `n_windows`, `statistic`, next to `position_D`
@@ -494,8 +523,8 @@ table can be read without the image beside it:
 ```
 
 How the values were formed is written `instantaneous at iteration <n>` or
-`iteration_mean over iterations <a>-<b>`, or the same over a nondimensional time
-window for an unsteady run.
+`iteration_mean over iterations <a>-<b>`, or, for an unsteady run,
+`instantaneous at tU/D <t>` or `time_mean over tU/D <a> to <b>`.
 
 **Nodes in the body.** A grid node inside the solid, or on its surface within
 1e-6 of the reference length, is absent: its row is omitted, not filled, and the
@@ -552,9 +581,10 @@ The view contract, in full:
 - The **camera is declared**: position, target, bounds in nondimensional
   coordinates.
 - The **title is burned into the image**, per section 3.3.
-- The **regime and span are in the title**: steady or unsteady, and the iteration
-  range or nondimensional time window the render represents. A filename hints; a
-  title declares.
+- The **regime and span are in the title**: steady or unsteady, and the statistic
+  and its span as 3.6 writes them: `iteration_mean over iterations 1000-15000`,
+  `time_mean over tU/D 50 to 150`, or `instantaneous at tU/D 150`. A filename
+  hints; a title declares.
 - **Colorbars are fixed** at the view-contract level, not per render, and are
   lightness-monotonic.
 - **Filenames are snake_case** and describe the question, not the software state:
@@ -736,6 +766,7 @@ run it on the expanded directory.
 | 0.5 | Definition separated from recipe (preamble): each artifact is defined in terms no solver owns, with the STAR-CCM+ steps under **Recipe**; `setup.txt` (4.1) and `environment` (4.2.1) restated that way. A key names the quantity, never the instrument (4.2). Token budget as a design target, not a gate (3.5). Numbers and production suffixes in an alias (2). Additive over 0.4; every capsule valid under 0.4 is valid under 0.5. |
 | 0.6 | How each value was formed (3.6): a file holding a field declares whether it is one instant or a statistic, and over which window. Plane header and nodes in the body (4.3). Force coefficients and the pressure and friction split (4.2). No check changes; capsules published before 0.6 stay valid as published: see below. |
 | 0.7 | Naming a capsule (2.1): the alias names what varies in the collection, with solver codes for the variant suffix; the 0.5 paragraphs on numbers and suffixes are absorbed. `manifest.json` is the build record, with whatever names the producing software under `recipe` (4.8); the scripts stay outside the capsule. No new check: see below. |
+| 0.8 | Time statistics: `time_mean`, `time_rms` and `_window_tU_over_L` (4.2.2), and the written form of a span (3.6, 4.3, 4.6). A colormap is a measurable property, named in `manifest.json` as the producing software names it (3.3). The Reynolds number is `re` in `reference` (4.2). No new check: see below. |
 
 ### 0.3 → 0.4
 
@@ -806,3 +837,19 @@ run it on the expanded directory.
   `run_macro.java` at the capsule root; no published capsule carries one. The
   five Part 7 manifests, published before 0.7, keep their form and carry no
   `recipe` object.
+
+### 0.7 → 0.8
+
+- 4.2.2: `_statistic` gains `time_mean` and `time_rms`; a `time_rms` value
+  carries no `_sd`. A span over physical time is `_window_tU_over_L: [a, b]`,
+  in place of `_window_iterations`, never next to it.
+- 3.6, 4.3, 4.6: a span is written `over iterations <a>-<b>` or
+  `over tU/D <a> to <b>`, with the case's own reference length.
+- 3.3: lightness-monotonic means L* only rises or only falls along the bar; the
+  manifest names the map as the producing software names it.
+- 4.2: the Reynolds number is `re` in `reference`; a sweep repeats it in
+  `sweep.value`.
+- Compatibility: no new check. The validator accepts the two time statistics
+  and the time window. Capsules published before 0.8 keep their Reynolds keys,
+  `reynolds_number`, `reynolds_L` or `re_cr`, as published; `examples/README.md`
+  lists them.
