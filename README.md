@@ -78,6 +78,22 @@ that are present must follow [SPEC.md](SPEC.md).
 relation to another capsule, not the case itself. A capsule that carries them
 declares `"extensions": ["diff"]` in its `summary.json`.
 
+## The extraction card
+
+A capsule answers the questions someone chose to ask of the case. The extraction
+card is where that choice is written down: a small JSON file, `card.json`, that
+names the body of interest, its reference length, velocity and governing group,
+the plane stations and the views, each view with the question it answers. The card
+is not part of the capsule and not a solver script. It holds no geometry, mesh or
+solver settings: only what to pull from a case that is already solved, in the names
+the case already uses.
+
+The analyst writes it, because only the analyst knows what the case is for. When
+there is none, `tools/extract_capsule.py --propose-card` prints the instructions and
+`setup.txt` for a language model to propose a plausible one, every entry marked
+`read` or `inferred`. Either way `manifest.json` records who wrote the card
+(`card_source`) and its sha256.
+
 ## The tutorial series
 
 The capsule is developed one layer at a time in **Preparing CFD Output for Large
