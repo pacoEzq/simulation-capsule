@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.9. Draft.**
+**Version 0.10. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -287,13 +287,18 @@ What is fixed is that every key is nondimensional per section 3.1, and that the
 `reference` block is present.
 
 **Force coefficients.** `cd` is the drag of the body over the dynamic pressure
-and the reference area. Where it is split, `cd_pressure` integrates the pressure
-over the wall, relative to the reference pressure, and `cd_friction` integrates
-the wall shear stress, the tangential part of the viscous traction, both
-projected on the drag direction, so that `cd = cd_pressure + cd_friction`. The
-normal part of the viscous traction belongs to neither. In incompressible flow
-it vanishes on a no-slip wall, so a nonzero value there is numerical, not
-physical. The same split holds for every force coefficient a capsule carries.
+and the reference area: the whole traction on the wall, pressure and viscous,
+projected on the drag direction. Where it is split, `cd_pressure` integrates
+the pressure over the wall, relative to the reference pressure, and
+`cd_friction` integrates the wall shear stress, the tangential part of the
+viscous traction, both projected on the drag direction. The normal part of the
+viscous traction belongs to neither. In incompressible flow it vanishes on a
+no-slip wall, so a nonzero value there is numerical, not physical, and it is
+still part of `cd`. Where it exceeds 0.1% of `cd`, the capsule carries it as
+`cd_viscous_normal`, and `cd = cd_pressure + cd_friction + cd_viscous_normal`.
+A split without `cd_viscous_normal` states that `cd = cd_pressure + cd_friction`
+to within 0.1%. The same split holds for every force coefficient a capsule
+carries.
 
 **The Reynolds number** is `re` in `reference`, with the length scale it uses
 named in the key of that scale (`length_scale_D_m`, `chord_m`). A sweep that
@@ -411,8 +416,8 @@ and the `report` it was read from.
 block carries `statistic`, `window_iterations` and `n_windows` once, for all of them.
 The plane keys follow the stems in `planes/`: `y0` for `plane_y0`.
 
-**Forces.** `forces` may carry `cd_pressure` and `cd_friction` next to `cd`, each
-with its own quintet.
+**Forces.** `forces` may carry `cd_pressure`, `cd_friction` and
+`cd_viscous_normal` next to `cd`, each with its own quintet.
 
 **Mass.** `mass` holds `mdot_in_over_rhoUD2` and `mdot_out_over_rhoUD2`, the mass
 flow through inlet and outlet over $\rho U D^2$, signed with the outward normal so
@@ -536,12 +541,18 @@ time  { levels, deltas_tU_over_L, method, max_delta }
 - `space.family`: the mesh labels, coarse to fine; `cells` their counts;
   `ratios` the refinement ratios between neighbours, as the method defines
   them; `method` the procedure and its reference, `Celik 2008, Fs 1.25`.
+- `space.order_band`: the half-width of the band around the expected order,
+  `0.5` for a second-order scheme read as 1.5 to 2.5. The band is the
+  author's, declared once for the study; it applies around the scheme's
+  order, or around a quantity's `expected_order` where one is given.
 - `space.iteration_error`: optional, one entry per mesh in `family` order,
   the remaining iteration error of that run on the quantity the study leans
   on most (`residual_error_est` of 4.2.3, or the last drift where `n_e` was
   not fitted), with the key named. The finest mesh is usually the least
   converged, and a reader of the GCI needs to see that the iteration error
   sits well below the differences between meshes.
+  A mesh whose iteration error was not measured keeps its place with
+  `"value": null`; a reader takes null as unknown, never as zero.
 - `space.quantities`: one entry per published key the study covered, named
   by that key (`cd`, not `drag`):
 
@@ -550,23 +561,34 @@ time  { levels, deltas_tU_over_L, method, max_delta }
 | `values` | the quantity on each mesh, in `family` order |
 | `behaviour` | `monotone` or `oscillatory`, from the sign of successive differences |
 | `p` | observed order |
-| `expected_order` | optional: the order this quantity should show, where it differs from the scheme's (a wall derivative is first order by construction); the method's band applies otherwise |
+| `expected_order` | optional: the order this quantity should show, where it differs from the scheme's (a wall derivative is first order by construction); `order_band` applies around it |
 | `extrapolated` | Richardson extrapolate, where `status` allows one |
-| `gci_fine` | GCI on the finest mesh, as a fraction of the value; half the oscillation amplitude when `behaviour` is `oscillatory` |
-| `status` | `converged`, `reduced_order`, `nominal` or `not_asymptotic` |
+| `gci_fine` | GCI on the finest mesh, as a fraction of the value; half the range of the values when `behaviour` is `oscillatory` |
+| `gci_order` | with `above_order`: the order the GCI was computed with, the expected one |
+| `gci_fs` | with `above_order`: the safety factor used, where it differs from the one in `method` |
+| `status` | `converged`, `reduced_order`, `above_order`, `nominal` or `not_asymptotic` |
 | `assumed` | `true` when `status` is `reduced_order`: three meshes cannot prove the order stable |
 | `note` | one sentence when `status` is not `converged` |
 
-`status` is `converged` when `p` sits in the expected band and the
-extrapolate is meaningful; `reduced_order` when `p` sits below the band but
-successive differences fall in a constant ratio, so the extrapolate is
-published with `assumed: true`; `nominal` when `p` was computed but the
-differences between meshes sit below the resolution of the instrument that
-measured the quantity, so `p` is reported and not trusted; `not_asymptotic`
-when the differences follow no order, in which case `extrapolated` and
-`gci_fine` are absent and the published value says so in its own `note`.
-An `oscillatory` quantity carries no extrapolate; its `gci_fine` is the
-uncertainty the method assigns to oscillation.
+`status` is `converged` when `p` sits in the expected band and the extrapolate
+is meaningful; `reduced_order` when `p` sits below the band but successive
+differences fall in a constant ratio, so the extrapolate is published with
+`assumed: true`; `above_order` when `p` sits above the band: the observed order
+overstates how fast the error falls, so no extrapolate is published and
+`gci_fine` is computed with the expected order, named in `gci_order`, and the
+safety factor for an unverified order, named in `gci_fs` (Roache uses 3);
+`nominal` when `p` was computed but the differences between meshes sit below
+the resolution of the instrument that measured the quantity, so `p` is reported
+and not trusted; `not_asymptotic` when the differences follow no order, in
+which case `extrapolated` and `gci_fine` are absent and the published value
+says so in its own `note`.
+`behaviour` reads the sign of successive differences and `status` reads how
+they shrink; the two are separate statements. An `oscillatory` quantity
+carries no extrapolate, and its `p`, if computed, is reported and not used.
+Its `status` is `converged` when the oscillation shrinks with refinement,
+the last difference smaller than the one before, and then `gci_fine` is half
+the range of the values; `nominal` as for a monotone quantity; and
+`not_asymptotic` when the oscillation does not shrink, with no `gci_fine`.
 
 - `time.levels` and `time.deltas_tU_over_L`: the time steps compared;
   `time.method` how, `two-level difference` when there are two;
@@ -843,6 +865,7 @@ run it on the expanded directory.
 | 0.7 | Naming a capsule (2.1): the alias names what varies in the collection, with solver codes for the variant suffix; the 0.5 paragraphs on numbers and suffixes are absorbed. `manifest.json` is the build record, with whatever names the producing software under `recipe` (4.8); the scripts stay outside the capsule. No new check: see below. |
 | 0.8 | Time statistics: `time_mean`, `time_rms` and `_window_tU_over_L` (4.2.2), and the written form of a span (3.6, 4.3, 4.6). A colormap is a measurable property, named in `manifest.json` as the producing software names it (3.3). The Reynolds number is `re` in `reference` (4.2). No new check: see below. |
 | 0.9 | Discretization declared (4.2.4): a study in space, time or both, four states per quantity and the iteration error of each mesh, or `study: "none"` when nothing was measured. Decay of the slowest mode, `n_e` with its source and window (4.2.3). Sampling of a derived quantity (4.2). One new check: see below. |
+| 0.10 | 4.2.4: the band is declared (`order_band`); a fifth status, `above_order`, with `gci_order` and `gci_fs`; `behaviour` and `status` are separate statements and an oscillation that shrinks is `converged`; an unmeasured iteration error is null. 4.2: `cd` is the whole traction, and the normal viscous part, when it exceeds 0.1% of `cd`, is carried as `cd_viscous_normal` so the split closes. No new check: see below. |
 
 ### 0.3 → 0.4
 
@@ -952,3 +975,24 @@ run it on the expanded directory.
   `iteration_error` has as many entries as `family`. Capsules published
   before 0.9 carry no `discretization` block and keep `mesh.note`; they stay
   valid as published.
+
+### 0.9 → 0.10
+
+- 4.2.4: `space.order_band` declares the band around the expected order.
+  `status` takes a fifth value, `above_order`, which publishes no
+  extrapolate and computes `gci_fine` with `gci_order` and `gci_fs`.
+  `behaviour` and `status` are read separately, so an `oscillatory`
+  quantity may be `converged`, `nominal` or `not_asymptotic`. An entry of
+  `iteration_error` may hold `"value": null`.
+- 4.2: `cd` is the whole traction on the wall, and `cd_viscous_normal`
+  joins the split where the normal viscous part exceeds 0.1% of `cd`.
+- Compatibility: the check of 0.9 takes the five states, asks `above_order`
+  for `gci_order` and no `extrapolated`, an `oscillatory` quantity for one
+  of its three states, `order_band` where a `monotone` quantity is
+  `converged`, `reduced_order` or `above_order`, and a number or null in
+  each entry of `iteration_error`. The same check also warns: in `summary.json`, a
+  coefficient split into `_pressure` and `_friction` closes to within 0.1%
+  with `_viscous_normal` taken as zero where absent. Every capsule in
+  `examples/` that splits a coefficient closes well inside that bound, so
+  the 0.6 and 0.10 readings of `cd` agree there; none carries a
+  `discretization` block, and all stay valid as published.

@@ -454,6 +454,8 @@ def main():
         timed_ok = os.path.join(workspace, "capsule_timed_ok")
         studied_ok = os.path.join(workspace, "capsule_studied_ok")
         studied_bad = os.path.join(workspace, "capsule_studied_bad")
+        split_ok = os.path.join(workspace, "capsule_split_ok")
+        split_gap = os.path.join(workspace, "capsule_split_gap")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -509,10 +511,10 @@ def main():
         study = {"study": "space_time", "space": {
             "family": ["coarse", "medium", "fine"],
             "cells": [100000, 200000, 400000], "ratios": [1.26, 1.26],
-            "method": "Celik 2008, Fs 1.25",
+            "method": "Celik 2008, Fs 1.25", "order_band": 0.5,
             "iteration_error": [{"key": "cd", "value": 1.0e-6},
                                 {"key": "cd", "value": 2.0e-6},
-                                {"key": "cd", "value": 1.0e-5}],
+                                {"key": "cd", "value": None}],
             "quantities": {
                 "cd": dict(mono, values=[1.30, 1.25, 1.24], p=2.0,
                            extrapolated=1.235, gci_fine=0.005,
@@ -526,6 +528,9 @@ def main():
                             status="nominal", note="below resolution"),
                 "cl": dict(mono, values=[0.10, 0.09, 0.08], p=0.1,
                            status="not_asymptotic", note="no order"),
+                "cs": dict(mono, values=[1.000, 0.990, 0.988], p=7.0,
+                           gci_fine=0.01, gci_order=2, gci_fs=3,
+                           status="above_order", note="p above the band"),
                 "cy": {"values": [0.01, 0.02, 0.015],
                        "behaviour": "oscillatory", "p": 1.0,
                        "gci_fine": 0.3, "status": "converged"}}},
@@ -541,7 +546,24 @@ def main():
         q["cy"]["extrapolated"] = 0.015
         del q["cp_base"]["assumed"]
         bad["space"]["iteration_error"].pop()
+        bad["space"]["iteration_error"][0]["value"] = "n/a"
+        del bad["space"]["order_band"]
+        q["cs"]["extrapolated"] = 0.987
+        del q["cs"]["gci_order"]
+        q["cy"]["status"] = "reduced_order"
+        q["cy"]["assumed"] = True
         build_windowed(studied_bad, windowed_summary(discretization=bad))
+        split = {"case": "synthetic_split", "environment": ENVIRONMENT,
+                 "reference": {"side_m": 1.0, "re": 1000},
+                 "forces": {"cd": 1.000, "cd_pressure": 0.930,
+                            "cd_friction": 0.040,
+                            "cd_viscous_normal": 0.030}}
+        gap = json.loads(json.dumps(split))
+        del gap["forces"]["cd_viscous_normal"]
+        for where, summary in ((split_ok, split), (split_gap, gap)):
+            write(os.path.join(where, "setup.txt"), "Case: synthetic_split\n")
+            write(os.path.join(where, "summary.json"),
+                  json.dumps(summary, indent=2))
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -837,8 +859,10 @@ def main():
 
         msgs = [f["message"] for f in findings(studied_bad, "summary_blocks")]
         wanted = ("'independent'", "not_asymptotic carries no",
-                  "oscillatory quantity", "assumed: true",
-                  "one entry per mesh")
+                  "oscillatory quantity carries", "assumed: true",
+                  "one entry per mesh", "above_order carries no",
+                  "gci_order", "order_band is missing",
+                  "oscillatory quantity is", "neither a number nor null")
         absent = [w for w in wanted if not any(w in m for m in msgs)]
         if absent:
             failures.append("discretization missed %s: %s" % (absent, msgs))
@@ -847,8 +871,30 @@ def main():
         elif "summary_blocks" not in failed_checks(studied_bad, strict=True):
             failures.append("discretization should fail under --strict")
         else:
-            print("PASS  status, extrapolate, assumed and iteration_error "
-                  "warn, fail strict")
+            print("PASS  status, extrapolate, assumed, band and "
+                  "iteration_error warn, fail strict")
+
+        got = failed_checks(split_ok, strict=True)
+        if got:
+            failures.append("a split that closes with cd_viscous_normal "
+                            "should pass strict, failed %s: %s"
+                            % (sorted(got), findings(split_ok,
+                                                     "summary_blocks")))
+        else:
+            print("PASS  a split that closes with cd_viscous_normal passes "
+                  "strict")
+
+        msgs = [f["message"] for f in findings(split_gap, "summary_blocks")]
+        if not any("relative gap 0.03" in m for m in msgs):
+            failures.append("a split that does not close should name its "
+                            "gap: %s" % msgs)
+        elif "summary_blocks" in failed_checks(split_gap):
+            failures.append("an open split should warn, not fail")
+        elif "summary_blocks" not in failed_checks(split_gap, strict=True):
+            failures.append("an open split should fail under --strict")
+        else:
+            print("PASS  a split that does not close warns with its gap, "
+                  "fails strict")
 
         msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
         if not any("the SPEC allows" in m for m in msgs):

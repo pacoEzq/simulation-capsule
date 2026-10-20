@@ -35,8 +35,8 @@ import re
 import subprocess
 import sys
 
-SPEC_VERSION = "0.9"
-TOOL_VERSION = "1.10"
+SPEC_VERSION = "0.10"
+TOOL_VERSION = "1.11"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -144,8 +144,16 @@ QUINTET_SUFFIXES = ("_sd", "_window_iterations", "_n_windows", "_statistic")
 WINDOW_SUFFIXES = ("_window_iterations", "_window_tU_over_L")
 WINDOWED_BLOCKS = ("forces", "pressure", "wake", "mass")
 UNCERTAINTY_SOURCES = ("measured", "declared")
-DISCRETIZATION_STATUSES = ("converged", "reduced_order", "nominal",
-                           "not_asymptotic")
+DISCRETIZATION_STATUSES = ("converged", "reduced_order", "above_order",
+                           "nominal", "not_asymptotic")
+# SPEC 4.2.4 since 0.10: behaviour and status are separate statements, and an
+# oscillation is judged by whether it shrinks, not by an order.
+OSCILLATORY_STATUSES = ("converged", "nominal", "not_asymptotic")
+# The statuses that lean on the band, so a monotone quantity in one of them
+# needs space.order_band.
+BANDED_STATUSES = ("converged", "reduced_order", "above_order")
+# SPEC 4.2 since 0.10: a split coefficient closes to within this fraction.
+SPLIT_TOLERANCE = 0.001
 
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
@@ -1185,7 +1193,8 @@ def check_window_entry(check, rel, where, entry, prefix, windowed):
 def check_summary_blocks(root, entries):
     check = Check("summary_blocks", "Windowed scalars carry their window, "
                   "mass and mesh their 0.4 form, a discretization study "
-                  "its four states", "SPEC 4.2.2, 4.2.3, 4.2.4")
+                  "its five states, a split coefficient closes",
+                  "SPEC 4.2, 4.2.2, 4.2.3, 4.2.4")
     if "summary.json" not in entries:
         check.skip("no summary.json")
         return check
@@ -1289,7 +1298,32 @@ def check_summary_blocks(root, entries):
     # before 0.9 carries none and is read as it was written.
     if "discretization" in data:
         check_discretization(check, rel, data["discretization"])
+
+    # New in SPEC 0.10, a warning: every capsule published before it closes
+    # well inside the tolerance.
+    check_split_closure(check, rel, data)
     return check
+
+
+def check_split_closure(check, rel, data):
+    for trail, key, node in iter_nodes(data):
+        if not isinstance(node, dict):
+            continue
+        for coef, value in node.items():
+            parts = [node.get(coef + suffix)
+                     for suffix in ("_pressure", "_friction")]
+            if not (is_number(value) and all(is_number(v) for v in parts)):
+                continue
+            normal = node.get(coef + "_viscous_normal", 0.0)
+            if not is_number(normal):
+                continue
+            gap = value - parts[0] - parts[1] - normal
+            if abs(gap) > SPLIT_TOLERANCE * abs(value):
+                where = "/".join(trail + (key,))
+                gap_relative = abs(gap) / abs(value) if value else float("inf")
+                check.warn("%s: %s does not close with its parts, relative "
+                           "gap %.3g, SPEC 4.2 allows %g"
+                           % (where, coef, gap_relative, SPLIT_TOLERANCE), rel)
 
 
 def check_discretization(check, rel, block):
@@ -1305,9 +1339,24 @@ def check_discretization(check, rel, block):
             isinstance(errors, list) and len(errors) == len(family)):
         check.warn("discretization/space/iteration_error needs one entry "
                    "per mesh, %d in family" % len(family), rel)
+    if isinstance(errors, list):
+        for index, item in enumerate(errors):
+            value = item.get("value") if isinstance(item, dict) else item
+            if value is not None and not is_number(value):
+                check.warn("discretization/space/iteration_error/%d: value "
+                           "%r is neither a number nor null" % (index, value),
+                           rel)
     quantities = space.get("quantities")
     if not isinstance(quantities, dict):
         return
+    banded = [name for name, entry in quantities.items()
+              if isinstance(entry, dict)
+              and entry.get("behaviour") == "monotone"
+              and entry.get("status") in BANDED_STATUSES]
+    if banded and "order_band" not in space:
+        check.warn("discretization/space/order_band is missing: %s reads "
+                   "an order against a band nobody declared"
+                   % ", ".join(sorted(banded)), rel)
     for name, entry in quantities.items():
         if not isinstance(entry, dict):
             continue
@@ -1322,9 +1371,22 @@ def check_discretization(check, rel, block):
             if extra:
                 check.warn("%s: not_asymptotic carries no %s"
                            % (where, " or ".join(extra)), rel)
-        if entry.get("behaviour") == "oscillatory" and "extrapolated" in entry:
-            check.warn("%s: an oscillatory quantity carries no extrapolated"
-                       % where, rel)
+        if status == "above_order":
+            if "extrapolated" in entry:
+                check.warn("%s: above_order carries no extrapolated" % where,
+                           rel)
+            if "gci_order" not in entry:
+                check.warn("%s: above_order names the order its GCI used in "
+                           "gci_order" % where, rel)
+        if entry.get("behaviour") == "oscillatory":
+            if "extrapolated" in entry:
+                check.warn("%s: an oscillatory quantity carries no "
+                           "extrapolated" % where, rel)
+            if status in DISCRETIZATION_STATUSES and \
+                    status not in OSCILLATORY_STATUSES:
+                check.warn("%s: an oscillatory quantity is %s, not %s"
+                           % (where, ", ".join(OSCILLATORY_STATUSES),
+                              status), rel)
         if status == "reduced_order" and entry.get("assumed") is not True:
             check.warn("%s: reduced_order publishes its extrapolate with "
                        "assumed: true" % where, rel)
