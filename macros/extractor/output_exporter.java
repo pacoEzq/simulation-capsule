@@ -124,6 +124,9 @@ public class output_exporter extends StarMacro {
     private static final String NEW_OUTLINE = "Outline 1";
     // Top band of the titles, as run_macro.java sets it on the plane title; written on a created title only.
     private static final double[] TITLE_POSITION = { 0.023, 0.916, 0.0 };
+    // A view scene created here puts its title higher, so that one or two lines end above row 56 of
+    // 739, the band the image differencing of Part 6b crops; plane titles keep TITLE_POSITION.
+    private static final double[] VIEW_TITLE_POSITION = { 0.023, 0.930, 0.0 };
 
     // Render layout (v12), set on the views and on the plane scene before every printAndWait and
     // never saved. Title: font on the annotation, height on the scene's prop of it; the position and
@@ -1298,7 +1301,7 @@ public class output_exporter extends StarMacro {
         AnnotationProp prop = sc.getAnnotationPropManager().createPropForAnnotation(title);
         prop.setVisible(true);
         ((SimpleAnnotationProp) sc.getAnnotationPropManager().getObject(v.title))
-            .setPosition(new DoubleVector(TITLE_POSITION));
+            .setPosition(new DoubleVector(VIEW_TITLE_POSITION));
         log("view '" + v.file + "': transient scene " + v.scene + " created (not saved)");
     }
 
