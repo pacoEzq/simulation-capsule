@@ -1,0 +1,134 @@
+{
+  "card_version": 0,
+  "card_source": "user",
+  "body": {
+    "alias": "naca0012_aoa5",
+    "length": {
+      "symbol": "c",
+      "meaning": "chord, 1 m",
+      "parameter": null,
+      "source": "read"
+    },
+    "velocity": {
+      "symbol": "U",
+      "meaning": "freestream speed, 15 m/s",
+      "source": "read"
+    },
+    "group": {
+      "symbol": "AoA",
+      "value": 5,
+      "definition": "angle of attack in degrees, set by rotating the inlet velocity vector",
+      "source": "read"
+    },
+    "regime": {
+      "kind": "steady",
+      "value": "steady RANS, SST k-omega, 2D, Re_c 1e6, converged (monitors flat at iteration 2285)",
+      "source": "read"
+    },
+    "formation": {
+      "scalars": "converged steady state at iteration 2285",
+      "fields": "instantaneous at iteration 2285",
+      "source": "read"
+    },
+    "fluid_region": {
+      "name": "fluid",
+      "source": "read"
+    },
+    "body_boundaries": {
+      "names": [
+        "airfoil"
+      ],
+      "group": "airfoil",
+      "source": "read"
+    },
+    "colormap": "grayscale"
+  },
+  "references": [
+    {
+      "key": "cd",
+      "from": "summary.json forces.cd",
+      "source": "read"
+    },
+    {
+      "key": "cl",
+      "from": "summary.json forces.cl",
+      "source": "read"
+    },
+    {
+      "key": "cell_count",
+      "from": "summary.json mesh.cell_count",
+      "source": "read"
+    }
+  ],
+  "stations": [],
+  "views": [
+    {
+      "file": "view_cp_nearfield.png",
+      "question": "Where does the flow push and where does it pull on and around the airfoil?",
+      "field": "Pressure Coefficient",
+      "parts": "frame_z0",
+      "range": [
+        -3.0,
+        1.0
+      ],
+      "camera": {
+        "focal_point": [
+          1.0,
+          0.1111111,
+          0.0
+        ],
+        "position": [
+          1.0,
+          0.1111111,
+          1.0
+        ],
+        "view_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "parallel_scale": 1.1111111,
+        "projection": 1
+      },
+      "source": "read",
+      "orientation": "flow left to right",
+      "levels": 256,
+      "fill": "node",
+      "axes": false
+    },
+    {
+      "file": "view_u_over_u_wake.png",
+      "question": "Where is the flow slowed, and how far downstream does the wake persist?",
+      "field": "u_over_u",
+      "parts": "frame_z0",
+      "range": [
+        -0.3,
+        1.7
+      ],
+      "camera": {
+        "focal_point": [
+          1.0,
+          0.1111111,
+          0.0
+        ],
+        "position": [
+          1.0,
+          0.1111111,
+          1.0
+        ],
+        "view_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "parallel_scale": 1.1111111,
+        "projection": 1
+      },
+      "source": "read",
+      "orientation": "flow left to right",
+      "levels": 256,
+      "fill": "node",
+      "axes": false
+    }
+  ]
+}

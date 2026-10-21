@@ -111,7 +111,7 @@ public class output_exporter extends StarMacro {
     private static final String PLANE_BODY = "LLM_body_plane_";
     private static final String PLANE_TITLE = "LLM_title_plane_";
     // Every camera (card.stations[].camera, card.views[].camera) is in the lab frame in metres with
-    // D = 1 m, checked in requireUnitD.
+    // D = 1 m, checked in requireUnitD (card.body.length.parameter names another parameter or none).
 
     // summary.json: written by the case macro in the session directory (H5) or, before, by run mode in
     // the point directory.
@@ -200,7 +200,9 @@ public class output_exporter extends StarMacro {
     private String fluidRegion;
     private String colormap;
     private Double halfWidth; // card.body.half_width; null: no missing node is excused
+    private String unitParameter = "D"; // card.body.length.parameter; absent: "D"; null: none checked
     private String formationFields; // card.body.formation.fields, in the titles of the images
+    private String regimeKind; // card.body.regime.kind, in the titles of the views; null: absent
     private final List<String> bodyBoundaries = new ArrayList<String>(); // card.body.body_boundaries.names
     private final Map<String, Boolean> planeCreate = new LinkedHashMap<String, Boolean>(); // image field -> scene absent
     private final List<String> referenceKeys = new ArrayList<String>(); // card.references[].key
@@ -244,6 +246,13 @@ public class output_exporter extends StarMacro {
         double[] range;
         Camera camera;
         boolean create; // scene view_<s> absent from the .sim: createViewScene builds it before the print
+        String stem; // file without view_ and .png, in the title
+        String rangeText; // the two range numbers as the card writes them, "<lo> to <hi>"
+        String orientation; // views[].orientation; null: left out of the title
+        String question; // views[].question; null: not written to render.json
+        Integer levels; // views[].levels (2..512); null: legend levels untouched
+        boolean fillNode; // views[].fill is "node"
+        Boolean axes; // views[].axes; null: axes visibility untouched
     }
 
     // A camera of the card; projection, when given, must be 1 (parallel).
@@ -353,10 +362,31 @@ public class output_exporter extends StarMacro {
         } else {
             halfWidth = Double.valueOf(requireDouble(card, CARD_NAME, "body", "half_width"));
         }
+        // length.parameter names the global parameter that must read 1 m. Absent means "D", as in the
+        // cube cards; null means the cameras are declared in metres and no parameter is checked.
+        Object len = body.get("length");
+        if (len instanceof Map && ((Map<?, ?>) len).containsKey("parameter")) {
+            Object lp = ((Map<?, ?>) len).get("parameter");
+            if (lp == null || lp == JSON_NULL) {
+                unitParameter = null;
+            } else if (lp instanceof String && ((String) lp).length() > 0) {
+                unitParameter = (String) lp;
+            } else {
+                throw new RuntimeException("output_exporter: " + CARD_NAME + " body.length.parameter is neither a name nor null.");
+            }
+        }
         // Goes into the title of every image, so a line break cannot be copied.
         formationFields = requireString(card, CARD_NAME, "body", "formation", "fields");
         if (formationFields.indexOf('\n') >= 0 || formationFields.indexOf('\r') >= 0) {
             throw new RuntimeException("output_exporter: " + CARD_NAME + " body.formation.fields holds a line break.");
+        }
+        Object regime = body.get("regime");
+        if (regime instanceof Map && ((Map<?, ?>) regime).containsKey("kind")) {
+            Object kind = ((Map<?, ?>) regime).get("kind");
+            if (!(kind instanceof String) || ((String) kind).indexOf('\n') >= 0 || ((String) kind).indexOf('\r') >= 0) {
+                throw new RuntimeException("output_exporter: " + CARD_NAME + " body.regime.kind is not a one-line string.");
+            }
+            regimeKind = (String) kind;
         }
         // The body outline of a plane scene created in memory shows these boundaries; optional otherwise.
         Object bb = body.get("body_boundaries");
@@ -378,9 +408,7 @@ public class output_exporter extends StarMacro {
         }
 
         List<Object> st = requireList(card, CARD_NAME, "stations");
-        if (st.isEmpty()) {
-            throw new RuntimeException("output_exporter: " + CARD_NAME + " stations is empty.");
-        }
+        // An empty list is valid (a card with no planes): nothing of planes/ is required or exported.
         Set<String> stems = new HashSet<String>();
         for (int i = 0; i < st.size(); i++) {
             String where = "stations[" + i + "]";
@@ -486,10 +514,46 @@ public class output_exporter extends StarMacro {
                 }
             }
             v.partNames = names;
-            v.range = doubles(requireList(m, where, "range"), 2, "view '" + v.file + "' range");
+            List<Object> rangeList = requireList(m, where, "range");
+            v.range = doubles(rangeList, 2, "view '" + v.file + "' range");
+            v.rangeText = ((JsonNumber) rangeList.get(0)).raw + " to " + ((JsonNumber) rangeList.get(1)).raw;
+            v.stem = s;
+            v.orientation = optionalLine(m, where, "orientation");
+            v.question = optionalLine(m, where, "question");
+            if (m.containsKey("levels")) {
+                long n = integerOf(m.get("levels"), where + " levels");
+                if (n < 2L || n > 512L) {
+                    throw new RuntimeException("output_exporter: " + where + " levels " + n + " is not in 2..512.");
+                }
+                v.levels = Integer.valueOf((int) n);
+            }
+            if (m.containsKey("fill")) {
+                if (!"node".equals(m.get("fill"))) {
+                    throw new RuntimeException("output_exporter: " + where + " fill is not \"node\".");
+                }
+                v.fillNode = true;
+            }
+            if (m.containsKey("axes")) {
+                if (!(m.get("axes") instanceof Boolean)) {
+                    throw new RuntimeException("output_exporter: " + where + " axes is not true or false.");
+                }
+                v.axes = (Boolean) m.get("axes");
+            }
             v.camera = readCamera(m, where, "view '" + v.file + "'");
             views.add(v);
         }
+    }
+
+    // An optional text member of a view; absent gives null, anything but a one-line string throws.
+    private static String optionalLine(Map<String, Object> m, String where, String key) {
+        if (!m.containsKey(key)) {
+            return null;
+        }
+        Object o = m.get(key);
+        if (!(o instanceof String) || ((String) o).indexOf('\n') >= 0 || ((String) o).indexOf('\r') >= 0) {
+            throw new RuntimeException("output_exporter: " + where + " " + key + " is not a one-line string.");
+        }
+        return (String) o;
     }
 
     // camera of a station or a view: focal_point, position, view_up, parallel_scale and, if given,
@@ -718,8 +782,11 @@ public class output_exporter extends StarMacro {
     // the .sim does not have stops the macro with the station or the view named.
     private void checkObjects() {
         Region fluid = region(fluidRegion);
-        for (int i = 0; i < COORD_COLUMNS.length; i++) {
-            fieldFunction(COORD_COLUMNS[i]);
+        if (!stations.isEmpty()) {
+            // The coordinate columns belong to the plane CSVs only.
+            for (int i = 0; i < COORD_COLUMNS.length; i++) {
+                fieldFunction(COORD_COLUMNS[i]);
+            }
         }
         if (caseSummary == null) {
             // Read by the freshness check of run mode only.
@@ -823,6 +890,9 @@ public class output_exporter extends StarMacro {
 
     // ================================================================= step 1: planes
     private void exportPlanes() {
+        if (stations.isEmpty()) {
+            return;
+        }
         File planesDir = subDir(pointDir, "planes");
         for (int p = 0; p < stations.size(); p++) {
             Station st = stations.get(p);
@@ -1073,8 +1143,9 @@ public class output_exporter extends StarMacro {
             SimpleAnnotation title = simpleAnnotation(v.title);
             showOnlyParts(sd, v);
             applyCardColorbar(sd, "view '" + v.file + "'", v.range);
+            applyViewOptions(sc, sd, v);
             setCamera(sc, v.scene, v.camera);
-            String text = titleText(v.field, caseSummary == null ? "body" : v.parts);
+            String text = viewTitleText(v);
             if (!text.equals(title.getText())) {
                 title.setText(text);
             }
@@ -1097,12 +1168,86 @@ public class output_exporter extends StarMacro {
               .append(", \"part\": ").append(str(v.parts)).append(",\n");
             viewsJson.append("      \"camera\": ").append(camera).append(",\n");
             viewsJson.append("      \"colorbar\": ").append(colorbarJson(sd, v.displayer)).append(",\n");
-            viewsJson.append("      \"title\": ").append(str(title.getText())).append(",\n");
+            viewsJson.append("      \"title\": ").append(str(title.getText()));
+            if (v.question != null) {
+                viewsJson.append(", \"question\": ").append(str(v.question));
+            }
+            viewsJson.append(",\n");
+            if (v.levels != null || v.fillNode || v.axes != null) {
+                StringBuilder opts = new StringBuilder();
+                if (v.levels != null) {
+                    opts.append("\"levels\": ").append(v.levels);
+                }
+                if (v.fillNode) {
+                    opts.append(opts.length() > 0 ? ", " : "").append("\"fill\": \"node\"");
+                }
+                if (v.axes != null) {
+                    opts.append(opts.length() > 0 ? ", " : "").append("\"axes\": ").append(v.axes);
+                }
+                viewsJson.append("      ").append(opts).append(",\n");
+            }
             viewsJson.append("      \"export\": {\"call\": ").append(str(printCall())).append("}}")
               .append(i == views.size() - 1 ? "\n" : ",\n");
             log(rel(out) + " " + VIEW_WIDTH + "x" + VIEW_HEIGHT + " bytes=" + out.length() + " camera " + camera);
         }
         return viewsJson.toString();
+    }
+
+    // The optional keys of a card view, applied when present. Levels are read back; the fill mode is
+    // logged (its getter returns an int); axes has no verified getter and is written as asked. Calls recorded in 2606: Legend.setLevels(int),
+    // ScalarDisplayer.setFillMode(ScalarFillMode.NODE_FILLED), Scene.setAxesVisible(boolean).
+    private void applyViewOptions(Scene sc, ScalarDisplayer sd, View v) {
+        if (v.levels != null) {
+            Legend legend = sd.getLegend();
+            legend.setLevels(v.levels.intValue());
+            Object read = integerOrUnexpected(legend.getLevels());
+            if (!(read instanceof Long) || ((Long) read).longValue() != v.levels.longValue()) {
+                throw new RuntimeException("output_exporter: view '" + v.file + "': legend levels read back "
+                    + (read instanceof Long ? read.toString() : ((Unexpected) read).text) + ", card asks " + v.levels + ".");
+            }
+        }
+        if (v.fillNode) {
+            sd.setFillMode(ScalarFillMode.NODE_FILLED);
+            // getFillMode() returns an int in 2606, not the enum, so the value is logged, not compared.
+            log("view " + v.file + ": fill mode set to NODE_FILLED, reads back " + sd.getFillMode());
+        }
+        if (v.axes != null) {
+            sc.setAxesVisible(v.axes.booleanValue());
+        }
+    }
+
+    // Title of a view, from the card only: <alias>, <view stem>, <field>, <lo> to <hi> clamped,
+    // <orientation>, <regime kind>, <formation fields>. An absent orientation or regime kind is left out.
+    private String viewTitleText(View v) {
+        StringBuilder t = new StringBuilder();
+        t.append(alias).append(", ").append(v.stem).append(", ").append(v.field).append(", ")
+            .append(v.rangeText).append(" clamped");
+        if (v.orientation != null) {
+            t.append(", ").append(v.orientation);
+        }
+        if (regimeKind != null) {
+            t.append(", ").append(regimeKind);
+        }
+        t.append(", ").append(formationFields);
+        return twoLines(t.toString());
+    }
+
+    // A view title longer than TITLE_ONE_LINE characters does not fit 1024 px at TITLE_HEIGHT, so it is
+    // broken in two at the ", " separator nearest its middle; the comma stays on the first line.
+    private static final int TITLE_ONE_LINE = 110;
+
+    private static String twoLines(String t) {
+        if (t.length() <= TITLE_ONE_LINE) {
+            return t;
+        }
+        int mid = t.length() / 2;
+        int best = -1;
+        for (int i = t.indexOf(", "); i >= 0; i = t.indexOf(", ", i + 1)) {
+            if (best < 0 || Math.abs(i - mid) < Math.abs(best - mid)) {
+                best = i;
+            }
+        }
+        return best < 0 ? t : t.substring(0, best + 1) + "\n" + t.substring(best + 2);
     }
 
     // A view whose scene the .sim lacks, built as t7/output_exporter.exportBodyView does: createScalarScene
@@ -1235,7 +1380,7 @@ public class output_exporter extends StarMacro {
     // first (createPlaneScene). The camera is read back after each render; the cameras, the colorbar,
     // the titles, the field and the scene of each plane and the views go to render.json for session C.
     private void exportPlaneImages(String viewsJson) {
-        File planesDir = subDir(pointDir, "planes");
+        File planesDir = stations.isEmpty() ? null : subDir(pointDir, "planes");
         Set<String> ready = new HashSet<String>();
 
         StringBuilder planesJson = new StringBuilder();
@@ -1451,13 +1596,18 @@ public class output_exporter extends StarMacro {
 
     // The cameras (card.stations and card.views) are declared in metres for D = 1 m.
     private void requireUnitD() {
-        Object o = sim.getGlobalParameterManager().hasObject("D");
+        if (unitParameter == null) {
+            log("card body.length.parameter is null: cameras taken in metres, no unit parameter checked");
+            return;
+        }
+        Object o = sim.getGlobalParameterManager().hasObject(unitParameter);
         if (!(o instanceof ScalarGlobalParameter)) {
-            throw new RuntimeException("output_exporter: missing global parameter 'D'.");
+            throw new RuntimeException("output_exporter: missing global parameter '" + unitParameter + "'.");
         }
         double d = ((ScalarGlobalParameter) o).getQuantity().getSIValue();
         if (Math.abs(d - 1.0) > 1.0e-12) {
-            throw new RuntimeException("output_exporter: D reads " + d + " m; the cameras are declared for D = 1 m.");
+            throw new RuntimeException("output_exporter: " + unitParameter + " reads " + d + " m; the cameras are declared for "
+                + unitParameter + " = 1 m.");
         }
     }
 
@@ -1693,7 +1843,7 @@ public class output_exporter extends StarMacro {
 
     // ================================================================= step 4: setup.txt
     private File writeSetupTxt() {
-        File html = new File(pointDir, "summary_re" + nnnn + ".html");
+        File html = new File(pointDir, "summary_" + alias + ".html");
         exportSummaryReportHtml(html);
         if (!html.isFile() || html.length() == 0L) {
             throw new RuntimeException("output_exporter: summary report '" + rel(html) + "' was not written.");
