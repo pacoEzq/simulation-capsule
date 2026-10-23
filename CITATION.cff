@@ -4,7 +4,7 @@ message: If you use this specification, please cite it.
 type: software
 authors:
   - given-names: Francisco
-    family-names: Ezquerra Larrode
+    family-names: Ezquerra Larrodé
 repository-code: https://github.com/pacoEzq/simulation-capsule
 abstract: >-
   A specification for the Simulation Capsule, a self-contained,
