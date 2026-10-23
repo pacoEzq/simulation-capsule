@@ -213,7 +213,7 @@ Two licenses, because this repository holds two kinds of thing.
 
 | What | License |
 |---|---|
-| `tools/`, `macros/`, the `.py` scripts in `docs/` | [MIT](LICENSE) |
+| `tools/`, `macros/`, the `.py` scripts and `.java` macros in `docs/` | [MIT](LICENSE) |
 | `SPEC.md`, `README.md`, `examples/`, `probes/`, `assets/`, `docs/` (Side Runs: text, figures, data) | [CC BY 4.0](LICENSE-DOCS) |
 
 The code is MIT so you can run it, fork it and ship it inside your own
