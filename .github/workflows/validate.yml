@@ -32,6 +32,13 @@ jobs:
       # than a copy nobody is watching.
       - name: Frozen tree intact
         run: python3 tools/check_frozen.py examples/frozen.sha256
+      # CITATION.cff is what an archive reads to cite the repository. A file
+      # that does not parse against CFF 1.2.0 fails here, before a release
+      # depends on it.
+      - name: Validate CITATION.cff
+        uses: citation-file-format/cffconvert-github-action@2.0.0
+        with:
+          args: "--validate"
       # The published capsules predate SPEC 0.2, so their reference quantities
       # warn and that is the point: the warnings are the migration inventory
       # Part 7 works from. Never --strict here.
