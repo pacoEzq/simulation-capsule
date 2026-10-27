@@ -35,8 +35,8 @@ import re
 import subprocess
 import sys
 
-SPEC_VERSION = "0.10"
-TOOL_VERSION = "1.11"
+SPEC_VERSION = "0.11"
+TOOL_VERSION = "1.12"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -65,7 +65,9 @@ SUBDIRS = {
     # manifest that describes them is diff.json at the root, per SPEC 4.7,
     # so the pattern here is as strict as the one for views/.
     "diff": [r"^[a-z0-9_]+\.png$"],
-    "signals": [r"^(signal|spectra)_[A-Za-z0-9_]+\.csv$"],
+    # SPEC 4.9.1 since 0.11: the phase average, the spectrum and their
+    # machine readable twin, nothing else.
+    "signals": [r"^(phase_average|spectrum)\.csv$", r"^signals\.json$"],
     "modes": [r"^mode_[A-Za-z0-9_]+\.(csv|png)$", r"^modal_summary\.json$"],
     "snapshots": [r"^[a-z0-9_]+\.png$"],
 }

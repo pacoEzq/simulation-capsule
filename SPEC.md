@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.10. Draft.**
+**Version 0.11. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -821,7 +821,83 @@ The shared principle is to factor time rather than sample it. A transient case
 becomes a small set of stationary derived fields plus the frequency content that
 explains the rest.
 
-Specified in Parts 8 and 9.
+`signals/` is specified below; `modes/` and `snapshots/` in Part 9.
+
+#### 4.9.1 `signals/`
+
+A periodic run publishes its time history as two stationary products of one
+window, not as the history itself: the cycle seen through its phase, and the
+frequencies it carries. The raw history stays outside the capsule, like the
+scripts that read it.
+
+```
+signals/
+├── phase_average.csv
+├── spectrum.csv
+└── signals.json
+```
+
+**Window.** Both files are formed over one window of whole periods of a
+reference signal, named in `signals.json` (`cl` for a body shedding vortices).
+The window is cut from a search range declared beforehand: it opens at the
+first upward crossing, inside that range, of the reference signal's fluctuation
+about its mean over the range, and closes at the last such crossing,
+`n_periods` cycles on. Whole periods make the two files agree: the phase
+average sees every phase as often as every other, and the line of the reference
+signal falls exactly on bin `n_periods` of the spectrum, with no leakage into
+its neighbours. Where `summary.json` declares a window for the same run,
+`signals/` uses that window: a capsule has one window. The window is written as
+3.6 writes a span, `over tU/D <a> to <b>`, and in `signals.json` as
+`window_tU_over_L: [a, b]`, next to the search range,
+`search_tU_over_L: [a, b]`.
+
+**`phase_average.csv`.** One row per phase, `phase = j / P` for `j = 0` to
+`P - 1`, with `P` phases per period; phase 0 is the opening crossing of every
+cycle. The value of a signal at phase `j` in one cycle is interpolated linearly
+in time between the samples around `t = c_k + (j / P)(c_k+1 - c_k)`, with `c_k`
+and `c_k+1` the crossings that bound the cycle. For each signal, `<name>_mean`
+is the mean over the cycles of those values, and `<name>_sd` the sample
+standard deviation over the cycles: the spread from one cycle to the next, not
+the swing within one. A signal that is not periodic shows it here, as an `_sd`
+of the order of the swing of its `_mean`. A signal is named by its key in
+`summary.json` (`cd`, `cl`) or by the probe it comes from (`p1_v`, the v
+component at probe `p1`).
+
+**`spectrum.csv`.** One row per frequency bin, `St = f L / U = k / T` for
+`k = 0, 1, ...` while `St` is at most `st_max`, with `T` the length of the
+window in units of `L / U`. For each signal, `psd_<name>` is the one-sided
+power spectrum of the signal over exactly that window, mean removed and without
+a taper, normalised so that the sum over all bins up to the Nyquist frequency
+equals the variance of the signal over the window; the rows kept below `st_max`
+sum to the part of the variance below `st_max`. With that normalisation the
+height of a line is the variance it carries, comparable across signals, meshes
+and cases without knowing how the spectrum was computed. A signal sampled at
+uneven steps is first resampled to even ones, and its column says how.
+
+**Header.** Each CSV opens with comment lines before the row of names: the
+first declares the window in the written form of 3.6 and that the values are
+nondimensional, then one line per column says how that column was formed.
+
+```
+# signals over tU/D 100 to 300 | 32 periods, St 0.16 | 32 phases | nondimensional
+# column phase: j / 32, j = 0 to 31; phase 0 at each upward crossing of cl
+# column cl_mean: mean over the 32 cycles of cl at that phase, interpolated linearly in time within each cycle
+# column cl_sd: sample standard deviation over the 32 cycles of cl at that phase
+phase,cl_mean,cl_sd
+```
+
+**`signals.json`.** The same facts for a program to read:
+
+```
+signals.json { reference, search_tU_over_L, window_tU_over_L, n_periods, st, phases, st_max, signals, files }
+files.<name> { rows, columns }
+```
+
+`reference` names the signal the window was cut on, `search_tU_over_L` the
+range it was cut from; `st` is `n_periods / T`, the frequency of the reference
+signal over the window; `phases` is `P`; `signals` lists the signals both files
+carry; `files.<name>.columns` repeats, column by column, what the header of
+that file says.
 
 ### 4.10 `disclosure.json` (provisional)
 
@@ -866,6 +942,7 @@ run it on the expanded directory.
 | 0.8 | Time statistics: `time_mean`, `time_rms` and `_window_tU_over_L` (4.2.2), and the written form of a span (3.6, 4.3, 4.6). A colormap is a measurable property, named in `manifest.json` as the producing software names it (3.3). The Reynolds number is `re` in `reference` (4.2). No new check: see below. |
 | 0.9 | Discretization declared (4.2.4): a study in space, time or both, four states per quantity and the iteration error of each mesh, or `study: "none"` when nothing was measured. Decay of the slowest mode, `n_e` with its source and window (4.2.3). Sampling of a derived quantity (4.2). One new check: see below. |
 | 0.10 | 4.2.4: the band is declared (`order_band`); a fifth status, `above_order`, with `gci_order` and `gci_fs`; `behaviour` and `status` are separate statements and an oscillation that shrinks is `converged`; an unmeasured iteration error is null. 4.2: `cd` is the whole traction, and the normal viscous part, when it exceeds 0.1% of `cd`, is carried as `cd_viscous_normal` so the split closes. No new check: see below. |
+| 0.11 | `signals/` specified (4.9.1): `phase_average.csv` and `spectrum.csv` over one window of whole periods of a reference signal, each column declaring how it was formed, and `signals.json` with the same facts. The file names allowed in `signals/` change; no new check: see below. |
 
 ### 0.3 → 0.4
 
@@ -996,3 +1073,17 @@ run it on the expanded directory.
   `examples/` that splits a coefficient closes well inside that bound, so
   the 0.6 and 0.10 readings of `cd` agree there; none carries a
   `discretization` block, and all stay valid as published.
+
+### 0.10 → 0.11
+
+- 4.9.1: `signals/` holds `phase_average.csv`, `spectrum.csv` and
+  `signals.json`, all formed over one window of whole periods of a
+  reference signal. The phase average carries a mean and a cycle to cycle
+  standard deviation per signal and phase, interpolated linearly in time
+  within each cycle; the spectrum is one-sided, normalised so that its
+  bins up to Nyquist sum to the variance over the window. A capsule has
+  one window: `signals/` uses the one `summary.json` declares, if any.
+- Compatibility: the `declared_files` check accepts those three names in
+  `signals/` and no longer the `signal_*.csv` and `spectra_*.csv` it
+  accepted before. No capsule in `examples/` carries `signals/`, so all stay
+  valid as published.

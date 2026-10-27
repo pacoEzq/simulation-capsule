@@ -456,6 +456,8 @@ def main():
         studied_bad = os.path.join(workspace, "capsule_studied_bad")
         split_ok = os.path.join(workspace, "capsule_split_ok")
         split_gap = os.path.join(workspace, "capsule_split_gap")
+        signals_ok = os.path.join(workspace, "capsule_signals_ok")
+        signals_old = os.path.join(workspace, "capsule_signals_old")
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -564,6 +566,24 @@ def main():
             write(os.path.join(where, "setup.txt"), "Case: synthetic_split\n")
             write(os.path.join(where, "summary.json"),
                   json.dumps(summary, indent=2))
+        header = ("# signals over tU/D 100 to 300 | 32 periods, St 0.16 "
+                  "| 32 phases | nondimensional\n")
+        periodic = {"case": "synthetic_signals", "environment": ENVIRONMENT,
+                    "reference": {"side_m": 1.0, "re": 100}}
+        for where in (signals_ok, signals_old):
+            write(os.path.join(where, "setup.txt"),
+                  "Case: synthetic_signals\n")
+            write(os.path.join(where, "summary.json"),
+                  json.dumps(periodic, indent=2))
+            os.makedirs(os.path.join(where, "signals"))
+        write(os.path.join(signals_ok, "signals", "phase_average.csv"),
+              header + "phase,cl_mean,cl_sd\n0,0.000,0.001\n")
+        write(os.path.join(signals_ok, "signals", "spectrum.csv"),
+              header + "St,psd_cl\n0,0.0\n")
+        write(os.path.join(signals_ok, "signals", "signals.json"),
+              json.dumps({"reference": "cl", "n_periods": 32, "st": 0.16}))
+        write(os.path.join(signals_old, "signals", "signal_cl.csv"),
+              header + "t,cl\n0,0.000\n")
         build_variant(undeclared, declare=False)
         build_variant(promised, manifest=False)
         build_variant(instrument, declare=False, manifest=False,
@@ -895,6 +915,19 @@ def main():
         else:
             print("PASS  a split that does not close warns with its gap, "
                   "fails strict")
+
+        got = failed_checks(signals_ok, strict=True)
+        if got:
+            failures.append("signals/ with its three files should pass "
+                            "strict, failed %s: %s"
+                            % (sorted(got), findings(signals_ok,
+                                                     "declared_files")))
+        elif "declared_files" not in failed_checks(signals_old):
+            failures.append("signal_cl.csv in signals/ should fail "
+                            "declared_files since SPEC 0.11")
+        else:
+            print("PASS  signals/ takes phase_average, spectrum and "
+                  "signals.json, refuses the old names")
 
         msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
         if not any("the SPEC allows" in m for m in msgs):
