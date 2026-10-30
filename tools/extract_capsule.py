@@ -323,6 +323,8 @@ def build(pkg, out, tools, strict, commit):
     capsule.mkdir(parents=True)
     shutil.copyfile(pkg / "setup.txt", capsule / "setup.txt")
     shutil.copyfile(pkg / "summary.json", capsule / "summary.json")
+    if (pkg / "signals").is_dir():
+        shutil.copytree(pkg / "signals", capsule / "signals")
 
     body = card["body"]
     warnings = []
