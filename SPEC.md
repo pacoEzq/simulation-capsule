@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.11. Draft.**
+**Version 0.12. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -686,6 +686,15 @@ The view contract, in full:
   lightness-monotonic.
 - **Filenames are snake_case** and describe the question, not the software state:
   `view_cp_nearfield.png`, not `Scene_1.png`.
+- **A field is drawn.** A render that came out blank still carries its title
+  and its colorbar, and nothing else in the contract catches it. Take every
+  stretch of a row with no background pixel and at least a tenth of the image
+  wide. Across a drawn field such a stretch shows many colors; across a frame or
+  a black colorbar it shows one or two. A view fails when none of its stretches
+  holds 8 colors, or as many as the colorbar levels `manifest.json` declares
+  for it, if fewer. A view with no stretch that long fails too: a render
+  saturated in one color reads as all background. The exception is a
+  difference, named `*_diff`, which may be almost empty.
 
 When a view exists to be compared against another capsule, its colorbar range is the
 union of both cases, fixed before either is rendered.
@@ -923,8 +932,8 @@ The capsule travels whole. Attaching part of it and describing the rest tests
 nothing.
 
 `tools/check_capsule.py` runs the mechanical half of this: naming, encoding,
-pairing, image geometry and the rules of section 3. It does not read archives, so
-run it on the expanded directory.
+pairing, image geometry, whether a view shows a field (4.6) and the rules of
+section 3. It does not read archives, so run it on the expanded directory.
 
 ---
 
@@ -943,6 +952,7 @@ run it on the expanded directory.
 | 0.9 | Discretization declared (4.2.4): a study in space, time or both, four states per quantity and the iteration error of each mesh, or `study: "none"` when nothing was measured. Decay of the slowest mode, `n_e` with its source and window (4.2.3). Sampling of a derived quantity (4.2). One new check: see below. |
 | 0.10 | 4.2.4: the band is declared (`order_band`); a fifth status, `above_order`, with `gci_order` and `gci_fs`; `behaviour` and `status` are separate statements and an oscillation that shrinks is `converged`; an unmeasured iteration error is null. 4.2: `cd` is the whole traction, and the normal viscous part, when it exceeds 0.1% of `cd`, is carried as `cd_viscous_normal` so the split closes. No new check: see below. |
 | 0.11 | `signals/` specified (4.9.1): `phase_average.csv` and `spectrum.csv` over one window of whole periods of a reference signal, each column declaring how it was formed, and `signals.json` with the same facts. The file names allowed in `signals/` change; no new check: see below. |
+| 0.12 | 4.6: a view shows a field, measured on the pixels. One new check: see below. |
 
 ### 0.3 → 0.4
 
@@ -1087,3 +1097,15 @@ run it on the expanded directory.
   `signals/` and no longer the `signal_*.csv` and `spectra_*.csv` it
   accepted before. No capsule in `examples/` carries `signals/`, so all stay
   valid as published.
+
+### 0.11 → 0.12
+
+- 4.6: a view shows a field. On a stretch of a row without background, at
+  least a tenth of the width, a drawn field carries 8 colors or more, or as
+  many as its declared colorbar levels if fewer; the views in `examples/`
+  carry 57 or more, and a blank render carries one. A view without such
+  stretches fails unless it is a difference named `*_diff`.
+- New check `view_field` in `tools/check_capsule.py`. It decodes the PNG
+  with the standard library and warns, so a capsule published before 0.12
+  stays legal as published and fails only under `--strict`. Every capsule
+  in `examples/` passes it.

@@ -44,6 +44,11 @@ Three things are proved here.
    convergence without its keys warn, and fail under --strict. A block without
    status predates 0.4 and asks for no quintet.
 
+9. Views, SPEC 4.6. A blank view, one black bar on a white page, and a
+   render saturated in one color warn and fail under --strict, and so does a
+   view with no long stretch unless it is named *_diff. A band of many colors
+   passes, and so do 5 flat bands when the manifest declares 5 levels.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -81,6 +86,66 @@ def write_png(path, width=1024, height=576, exif=False, text=None):
     parts.append(chunk(b"IEND", b""))
     with open(path, "wb") as handle:
         handle.write(b"".join(parts))
+
+
+def write_rgb_png(path, width, height, pixel):
+    """A view whose pixel at (x, y) is pixel(x, y), an RGB tuple."""
+    raw = b"".join(b"\x00" + bytes(c for x in range(width)
+                                    for c in pixel(x, y))
+                   for y in range(height))
+
+    def chunk(ctype, body):
+        return (struct.pack(">I", len(body)) + ctype + body
+                + struct.pack(">I", zlib.crc32(ctype + body)))
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(b"\x89PNG\r\n\x1a\n"
+                     + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height,
+                                                  8, 2, 0, 0, 0))
+                     + chunk(b"IDAT", zlib.compress(raw, 6))
+                     + chunk(b"IEND", b""))
+
+
+def build_view(root, pixel, name="view_u_z0.png", levels=None):
+    write(os.path.join(root, "setup.txt"), "Case: synthetic_view\n")
+    write(os.path.join(root, "summary.json"), json.dumps(
+        {"case": "synthetic_view", "environment": ENVIRONMENT,
+         "reference": {"side_m": 1.0, "re": 100}}, indent=2))
+    write_rgb_png(os.path.join(root, "views", name), 1024, 96, pixel)
+    if levels:
+        write(os.path.join(root, "manifest.json"), json.dumps(
+            {"views": [{"file": "views/" + name,
+                        "colorbar": {"range": [0.0, 1.0],
+                                     "levels": levels}}]}, indent=2))
+
+
+def blank_view(x, y):
+    """White page, one black bar 307 px long: a blank render."""
+    return (0, 0, 0) if 600 <= x < 907 and 40 <= y < 56 else (255, 255, 255)
+
+
+def field_view(x, y):
+    """White margins around a band of 200 shades."""
+    return (x % 200, 40, 255 - x % 200) if 100 <= x < 924 \
+        else (255, 255, 255)
+
+
+def sparse_view(x, y):
+    """A near-empty difference: short marks, no long stretch."""
+    return (0, 0, 0) if x % 64 < 20 else (255, 255, 255)
+
+
+def saturated_view(x, y):
+    """One color edge to edge but a white title band: it reads as
+    background and leaves no long stretch."""
+    return (255, 255, 255) if y < 12 else (68, 1, 84)
+
+
+def banded_view(x, y):
+    """White margins around 5 flat bands, as a contour plot draws them."""
+    return (40 * ((x - 100) // 165), 90, 120) if 100 <= x < 924 \
+        else (255, 255, 255)
 
 
 def write(path, text, encoding="utf-8"):
@@ -458,6 +523,20 @@ def main():
         split_gap = os.path.join(workspace, "capsule_split_gap")
         signals_ok = os.path.join(workspace, "capsule_signals_ok")
         signals_old = os.path.join(workspace, "capsule_signals_old")
+        view_blank = os.path.join(workspace, "capsule_view_blank")
+        view_field = os.path.join(workspace, "capsule_view_field")
+        view_sparse = os.path.join(workspace, "capsule_view_sparse")
+        view_empty = os.path.join(workspace, "capsule_view_empty")
+        view_saturated = os.path.join(workspace, "capsule_view_saturated")
+        view_bands = os.path.join(workspace, "capsule_view_bands")
+        view_bands_bare = os.path.join(workspace, "capsule_view_bands_bare")
+        build_view(view_blank, blank_view)
+        build_view(view_field, field_view)
+        build_view(view_sparse, sparse_view, name="view_u_z0_diff.png")
+        build_view(view_empty, sparse_view)
+        build_view(view_saturated, saturated_view)
+        build_view(view_bands, banded_view, levels=5)
+        build_view(view_bands_bare, banded_view)
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -620,7 +699,8 @@ def main():
         fired = set()
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
-                     bad_colormap, environment, bad_hash, windowed_bad):
+                     bad_colormap, environment, bad_hash, windowed_bad,
+                     view_blank):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -928,6 +1008,37 @@ def main():
         else:
             print("PASS  signals/ takes phase_average, spectrum and "
                   "signals.json, refuses the old names")
+
+        if "view_field" in failed_checks(view_blank):
+            failures.append("a blank view should warn, not fail")
+        elif "view_field" not in failed_checks(view_blank, strict=True):
+            failures.append("a blank view should fail under --strict: %s"
+                            % findings(view_blank, "view_field"))
+        elif failed_checks(view_field, strict=True):
+            failures.append("a view with a field should pass strict, "
+                            "failed %s" % sorted(failed_checks(view_field,
+                                                               strict=True)))
+        elif failed_checks(view_sparse, strict=True):
+            failures.append("a *_diff view without long stretches should "
+                            "pass strict, failed %s"
+                            % sorted(failed_checks(view_sparse, strict=True)))
+        elif "view_field" not in failed_checks(view_empty, strict=True):
+            failures.append("a view without long stretches, not named "
+                            "*_diff, should fail under --strict")
+        elif "view_field" not in failed_checks(view_saturated, strict=True):
+            failures.append("a render saturated in one color should fail "
+                            "under --strict")
+        elif failed_checks(view_bands, strict=True):
+            failures.append("5 bands with 5 declared levels should pass "
+                            "strict, failed %s" % findings(view_bands,
+                                                           "view_field"))
+        elif "view_field" not in failed_checks(view_bands_bare, strict=True):
+            failures.append("5 bands with no declared levels should fail "
+                            "under --strict")
+        else:
+            print("PASS  a blank or saturated view warns, fails strict; a "
+                  "field, a near-empty *_diff and bands at their declared "
+                  "levels pass")
 
         msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
         if not any("the SPEC allows" in m for m in msgs):

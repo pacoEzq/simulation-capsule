@@ -34,9 +34,10 @@ import os
 import re
 import subprocess
 import sys
+import zlib
 
-SPEC_VERSION = "0.11"
-TOOL_VERSION = "1.12"
+SPEC_VERSION = "0.12"
+TOOL_VERSION = "1.13"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -274,6 +275,94 @@ def read_png_chunks(path):
     return width, height, chunk_types
 
 
+def decode_png_rows(path):
+    """Return (width, height, rows), each row a list of RGB tuples.
+
+    Standard library only, so the validator still needs no install. Covers
+    what a renderer writes: 8 or 16 bit gray, RGB, palette, gray with alpha
+    and RGBA, not interlaced. Alpha is dropped and 16 bit samples keep their
+    high byte, which is what a reader converting to RGB would see. Anything
+    else raises ValueError.
+    """
+    with open(path, "rb") as handle:
+        data = handle.read()
+    if not data.startswith(PNG_SIGNATURE):
+        raise ValueError("not a PNG file (signature missing)")
+    offset = len(PNG_SIGNATURE)
+    header = None
+    palette = None
+    idat = []
+    while offset + 8 <= len(data):
+        length = int.from_bytes(data[offset:offset + 4], "big")
+        ctype = data[offset + 4:offset + 8]
+        body = data[offset + 8:offset + 8 + length]
+        if ctype == b"IHDR":
+            header = body
+        elif ctype == b"PLTE":
+            palette = [tuple(body[i:i + 3]) for i in range(0, len(body), 3)]
+        elif ctype == b"IDAT":
+            idat.append(body)
+        elif ctype == b"IEND":
+            break
+        offset += 12 + length
+    if header is None or len(header) < 13:
+        raise ValueError("IHDR chunk not found")
+    width = int.from_bytes(header[0:4], "big")
+    height = int.from_bytes(header[4:8], "big")
+    depth, ctype, interlace = header[8], header[9], header[12]
+    channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}.get(ctype)
+    if channels is None or interlace or depth not in (8, 16) \
+            or (ctype == 3 and (depth != 8 or palette is None)):
+        raise ValueError("color type %d at %d bit%s is not decoded here"
+                         % (ctype, depth, ", interlaced" if interlace else ""))
+    raw = zlib.decompress(b"".join(idat))
+    bpp = channels * depth // 8
+    stride = width * bpp
+    rows = []
+    prev = bytearray(stride)
+    pos = 0
+    for _ in range(height):
+        kind = raw[pos]
+        line = bytearray(raw[pos + 1:pos + 1 + stride])
+        pos += 1 + stride
+        if kind == 1:
+            for i in range(bpp, stride):
+                line[i] = (line[i] + line[i - bpp]) & 255
+        elif kind == 2:
+            for i in range(stride):
+                line[i] = (line[i] + prev[i]) & 255
+        elif kind == 3:
+            for i in range(stride):
+                left = line[i - bpp] if i >= bpp else 0
+                line[i] = (line[i] + ((left + prev[i]) >> 1)) & 255
+        elif kind == 4:
+            for i in range(stride):
+                a = line[i - bpp] if i >= bpp else 0
+                b = prev[i]
+                c = prev[i - bpp] if i >= bpp else 0
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                pred = a if pa <= pb and pa <= pc else (b if pb <= pc else c)
+                line[i] = (line[i] + pred) & 255
+        elif kind != 0:
+            raise ValueError("unknown PNG filter type %d" % kind)
+        prev = line
+        step = depth // 8
+        samples = line[::step] if step > 1 else line
+        if ctype == 0:
+            row = [(g, g, g) for g in samples]
+        elif ctype == 4:
+            row = [(g, g, g) for g in samples[0::2]]
+        elif ctype == 3:
+            row = [palette[i] if i < len(palette) else (0, 0, 0)
+                   for i in samples]
+        else:
+            row = list(zip(samples[0::channels], samples[1::channels],
+                           samples[2::channels]))
+        rows.append(row)
+    return width, height, rows
+
+
 def read_text(path):
     """Return (text, had_bom) or raise ValueError on a decode failure."""
     with open(path, "rb") as handle:
@@ -488,6 +577,88 @@ def check_png_metadata(root, entries):
                         % ", ".join(sorted(set(carriers))), rel)
     return check
 
+
+# A stretch of a row with no background pixel, at least this fraction of
+# the width, is where a field would be drawn. A rendered field shows many
+# colors along such a stretch; a frame, a title band or a black colorbar
+# shows one or two. Calibrated on examples/: views carry 57 colors or more
+# on their richest stretch, a blank render carries 1.
+FIELD_RUN_FRACTION = 10
+FIELD_MIN_COLORS = 8
+
+
+def field_colors(rows, width):
+    """Return (colors, longest): distinct colors on the richest long
+    stretch without background, and the longest such stretch in pixels."""
+    sample = {}
+    for row in rows[::4]:
+        for pixel in row[::4]:
+            sample[pixel] = sample.get(pixel, 0) + 1
+    background = max(sample, key=sample.get)
+    floor = width // FIELD_RUN_FRACTION
+    best = longest = 0
+    for row in rows:
+        seen, n = set(), 0
+        for pixel in row + [background]:
+            if pixel == background:
+                longest = max(longest, n)
+                if n >= floor:
+                    best = max(best, len(seen))
+                seen, n = set(), 0
+            else:
+                seen.add(pixel)
+                n += 1
+    return best, longest
+
+
+def declared_levels(root):
+    """Map each view in manifest.json to the colorbar levels it declares."""
+    manifest = load_json(root, "manifest.json")
+    levels = {}
+    views = manifest.get("views") if isinstance(manifest, dict) else None
+    for view in views if isinstance(views, list) else []:
+        if not isinstance(view, dict) or not isinstance(view.get("file"), str):
+            continue
+        for bar in (view.get("colorbar"),
+                    (view.get("recipe") or {}).get("colorbar")
+                    if isinstance(view.get("recipe"), dict) else None):
+            value = bar.get("levels") if isinstance(bar, dict) else None
+            if isinstance(value, int) and not isinstance(value, bool) \
+                    and value > 0:
+                levels[view["file"].replace("\\", "/")] = value
+                break
+    return levels
+
+
+def check_view_field(root, entries):
+    check = Check("view_field", "Every view shows a field", "SPEC 4.6")
+    targets = [e for e in entries if e.lower().endswith(".png")
+               and e.replace("\\", "/").startswith("views/")]
+    if not targets:
+        check.skip("no views/")
+        return check
+    levels = declared_levels(root)
+    for rel in targets:
+        try:
+            width, _, rows = decode_png_rows(os.path.join(root, rel))
+        except (ValueError, OSError, zlib.error) as exc:
+            check.warn("cannot decode the pixels: %s" % exc, rel)
+            continue
+        colors, longest = field_colors(rows, width)
+        needed = min(FIELD_MIN_COLORS,
+                     levels.get(rel.replace("\\", "/"), FIELD_MIN_COLORS))
+        stem = os.path.splitext(os.path.basename(rel))[0]
+        if longest < width // FIELD_RUN_FRACTION:
+            if not stem.endswith("_diff"):
+                check.warn("no stretch without background reaches a tenth "
+                           "of the width: a render saturated in one color "
+                           "reads as background; only a view named *_diff "
+                           "may be this empty", rel)
+        elif colors < needed:
+            check.warn("no field drawn: the richest stretch without "
+                       "background holds %d color(s), a field needs %d; "
+                       "the render came out blank" % (colors, needed), rel)
+    return check
 
 def check_csv_header(root, entries):
     check = Check("csv_header", "Every plane CSV opens with a header that "
@@ -1481,6 +1652,7 @@ CHECKS = [
     check_csv_header,
     check_png_geometry,
     check_png_metadata,
+    check_view_field,
     check_reference_block,
     check_dimensional_flags,
     check_extensions,
