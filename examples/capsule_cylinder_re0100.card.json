@@ -1,0 +1,145 @@
+{
+  "card_version": 0,
+  "card_source": "user",
+  "body": {
+    "alias": "cylinder_re0100",
+    "length": {
+      "symbol": "D",
+      "meaning": "cylinder diameter",
+      "source": "read"
+    },
+    "velocity": {
+      "symbol": "U",
+      "meaning": "inlet speed",
+      "source": "read"
+    },
+    "group": {
+      "symbol": "Re",
+      "value": 100,
+      "definition": "rho*U*D/mu",
+      "source": "read"
+    },
+    "regime": {
+      "value": "unsteady, laminar, implicit second-order transient, dt U/D = 0.02",
+      "source": "read"
+    },
+    "formation": {
+      "scalars": "time_mean over tU/D 100 to 300",
+      "fields": "time_mean and time_rms over tU/D 100 to 300",
+      "source": "read"
+    },
+    "fluid_region": {
+      "name": "fluid",
+      "source": "read"
+    },
+    "body_boundaries": {
+      "names": [
+        "cylinder"
+      ],
+      "group": "cylinder",
+      "source": "read"
+    },
+    "half_width": {
+      "value": 0.5,
+      "source": "read"
+    },
+    "colormap": "viridis"
+  },
+  "references": [
+    {
+      "key": "cd",
+      "from": "report cd",
+      "source": "read"
+    },
+    {
+      "key": "cl",
+      "from": "report cl",
+      "source": "read"
+    },
+    {
+      "key": "cells",
+      "from": "report cell_count",
+      "source": "read"
+    }
+  ],
+  "stations": [
+    {
+      "stem": "z0",
+      "axis": "z",
+      "value": 0.0,
+      "origin": [
+        -1.0,
+        -2.0
+      ],
+      "grid": [
+        37,
+        17
+      ],
+      "spacing": 0.25,
+      "fields": [
+        "cp_mean",
+        "cp_rms",
+        "u_over_U_mean",
+        "u_over_U_rms",
+        "v_over_U_mean",
+        "v_over_U_rms"
+      ],
+      "image_field": "u_over_U_mean",
+      "camera": {
+        "focal_point": [
+          3.5,
+          0.0,
+          0.0
+        ],
+        "position": [
+          3.5,
+          0.0,
+          20.0
+        ],
+        "view_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "parallel_scale": 2.6
+      },
+      "source": "read"
+    }
+  ],
+  "views": [
+    {
+      "file": "view_u_rms_z0.png",
+      "question": "Where in the wake does the streamwise velocity fluctuate most?",
+      "field": "u_over_U_rms",
+      "parts": [
+        "section_z0"
+      ],
+      "range": [
+        0.0,
+        0.4
+      ],
+      "diff": false,
+      "camera": {
+        "focal_point": [
+          3.5,
+          0.0,
+          0.0
+        ],
+        "position": [
+          3.5,
+          0.0,
+          20.0
+        ],
+        "view_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "parallel_scale": 2.6,
+        "projection": 1
+      },
+      "source": "inferred",
+      "why": "range set from the expected peak of u'_rms/U below 0.4 in a 2D cylinder wake at Re 100; check against the run before freezing"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "reference": "cl",
+  "search_tU_over_L": [
+    100.0,
+    300.0
+  ],
+  "window_tU_over_L": [
+    105.52137787386212,
+    299.88592254061
+  ],
+  "n_periods": 32,
+  "st": 0.16463908093354332,
+  "phases": 32,
+  "st_max": 2.0,
+  "signals": [
+    "cd",
+    "cl",
+    "p1_v"
+  ],
+  "files": {
+    "phase_average.csv": {
+      "rows": 32,
+      "columns": {
+        "phase": "j / 32, j = 0 to 31; phase 0 at each upward crossing of cl, phase j by linear interpolation in time within each cycle",
+        "cd_mean": "mean over the 32 cycles of cd at that phase",
+        "cd_sd": "sample standard deviation over the 32 cycles of cd at that phase: the spread from one cycle to the next",
+        "cl_mean": "mean over the 32 cycles of cl at that phase",
+        "cl_sd": "sample standard deviation over the 32 cycles of cl at that phase: the spread from one cycle to the next",
+        "p1_u_mean": "mean over the 32 cycles of p1_u at that phase",
+        "p1_u_sd": "sample standard deviation over the 32 cycles of p1_u at that phase: the spread from one cycle to the next",
+        "p1_v_mean": "mean over the 32 cycles of p1_v at that phase",
+        "p1_v_sd": "sample standard deviation over the 32 cycles of p1_v at that phase: the spread from one cycle to the next",
+        "p2_u_mean": "mean over the 32 cycles of p2_u at that phase",
+        "p2_u_sd": "sample standard deviation over the 32 cycles of p2_u at that phase: the spread from one cycle to the next",
+        "p2_v_mean": "mean over the 32 cycles of p2_v at that phase",
+        "p2_v_sd": "sample standard deviation over the 32 cycles of p2_v at that phase: the spread from one cycle to the next"
+      }
+    },
+    "spectrum.csv": {
+      "rows": 389,
+      "columns": {
+        "St": "f L / U = k / T, k = 0, 1, ... while St is at most 2, T the length of the window in units of L / U; the line of cl falls on bin 32, that of cd on bin 64",
+        "psd_cd": "one-sided power spectrum of cd over exactly the window, resampled by linear interpolation to even steps at the native step, mean removed, no taper; normalised so that the sum over all bins up to Nyquist equals the variance of cd over the window, and the rows published sum to the variance below st_max 2",
+        "psd_cl": "one-sided power spectrum of cl over exactly the window, resampled by linear interpolation to even steps at the native step, mean removed, no taper; normalised so that the sum over all bins up to Nyquist equals the variance of cl over the window, and the rows published sum to the variance below st_max 2",
+        "psd_p1_v": "one-sided power spectrum of p1_v over exactly the window, resampled by linear interpolation to even steps at the native step, mean removed, no taper; normalised so that the sum over all bins up to Nyquist equals the variance of p1_v over the window, and the rows published sum to the variance below st_max 2"
+      }
+    }
+  }
+}

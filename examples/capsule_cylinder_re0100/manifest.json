@@ -1,0 +1,276 @@
+{
+  "capsule": "capsule_cylinder_re0100",
+  "spec_version": "0.7",
+  "produced": "20261031T003926Z",
+  "written_by": "extract_capsule.py",
+  "card_source": "user",
+  "card": {
+    "file": "card.json",
+    "sha256": "de255365991e24409eb5cd5f6251727cb8b521ff856e415851cdbcdfdac76841",
+    "version": 0
+  },
+  "body": {
+    "alias": "cylinder_re0100",
+    "length": {
+      "symbol": "D",
+      "meaning": "cylinder diameter",
+      "source": "read"
+    },
+    "velocity": {
+      "symbol": "U",
+      "meaning": "inlet speed",
+      "source": "read"
+    },
+    "group": {
+      "symbol": "Re",
+      "value": 100,
+      "definition": "rho*U*D/mu",
+      "source": "read"
+    },
+    "regime": {
+      "value": "unsteady, laminar, implicit second-order transient, dt U/D = 0.02",
+      "source": "read"
+    },
+    "formation": {
+      "scalars": "time_mean over tU/D 100 to 300",
+      "fields": "time_mean and time_rms over tU/D 100 to 300",
+      "source": "read"
+    },
+    "colormap": "viridis"
+  },
+  "adapter": {
+    "adapter": "starccm",
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2606",
+    "build": "21.04.007",
+    "platform": "linux-x86_64-2.28",
+    "precision": "double",
+    "sim": {
+      "file": "cylinder_re0100.sim",
+      "sha256": "58dec111afd3f5de9381daadd6183467d9f9c6f9b771f68c4787ae9fee670dd1"
+    },
+    "chain": [
+      {
+        "file": "output_exporter",
+        "path": "macros/extractor/output_exporter.java",
+        "sha256": "c057f9a6d52181857864eec7e0a05d275f30577e2ba99b58792e81702ca9e068"
+      },
+      {
+        "file": "object_audit",
+        "path": "macros/extractor/object_audit.java",
+        "sha256": "9551b819546baa36af6a17b14db574f8241d37fbbe84037afd47d4e16e625edb"
+      },
+      {
+        "file": "manifest_writer",
+        "path": "macros/extractor/manifest_writer.java",
+        "sha256": "29b963ef95496063192920b98971c7301441e8d1cd56613fd44e7162a3539470"
+      }
+    ],
+    "mesh": {
+      "cells": 179040
+    },
+    "audit": {
+      "result": "PASS",
+      "summary": {
+        "owned": 20,
+        "other": 151,
+        "missing_owned": []
+      }
+    }
+  },
+  "repo": {
+    "url": "https://github.com/pacoEzq/simulation-capsule",
+    "commit": "1fb013d"
+  },
+  "planes": [
+    {
+      "file": "planes/plane_z0.csv",
+      "axis": "z_D",
+      "value": 0.0,
+      "grid": [
+        37,
+        17
+      ],
+      "spacing": "0.25",
+      "rows_expected": 629,
+      "rows_written": 620,
+      "missing_in_body": 9,
+      "columns": [
+        "x_D",
+        "y_D",
+        "cp_mean",
+        "cp_rms",
+        "u_over_U_mean",
+        "u_over_U_rms",
+        "v_over_U_mean",
+        "v_over_U_rms"
+      ],
+      "formation": "time_mean and time_rms over tU/D 100 to 300",
+      "source": "read",
+      "why": null,
+      "sha256_raw": "5c32f12e4d75d642ac5c01d170359891a63183221a6c7374c212bfc53b700872",
+      "sha256": "467bcf560f88ce335208e2ec537a74aaacc6f176740e61f6418bec0f12c16eb1",
+      "png": {
+        "file": "planes/plane_z0.png",
+        "sha256": "fecf0dd6176d409adc090b45ee5a3e6a96b3c64b09e6ba380faed17fc96d260a",
+        "recipe": {
+          "file": "planes/plane_z0.png",
+          "part": "section_z0",
+          "scene": "LLM_plane_u_over_U_mean",
+          "displayer": "LLM_disp_plane_u_over_U_mean",
+          "field": "u_over_U_mean",
+          "camera": {
+            "focal_point": [
+              3.5,
+              0.0,
+              0.0
+            ],
+            "position": [
+              3.5,
+              0.0,
+              20.0
+            ],
+            "view_up": [
+              0.0,
+              1.0,
+              0.0
+            ],
+            "parallel_scale": 2.6,
+            "projection": 1
+          },
+          "colorbar": {
+            "range": [
+              -0.17325957627929903,
+              1.2498315967961324
+            ],
+            "levels": 32,
+            "clip": "0",
+            "labels": 3,
+            "label_format": "%.2f",
+            "contour_style": "1",
+            "colormap": "viridis"
+          },
+          "title": "u_over_U_mean on z0, Re = 100, time_mean and time_rms over tU/D 100 to 300",
+          "part_substituted": [
+            {
+              "from": "section_z0",
+              "to": "fluid",
+              "reason": "2D region: section_<stem> holds no data"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "views": [
+    {
+      "file": "views/view_u_rms_z0.png",
+      "question": "Where in the wake does the streamwise velocity fluctuate most?",
+      "field": "u_over_U_rms",
+      "parts": [
+        "section_z0"
+      ],
+      "colorbar": {
+        "range": [
+          0.0,
+          0.4
+        ],
+        "colormap": "viridis"
+      },
+      "camera": {
+        "focal_point": [
+          3.5,
+          0.0,
+          0.0
+        ],
+        "position": [
+          3.5,
+          0.0,
+          20.0
+        ],
+        "view_up": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "parallel_scale": 2.6,
+        "projection": 1
+      },
+      "formation": "time_mean and time_rms over tU/D 100 to 300",
+      "source": "inferred",
+      "why": "range set from the expected peak of u'_rms/U below 0.4 in a 2D cylinder wake at Re 100; check against the run before freezing",
+      "sha256": "febd1a1496d759b2a35bca4bbe70e9517ea56c008d86ff751e5e170b210bc550",
+      "recipe": {
+        "file": "views/view_u_rms_z0.png",
+        "scene": "view_u_rms_z0",
+        "displayer": "disp_u_rms_z0",
+        "field": "u_over_U_rms",
+        "part": "section_z0",
+        "camera": {
+          "focal_point": [
+            3.5,
+            0.0,
+            0.0
+          ],
+          "position": [
+            3.5,
+            0.0,
+            216.33307652783935
+          ],
+          "view_up": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "parallel_scale": 2.6,
+          "projection": 1
+        },
+        "colorbar": {
+          "range": [
+            0.0,
+            0.4
+          ],
+          "levels": 32,
+          "clip": "0",
+          "labels": 3,
+          "label_format": "%.2f",
+          "contour_style": "1",
+          "colormap": "viridis"
+        },
+        "title": "cylinder_re0100, u_rms_z0, u_over_U_rms, 0.0 to 0.4 clamped,\ntime_mean and time_rms over tU/D 100 to 300",
+        "part_substituted": [
+          {
+            "from": "section_z0",
+            "to": "fluid",
+            "reason": "2D region: section_<stem> holds no data"
+          }
+        ],
+        "question": "Where in the wake does the streamwise velocity fluctuate most?",
+        "export": {
+          "call": "printAndWait(file, 1, 1024, 739)"
+        }
+      }
+    }
+  ],
+  "checks": {
+    "colormap_lightness_monotonic": true,
+    "stations": 1,
+    "views": 1
+  },
+  "tokens": {
+    "tool": "capsule_ledger.py",
+    "eol": "LF",
+    "files": {
+      "manifest.json": 1796,
+      "planes/plane_z0.csv": 12505,
+      "planes/plane_z0.png": 1200,
+      "setup.txt": 7056,
+      "signals/phase_average.csv": 2375,
+      "signals/signals.json": 727,
+      "signals/spectrum.csv": 7430,
+      "summary.json": 960,
+      "views/view_u_rms_z0.png": 1200
+    },
+    "total": 35249
+  }
+}
