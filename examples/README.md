@@ -38,10 +38,12 @@ Each name opens the capsule's case card, which links to its files.
 | [`capsule_cube_re0600`](capsule_cube_re0600.md) | Cube, Re 600, laminar | `+ diff.json`, `diff/` | Part 7a | not yet |
 | [`capsule_cube_re1000`](capsule_cube_re1000.md) | Cube, Re 1000, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
 | [`capsule_cube_re3000`](capsule_cube_re3000.md) | Cube, Re 3000, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
+| [`capsule_cylinder_re0100`](capsule_cylinder_re0100.md) | Cylinder, Re 100, laminar, 2D, unsteady | `+ signals/` | Part 8 | not yet |
 
 Read down the table and the format assembles itself: scalars, then sections, then a
 volume sample, then named features, then curated views, then a comparison
-between two of them, then a sweep that one chain built point by point.
+between two of them, then a sweep that one chain built point by point, then a
+run whose time is folded into one cycle and a spectrum.
 
 Every capsule from Part 2 to Part 6 was handed whole to a language model and
 questioned about its own case before it was published. The probe records hold
@@ -53,7 +55,7 @@ the nine capsule defects those sessions caught.
 
 For most of the series these capsules declared their reference quantities three
 different ways, and their plane CSV headers disagreed too. That is closed. They now
-declare those quantities the same way, and `tools/check_capsule.py` run over the eleven
+declare those quantities the same way, and `tools/check_capsule.py` run over the twelve
 of them in `--strict` reports no error and no warning.
 
 The divergence was invisible until several capsules sat side by side, which is a
@@ -75,7 +77,7 @@ repository root:
 python3 tools/check_capsule.py examples/capsule_*/ --strict
 ```
 
-Eleven capsules, eleven passes, exit code 0. Point it at `examples/*/` instead and it also
+Twelve capsules, twelve passes, exit code 0. Point it at `examples/*/` instead and it also
 reads `as-published/` as if it were one capsule, and fails: that directory holds the
 capsules exactly as the posts shipped them, frozen, old forms included.
 
@@ -88,8 +90,8 @@ format.
 ## What they cost
 
 Between 8,400 and 65,000 tokens for the capsules of Parts 2 to 6b, measured per
-artifact in [token-ledger.md](token-ledger.md). The Part 7 capsules are not in the
-ledger yet.
+artifact in [token-ledger.md](token-ledger.md), which also measures the Part 8
+cylinder at 35,000. The Part 7 capsules are not in the ledger yet.
 
 The headline is not the one most people expect. Images are cheap: they account for
 5% of the jet capsule and 7% of the delta. Numeric tables are what fills a context

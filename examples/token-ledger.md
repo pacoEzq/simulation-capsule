@@ -42,6 +42,28 @@ The `planes/`, `views/` and `diff/` rows include their images. Subtracting them
 gives the cost of the tables alone: 14,411 for the cube, 25,456 for the delta,
 34,571 for the jet.
 
+## Part 8
+
+Measured on 2026-10-31 with the same tool, LF endings.
+
+| Artifact | Part | cylinder_re0100 |
+|---|---|---|
+| `setup.txt` | T1 | 7,056 |
+| `summary.json` | T2 | 960 |
+| `planes/` | T3 | 13,705 |
+| `views/` | T6 | 1,200 |
+| `manifest.json` | T7 | 1,796 |
+| `signals/` | T8 | 10,532 |
+| Text, measured | | 32,849 |
+| Images, estimated | | 2,400 |
+| **Total** | | **35,000** |
+| Share of a 60,000 token budget | | 59% |
+
+`signals/` costs 10,532 tokens for 32 phases of six signals and a spectrum of
+three up to St 2: less than the one plane beside it. The run behind it wrote
+15,000 time steps of each signal; folded onto one cycle and its frequencies,
+that history fits in under a third of the capsule.
+
 ## What the numbers say
 
 **Numeric data is the expensive layer, not the pictures.** Images account for

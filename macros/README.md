@@ -3,10 +3,10 @@
 Simcenter STAR-CCM+ Java macros that produce capsule artifacts. Run them from
 inside the simulation; they write files, they do not read the capsule back.
 
-Macros here are reusable across cases. `t7/` is the exception: it holds the
-chain that builds the Part 7 capsules, and its `run_macro.java` belongs to
-that one case. No capsule carries a copy of it; each capsule's
-`manifest.json` names it by path and sha256.
+Macros here are reusable across cases. `t7/` and `t8/` are the exceptions:
+each holds the chain that builds the capsules of one Part, for that Part's
+case. No capsule carries a copy of them; a capsule's `manifest.json` names
+what built it.
 
 ## TrimReportForAI.java
 
@@ -69,6 +69,21 @@ of the `.sim` and the host name read `(redacted)`. The earlier capsules show
 `<path>` and `<host>` instead, removed by hand (note 5 under
 `TrimReportForAI.java`). Same fact, two spellings; neither is a value
 waiting to be filled in.
+
+## t8/
+
+The chain behind the Part 8 capsule: a circular cylinder at Re 100 that sheds
+a Kármán vortex street. `build_karman.java` builds a thin 3D domain and its
+mesh, which Mesh, Convert to 2D turns into the 2D case. `setup_monitors.java`
+adds the force coefficients, two point probes and the field statistics,
+`run_karman.java` runs the unsteady solver, and `export_signals.java` and
+`export_stats.java` write the histories and the mean and RMS fields.
+
+`tools/build_summary.py` turns the histories into `summary.json`, with the
+scalars as time statistics over whole periods of `cl`, and
+`tools/build_signals.py` writes `signals/` over the same window, as SPEC 0.11
+4.9.1 defines it. Both have a test beside them on synthetic signals. The plane
+and the view come from the extractor below, with the card in `examples/`.
 
 ---
 
