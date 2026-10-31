@@ -135,6 +135,7 @@ extension.
 - [Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at Re = 100](docs/cube-re100/README.md) tests the two stagnation values that `capsule_cube_re0100` reports.
 - [Cube Drag Coefficient from Re = 100 to 3000: Six Simulation Capsules Against the Literature](docs/cube-literature-anchors/README.md) anchors the cube capsules to Khan et al. 2020 and rules out the lateral walls as the cause of the Re 100 excess.
 - [Wake Symmetry Breaking in Transient CFD: How the Initial Condition Selects the Side-Force Plane of a Cube at Re = 300](docs/cube-re300-symmetry-plane/README.md) shows that the initial condition selects the plane in which the cube wake breaks symmetry, while drag and Strouhal numbers do not change.
+- [Symmetry-Plane Selection in the Cube Wake at Re = 300: Rotated, Tilted and Wide-Domain Runs](docs/cube-re300-turned/README.md) turns and tilts the cube inside a fixed mesh and finds that the wake always oscillates in a plane through a face, while the mesh only decides which face.
 
 ## Repository contents
 
