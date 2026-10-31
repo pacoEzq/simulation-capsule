@@ -17,6 +17,7 @@ import csv
 import hashlib
 import json
 import math
+import re
 import shutil
 import subprocess
 import sys
@@ -24,7 +25,6 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-SPEC_VERSION = "0.7"
 COORDS = ("x_D", "y_D", "z_D")
 COORD_TOL = 1e-6
 SPACING_REL_TOL = 1e-4
@@ -275,6 +275,16 @@ def run_ledger(tools, capsule):
     return {"tool": "capsule_ledger.py", "eol": "LF", "files": dict(sorted(files.items())), "total": r["tokens"]}
 
 
+def spec_version(tools):
+    # The SPEC a capsule follows is the one the validator that checks it
+    # follows, so the version is read from check_capsule.py, never repeated.
+    text = tool(tools, "check_capsule.py").read_text(encoding="utf-8")
+    match = re.search(r'^SPEC_VERSION = "([^"]+)"', text, re.M)
+    if not match:
+        raise ExtractError("check_capsule.py declares no SPEC_VERSION")
+    return match.group(1)
+
+
 def write_manifest(capsule, manifest):
     (capsule / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
                                            encoding="utf-8", newline="\n")
@@ -351,7 +361,7 @@ def build(pkg, out, tools, strict, commit):
 
     manifest = {
         "capsule": capsule.name,
-        "spec_version": SPEC_VERSION,
+        "spec_version": spec_version(tools),
         "produced": utc_stamp(),
         "written_by": "extract_capsule.py",
         "card_source": card["card_source"],
