@@ -62,6 +62,8 @@ became visible only after the fact.
 | 7a | `+ manifest.json` | 2 | [part-7a_cube_re0600.md](part-7a_cube_re0600.md) |
 | 7b | no new file | 2 | [part-7b_cube_re0100_re3000.md](part-7b_cube_re0100_re3000.md) |
 | 7c | no new file | 2 | [part-7c_cube_re0100_re3000.md](part-7c_cube_re0100_re3000.md) |
+| 8a | `+ signals/`, set aside by the prompt | 2 | [part-8a_cylinder_re0100.md](part-8a_cylinder_re0100.md) |
+| 8b | `+ signals/` | 2 | [part-8b_cylinder_re0100.md](part-8b_cylinder_re0100.md) |
 
 Records are named `part-<N>_<case>.md`, one file per part; a part that compares
 two cases names the pair in full, and a part that probes a sweep names its first
@@ -70,7 +72,7 @@ the three reader draft of the Part 6 record. The four reader record replaced
 it, and the draft is gone from the tree and kept in the history.
 
 The single reader in Parts 1 to 5, reader D in Part 6, reader A in Part 6b and
-reader A in Parts 7a, 7b and 7c share a family with the Claude model that
+reader A in Parts 7a, 7b, 7c, 8a and 8b share a family with the Claude model that
 helped me write these records. The conflict is in the judgement, not in `tools/`, which is
 deterministic and runnable by anyone. Every transcript is linked for the same
 reason.
@@ -98,6 +100,10 @@ reason.
 | 7a | The side of the wake deficit on a plane cannot be predicted from the files: each plane is the last iteration of a wake that does not settle | not a defect; SPEC 3.6 has a plane declare that it is one instant |
 | 7b | No file ties the planes to an iteration: the plane CSV headers and `manifest.json` carry none, while the PNG titles and `setup.txt` line 71 do; both readers said so | became SPEC 0.6, 3.6 and 4.3: the plane header reads `instantaneous at iteration <n>` |
 | 7c | `pressure.cp_stagnation` is labelled stagnation and is the maximum over the cube faces, in a corner cell, growing as the mesh is refined; the readers parted on which way it moves | open; the [Side Run](../docs/cube-re100/README.md) measures the drift, and the next version of the contract has to say how a value like this came to be |
+| 8a | `cl_rms` is right for its window of 32 periods and not for the fixed span 100 to 300, which holds 32.93; the readers parted on whether the shift matters | open; the capsule states the window and not how far a statistic moves off it |
+| 8a | `manifest.json` `body.formation.scalars` reads tU/D 100 to 300, while `summary.json` forms the scalars over the window, 105.521 to 299.886 | open; found while writing the record, not by a reader |
+| 8b | The window opens on a residual transient: the period falls from 6.0760 to 6.0734 over the first eight cycles, and the halves test lets it through | open; deducible only from `window.halves`, and `signals/signals.json` does not publish the period variation |
+| 8b | `cl_sd` is the spread at fixed phase and says nothing about a clock that drifts; one reader took it as the error at an instant | open; the capsule says how `cl_sd` was formed and not what it leaves out |
 
 None came from human review, with one qualification: the Part 7c trap was found
 in the solver before the probe was written, and the probe tested whether the
