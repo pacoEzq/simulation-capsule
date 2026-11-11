@@ -122,7 +122,8 @@ model-agnostic; nothing here depends on a particular frontier model.
 | 7a | [Automation, the Macro That Builds the Capsule](https://community.sw.siemens.com/s/question/0D5Vb00001dUIzpKAG/preparing-cfd-output-for-large-language-models-7a10-automation-the-macro-that-builds-the-capsule) | `manifest.json` |
 | 7b | [Four Reynolds Numbers, the Cube That Would Not Sit Still](https://community.sw.siemens.com/s/question/0D5Vb00001dtHuCKAU/preparing-cfd-output-for-large-language-models-7b10-four-reynolds-numbers-the-cube-that-would-not-sit-still) | no new file: every averaged number<br>in `summary.json` carries the run's<br>convergence state and its statistic |
 | 7c | [Integrity, a Capsule Sealed to a Commit](https://community.sw.siemens.com/s/question/0D5Vb00001fgMSYKA2/preparing-cfd-output-for-large-language-models-7c10-integrity-a-capsule-sealed-to-a-commit) | no new file: a capsule is publishable<br>only when it passes --strict and<br>its manifest names a commit |
-| 8 | Transient fields I: time as statistics (not yet) | `signals/` |
+| 8a | [Transient Fields I, Time as Statistics: One Window of Whole Periods](https://community.sw.siemens.com/s/question/0D5Vb00001imOEMKA2/preparing-cfd-output-for-large-language-models-8a10-transient-fields-i-time-as-statistics-one-window-of-whole-periods) | no new file: every time statistic<br>in `summary.json` names its window<br>of whole periods and a halves test |
+| 8b | [Transient Fields I, Time as Statistics: the Cycle Through Its Phase and Its Spectrum](https://community.sw.siemens.com/s/question/0D5Vb00001l7xXkKAI/preparing-cfd-output-for-large-language-models-8b10-transient-fields-i-time-as-statistics-the-cycle-through-its-phase-and-its-spectrum) | `signals/` |
 | 9 | Transient fields II: modes (not yet) | `modes/`, `snapshots/` |
 | 10 | Confidentiality: what leaves the building (not yet) | `disclosure.json` |
 
@@ -191,11 +192,11 @@ form. That is the record, not a regression, and it is why the commands above nam
 ## Status
 
 The specification tracks the series and is incomplete by design: layers are
-specified as their tutorial publishes. Parts 1 to 7 are out (7a, 7b, 7c), and
-Part 6b with them. Everything from `setup.txt` through `views/` is
+specified as their tutorial publishes. Parts 1 to 8 are out (7a, 7b, 7c, 8a,
+8b), and Part 6b with them. Everything from `setup.txt` through `views/` is
 settled, and so is the `diff` extension of 4.7. Section 4.8, the manifest, is
-still marked provisional. The transient layers and the disclosure audit are
-still moving.
+still marked provisional. The transient layers, `signals/` included, and the
+disclosure audit are still moving.
 
 Breaking changes to settled layers get a version bump and a note in `SPEC.md`.
 
