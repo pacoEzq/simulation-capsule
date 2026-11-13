@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.12. Draft.**
+**Version 0.13. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -268,6 +268,59 @@ capsule leaves the building.
 the HTML summary report, 400 to 900 KB or roughly 100k to 200k tokens, by 90 to
 95 percent. Measured over the five published capsules, the trimmed file weighs
 5.7k to 11.9k tokens; per-case figures are in `examples/token-ledger.md`.
+
+**Compact notation (optional).** `setup.txt` may be written in a compact
+notation that says the same thing in fewer tokens. It is lossless: it decodes
+to the plain form byte for byte, and the plain form stays valid. Five rules,
+each undone exactly by the decoder:
+
+1. A banner trio, a line of 60 `=`, the title and another line of 60 `=`,
+   becomes `== TITLE ==`.
+2. Two spaces of indentation per tree level become one.
+3. A property line `  Key: value` is joined, after a TAB, to the node line
+   it follows. The plain form lists a node's properties right after the
+   node, before its children, at a flat two-space indent, so a property
+   belongs to the node line it follows. A property is never joined to a
+   section banner.
+4. A subtree identical to an earlier subtree of the same name becomes
+   `Name ^A > P`, where `A > P` is the shortest tail of the earlier
+   subtree's ancestor path that names it unambiguously. It resolves to
+   exactly one earlier subtree: a subtree whose full path and name occur
+   more than once is never the target of a reference.
+5. Three or more consecutive sibling lines that differ only in numbers in
+   arithmetic progression become `@k=0..N template`. A number that changes
+   is written as an `{a:b}` slot, which holds `a + k*b` on line `k`; a
+   number that does not change is written as it is, the same on every line.
+
+A compact `setup.txt` opens with this header, verbatim, so the reader learns
+the notation from the file itself:
+
+```
+[Notation of this report]
+== Title == : a section banner.
+Indentation: one space per tree level.
+A TAB after a line starts a property (Key: value) that belongs to that line.
+Name ^A > P : this node repeats, unchanged, the earlier node Name found under the path A > P (the shortest path tail that names it unambiguously).
+@k=0..N template : N+1 sibling lines; on line k, each {a:b} slot holds the number a + k*b, and every number written plainly is the same on all lines.
+[/Notation]
+```
+
+`tools/setup_v2.py` encodes and decodes it, and refuses to encode unless the
+result decodes to its input. Over the 12 `setup.txt` in `examples/`, the round
+trip is exact with and without the header, and the compact form is 14.1
+percent smaller in bytes without the header and 12.3 percent with it (the
+header adds 483 bytes). On `capsule_cylinder_re0100` a reader model answered
+24 questions about the setup, 12 on values, 9 on which section holds a setting
+and 3 on a node's direct parent, three times over each form, with the header
+inside `setup.txt`. The compact form, 9854 tokens against 12340 (20 percent
+fewer), got 72 of 72 right; the plain form got 66 of 72, all six misses on
+section questions (21 of 27). No answer the plain form got right was lost in
+the compact one. That is one case, one reader model from the same family as
+the model that designed the notation, and only 3 direct-parent questions; why
+the plain form missed was not probed. It was measured with an earlier header
+whose template line read `in each {a:b} slot, line k holds the number a + k*b`;
+the body of the file is the same as `tools/setup_v2.py` writes now.
+The record is [probes/setup-notation_cylinder_re0100.md](probes/setup-notation_cylinder_re0100.md).
 
 ### 4.2 `summary.json` (settled)
 
@@ -932,8 +985,8 @@ The capsule travels whole. Attaching part of it and describing the rest tests
 nothing.
 
 `tools/check_capsule.py` runs the mechanical half of this: naming, encoding,
-pairing, image geometry, whether a view shows a field (4.6) and the rules of
-section 3. It does not read archives, so run it on the expanded directory.
+pairing, image geometry, whether a view shows a field (4.6), whether a compact
+`setup.txt` decodes (4.1) and the rules of section 3. It does not read archives, so run it on the expanded directory.
 
 ---
 
@@ -953,6 +1006,7 @@ section 3. It does not read archives, so run it on the expanded directory.
 | 0.10 | 4.2.4: the band is declared (`order_band`); a fifth status, `above_order`, with `gci_order` and `gci_fs`; `behaviour` and `status` are separate statements and an oscillation that shrinks is `converged`; an unmeasured iteration error is null. 4.2: `cd` is the whole traction, and the normal viscous part, when it exceeds 0.1% of `cd`, is carried as `cd_viscous_normal` so the split closes. No new check: see below. |
 | 0.11 | `signals/` specified (4.9.1): `phase_average.csv` and `spectrum.csv` over one window of whole periods of a reference signal, each column declaring how it was formed, and `signals.json` with the same facts. The file names allowed in `signals/` change; no new check: see below. |
 | 0.12 | 4.6: a view shows a field, measured on the pixels. One new check: see below. |
+| 0.13 | 4.1: an optional compact notation for `setup.txt`, lossless, opened by a fixed notation header. The plain form stays valid. One new check: see below. |
 
 ### 0.3 → 0.4
 
@@ -1109,3 +1163,18 @@ section 3. It does not read archives, so run it on the expanded directory.
   with the standard library and warns, so a capsule published before 0.12
   stays legal as published and fails only under `--strict`. Every capsule
   in `examples/` passes it.
+
+### 0.12 → 0.13
+
+- 4.1: `setup.txt` may be written in a compact notation of five rules that
+  decodes to the plain form byte for byte, and then opens with the notation
+  header verbatim. The plain form stays valid and `setup.txt` stays settled.
+  `tools/setup_v2.py` encodes and decodes.
+- New check `setup_notation` in `tools/check_capsule.py`. It skips a plain
+  `setup.txt`. A compact one fails when its header differs from the one 4.1
+  quotes, when a back reference resolves to no earlier subtree or to more
+  than one, or when a template does not expand. A TAB, a template line or a
+  ` ^` reference without the header warns, so a plain `setup.txt` that
+  carries one stays legal and fails only under `--strict`. Every capsule in
+  `examples/` and `examples/as-published/` keeps the plain form, and the
+  check skips all 17.

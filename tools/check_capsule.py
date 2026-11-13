@@ -36,8 +36,11 @@ import subprocess
 import sys
 import zlib
 
-SPEC_VERSION = "0.12"
-TOOL_VERSION = "1.13"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import setup_v2  # noqa: E402
+
+SPEC_VERSION = "0.13"
+TOOL_VERSION = "1.14"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -1621,6 +1624,33 @@ def check_punctuation(root, entries):
     return check
 
 
+def check_setup_notation(root, entries):
+    check = Check("setup_notation", "setup.txt notation decodes", "SPEC 4.1")
+    if "setup.txt" not in entries:
+        check.skip("no setup.txt")
+        return check
+    try:
+        text, _ = read_text(os.path.join(root, "setup.txt"))
+    except (ValueError, OSError) as exc:
+        check.skip("setup.txt unreadable: %s" % exc)
+        return check
+    text = text.replace("\r\n", "\n")
+    if text.startswith(setup_v2.HEADER_BEGIN):
+        try:
+            setup_v2.decode_verified(text)
+        except ValueError as exc:
+            check.error("compact notation does not decode: %s" % exc,
+                        "setup.txt")
+    elif setup_v2.has_compact_marks(text):
+        check.warn("a TAB, an @k template line or a ' ^' reference without "
+                   "the notation header: a compact setup.txt opens with the "
+                   "header verbatim, and a plain one that carries these "
+                   "marks is ambiguous to a reader", "setup.txt")
+    else:
+        check.skip("plain form")
+    return check
+
+
 def check_encoding(root, entries):
     check = Check("encoding", "Every text artifact is valid UTF-8",
                   "SPEC 3.2")
@@ -1645,6 +1675,7 @@ CHECKS = [
     check_declared_files,
     check_not_empty,
     check_encoding,
+    check_setup_notation,
     check_json_parses,
     check_environment,
     check_summary_blocks,

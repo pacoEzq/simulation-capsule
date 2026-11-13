@@ -65,6 +65,10 @@ became visible only after the fact.
 | 8a | `+ signals/`, set aside by the prompt | 2 | [part-8a_cylinder_re0100.md](part-8a_cylinder_re0100.md) |
 | 8b | `+ signals/` | 2 | [part-8b_cylinder_re0100.md](part-8b_cylinder_re0100.md) |
 
+A probe of the format rather than of a part sits beside them:
+[setup-notation_cylinder_re0100.md](setup-notation_cylinder_re0100.md), the
+compact notation of `setup.txt` (SPEC 4.1) against the plain form, one reader.
+
 Records are named `part-<N>_<case>.md`, one file per part; a part that compares
 two cases names the pair in full, and a part that probes a sweep names its first
 and last point, or its one new point. The dated `2026-09-02_ahmed25_re1e6.md` was
@@ -76,6 +80,8 @@ reader A in Parts 7a, 7b, 7c, 8a and 8b share a family with the Claude model tha
 helped me write these records. The conflict is in the judgement, not in `tools/`, which is
 deterministic and runnable by anyone. Every transcript is linked for the same
 reason.
+The reader of the `setup.txt` notation probe shares that family too, and its
+transcripts are not linked: its raw answers are kept with the project records.
 
 ## Defects the probes found
 

@@ -49,6 +49,17 @@ Three things are proved here.
    view with no long stretch unless it is named *_diff. A band of many colors
    passes, and so do 5 flat bands when the manifest declares 5 levels.
 
+10. The compact notation of setup.txt, SPEC 4.1. A plain setup encoded to
+    the compact form, with its back references and templates, passes; so
+    does the plain form, which the check skips. An altered header and a back
+    reference that resolves to two earlier subtrees fail, whether the two
+    sit under different paths or under the same full path. Compact marks
+    without the header warn, and fail only under --strict. A property that
+    follows a child subtree is joined to the node line it follows, and one
+    that follows a banner is not joined. Two subtrees under the same full
+    path are never the target of a reference. Every setup.txt in examples/
+    survives the round trip byte for byte, with and without the header.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -65,6 +76,10 @@ import zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import check_capsule  # noqa: E402
+import setup_v2  # noqa: E402
+
+EXAMPLES = os.path.join(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))), "examples")
 
 
 def write_png(path, width=1024, height=576, exif=False, text=None):
@@ -118,6 +133,91 @@ def build_view(root, pixel, name="view_u_z0.png", levels=None):
             {"views": [{"file": "views/" + name,
                         "colorbar": {"range": [0.0, 1.0],
                                      "levels": levels}}]}, indent=2))
+
+
+PLAIN_SETUP = "\n".join([
+    "=" * 60,
+    "REGIONS",
+    "=" * 60,
+    "Region fluid",
+    "  Type: Fluid Region",
+    "  Boundary inlet",
+    "    Physics Conditions",
+    "      Velocity Specification",
+    "        Method: Components",
+    "      Turbulence Specification",
+    "        Method: Intensity and Viscosity Ratio",
+    "  Boundary outlet",
+    "    Physics Conditions",
+    "      Velocity Specification",
+    "        Method: Components",
+    "      Turbulence Specification",
+    "        Method: Intensity and Viscosity Ratio",
+    "Monitors",
+    "  Probe 1 at x 0.5",
+    "  Probe 2 at x 1.0",
+    "  Probe 3 at x 1.5",
+    "  Probe 4 at x 2.0",
+    "",
+])
+
+# Two earlier subtrees named Inlet under a parent X: "Inlet ^X" cannot tell
+# which one it repeats.
+AMBIGUOUS_SETUP = "\n".join([
+    "Regions",
+    " X",
+    "  Inlet\tType: velocity",
+    "Physics",
+    " X",
+    "  Inlet\tType: velocity",
+    "Boundaries",
+    " Y",
+    "  Inlet ^X",
+    "",
+])
+
+
+# Two subtrees named Inlet under the same full path Regions > X: a reference
+# to that path cannot tell which one it repeats.
+DUPLICATE_PATH_SETUP = "\n".join([
+    "Regions",
+    " X",
+    "  Inlet\tType: velocity",
+    " X",
+    "  Inlet\tType: inflow",
+    "Boundaries",
+    " Y",
+    "  Inlet ^Regions > X",
+    "",
+])
+
+# A property after a child subtree, and one right after a banner.
+PROPERTY_AFTER_SUBTREE = "\n".join([
+    "=" * 60,
+    "REGIONS",
+    "=" * 60,
+    "  Note: right after a banner",
+    "Region fluid",
+    "  Boundary inlet",
+    "    Physics Conditions",
+    "  Type: Fluid Region",
+    "",
+])
+
+# The same subtree twice under one full path, then once elsewhere.
+REPEATED_PATH = "\n".join(
+    ["Region fluid"]
+    + ["  Boundary wall", "    Physics Conditions",
+       "      Shear Stress Specification", "        Method No-Slip"] * 2
+    + ["Region solid", "  Boundary wall", "    Physics Conditions",
+       "      Shear Stress Specification", "        Method No-Slip", ""])
+
+
+def build_setup(root, setup):
+    write(os.path.join(root, "setup.txt"), setup)
+    write(os.path.join(root, "summary.json"), json.dumps(
+        {"case": "synthetic_setup", "environment": ENVIRONMENT,
+         "reference": {"side_m": 1.0, "re": 100}}, indent=2))
 
 
 def blank_view(x, y):
@@ -537,6 +637,23 @@ def main():
         build_view(view_saturated, saturated_view)
         build_view(view_bands, banded_view, levels=5)
         build_view(view_bands_bare, banded_view)
+        compact = setup_v2.encode(PLAIN_SETUP)
+        notation_plain = os.path.join(workspace, "capsule_notation_plain")
+        notation_ok = os.path.join(workspace, "capsule_notation_ok")
+        notation_header = os.path.join(workspace, "capsule_notation_header")
+        notation_bare = os.path.join(workspace, "capsule_notation_bare")
+        notation_ambiguous = os.path.join(workspace,
+                                          "capsule_notation_ambiguous")
+        build_setup(notation_plain, PLAIN_SETUP)
+        build_setup(notation_ok, compact)
+        build_setup(notation_header, compact.replace(
+            "one space per tree level", "two spaces per tree level", 1))
+        build_setup(notation_bare, compact[len(setup_v2.HEADER):])
+        build_setup(notation_ambiguous, setup_v2.HEADER + AMBIGUOUS_SETUP)
+        notation_duplicate = os.path.join(workspace,
+                                          "capsule_notation_duplicate")
+        build_setup(notation_duplicate,
+                    setup_v2.HEADER + DUPLICATE_PATH_SETUP)
 
         build_jet(jet_bad, True)
         build_jet(jet_ok, False)
@@ -700,7 +817,7 @@ def main():
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
                      bad_colormap, environment, bad_hash, windowed_bad,
-                     view_blank):
+                     view_blank, notation_bare):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -1039,6 +1156,72 @@ def main():
             print("PASS  a blank or saturated view warns, fails strict; a "
                   "field, a near-empty *_diff and bands at their declared "
                   "levels pass")
+
+        property_compact = setup_v2.encode(PROPERTY_AFTER_SUBTREE)
+        repeated_compact = setup_v2.encode(REPEATED_PATH)
+        trips = []
+        for name in sorted(os.listdir(EXAMPLES)):
+            path = os.path.join(EXAMPLES, name, "setup.txt")
+            if not name.startswith("capsule_") or not os.path.isfile(path):
+                continue
+            with open(path, encoding="utf-8", newline="") as handle:
+                plain = handle.read()
+            encoded = setup_v2.encode(plain)
+            if setup_v2.decode_verified(encoded) != plain \
+                    or setup_v2.decode(encoded[len(setup_v2.HEADER):]) \
+                    != plain:
+                trips.append(name)
+        if "^" not in compact or "@k=0..3 " not in compact:
+            failures.append("the synthetic setup should encode with a back "
+                            "reference and a template:\n%s" % compact)
+        elif status_of(notation_plain, "setup_notation") != "SKIP":
+            failures.append("a plain setup.txt should skip setup_notation")
+        elif failed_checks(notation_ok, strict=True):
+            failures.append("a compact setup.txt should pass strict, "
+                            "failed %s" % sorted(failed_checks(notation_ok,
+                                                               strict=True)))
+        elif "setup_notation" not in failed_checks(notation_header):
+            failures.append("an altered notation header should fail")
+        elif "setup_notation" in failed_checks(notation_bare):
+            failures.append("compact marks without the header should warn, "
+                            "not fail")
+        elif "setup_notation" not in failed_checks(notation_bare,
+                                                   strict=True):
+            failures.append("compact marks without the header should fail "
+                            "under --strict")
+        elif not any("line 15" in f["message"] and "2 earlier" in f["message"]
+                     for f in findings(notation_duplicate, "setup_notation")):
+            failures.append("a reference to a full path registered twice "
+                            "should fail naming its line: %s"
+                            % findings(notation_duplicate, "setup_notation"))
+        elif "\tType: Fluid Region" not in property_compact \
+                or "  Physics Conditions\tType: Fluid Region" \
+                not in property_compact \
+                or "== REGIONS ==\n Note: right after" not in property_compact \
+                or setup_v2.decode(property_compact) \
+                != PROPERTY_AFTER_SUBTREE:
+            failures.append("a property after a child subtree joins the node "
+                            "line it follows, one after a banner stays "
+                            "unjoined:\n%s" % property_compact)
+        elif "^" in repeated_compact[len(setup_v2.HEADER):] \
+                or setup_v2.decode(repeated_compact) != REPEATED_PATH:
+            failures.append("a subtree under a full path seen twice should "
+                            "not be referenced:\n%s" % repeated_compact)
+        elif "setup_notation" not in failed_checks(notation_ambiguous):
+            failures.append("an ambiguous back reference should fail")
+        elif not any("line 16" in f["message"]
+                     for f in findings(notation_ambiguous, "setup_notation")):
+            failures.append("an ambiguous back reference should name its "
+                            "line: %s" % findings(notation_ambiguous,
+                                                  "setup_notation"))
+        elif not os.path.isdir(EXAMPLES):
+            failures.append("examples/ not found next to tools/")
+        elif trips:
+            failures.append("round trip not exact for %s" % trips)
+        else:
+            print("PASS  compact setup.txt decodes; altered header and an "
+                  "ambiguous ^ fail, bare marks warn; properties and repeated "
+                  "paths encode as stated; examples round trip exact")
 
         msgs = [f["message"] for f in findings(odd_status, "summary_blocks")]
         if not any("the SPEC allows" in m for m in msgs):

@@ -15,6 +15,7 @@ These write files that go into a capsule.
 | `sample_capsule_volume.py` | `samples.csv` | [Part 4](../examples/capsule_jet_r2_re100.md) |
 | `extract_features_delta.py` | `features.json` | [Part 5](../examples/capsule_delta65_a13p3_re1e6.md) |
 | `check_mirror.py` | mirror figures for a capsule (JSON on stdout) | XYZ table of cell centroids and volumes, after meshing |
+| `setup_v2.py` | `setup.txt` in the compact notation, and back | a plain `setup.txt` ([SPEC 4.1](../SPEC.md)) |
 
 `sample_capsule_volume.py` draws an importance-weighted sample of a volume export,
 without replacement, using the Efraimidis-Spirakis exponential-key method. The
@@ -25,6 +26,10 @@ worth running once to see what the weighting buys.
 polylines and per-station scalars. It carries the two-threshold rule the
 specification requires: an export floor that bounds file size, and a per-station
 relative threshold that defines the set actually integrated.
+
+`setup_v2.py encode setup.txt out.txt` writes the optional compact form of SPEC
+4.1, notation header first, and refuses to write it unless it decodes to the input
+byte for byte; `decode` gives the plain form back.
 
 `check_mirror.py` measures whether a volume mesh is a mirror image of itself across
 a plane, before any flow exists. Each off-plane cell is reflected and its exact
@@ -40,16 +45,17 @@ These read a capsule and write nothing into it.
 
 | Script | Checks |
 |--------|--------|
-| `check_capsule.py` | a capsule against [SPEC.md](../SPEC.md), twenty-one checks, each citing its section |
-| `test_check_capsule.py` | that every one of those twenty-one checks fails on at least one fixture |
+| `check_capsule.py` | a capsule against [SPEC.md](../SPEC.md), twenty-two checks, each citing its section |
+| `test_check_capsule.py` | that every one of those twenty-two checks fails on at least one fixture |
 | `check_frozen.py` | that `examples/as-published/` still matches `examples/frozen.sha256` byte for byte |
 
-`check_capsule.py` 1.13 follows SPEC 0.12 and needs only the standard library. A
+`check_capsule.py` 1.14 follows SPEC 0.13 and needs only the standard library. A
 capsule runs the checks its layers call for: fifteen without plane sections or a
 comparison, seventeen with plane sections, eighteen with the `diff` extension and
-twenty with both, one more in each case when it carries `views/`. A rule an older
-capsule could not have met, such as the `environment` block of 0.4, warns, and
-fails under `--strict`.
+twenty with both, one more in each case when it carries `views/` and one more
+when its `setup.txt` is written in the compact notation. A rule an older capsule
+could not have met, such as the `environment` block of 0.4, warns, and fails
+under `--strict`.
 
 ```
 python check_capsule.py ../examples/capsule_*/ --strict
