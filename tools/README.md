@@ -45,15 +45,16 @@ These read a capsule and write nothing into it.
 
 | Script | Checks |
 |--------|--------|
-| `check_capsule.py` | a capsule against [SPEC.md](../SPEC.md), twenty-two checks, each citing its section |
-| `test_check_capsule.py` | that every one of those twenty-two checks fails on at least one fixture |
+| `check_capsule.py` | a capsule against [SPEC.md](../SPEC.md), twenty-four checks, each citing its section |
+| `test_check_capsule.py` | that every one of those twenty-four checks fails on at least one fixture |
 | `check_frozen.py` | that `examples/as-published/` still matches `examples/frozen.sha256` byte for byte |
 
-`check_capsule.py` 1.14 follows SPEC 0.13 and needs only the standard library. A
+`check_capsule.py` 1.15 follows SPEC 0.14 and needs only the standard library. A
 capsule runs the checks its layers call for: fifteen without plane sections or a
 comparison, seventeen with plane sections, eighteen with the `diff` extension and
 twenty with both, one more in each case when it carries `views/` and one more
-when its `setup.txt` is written in the compact notation. A rule an older capsule
+when its `setup.txt` is written in the compact notation, one more with
+`signals/` or `modes/`, and one more when `manifest.json` marks a colorbar signed. A rule an older capsule
 could not have met, such as the `environment` block of 0.4, warns, and fails
 under `--strict`.
 

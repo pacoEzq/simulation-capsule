@@ -60,6 +60,18 @@ Three things are proved here.
     path are never the target of a reference. Every setup.txt in examples/
     survives the round trip byte for byte, with and without the header.
 
+11. The transient layers and signed fields, SPEC 3.3, 4.2 and 4.9 since
+    0.14. A capsule with signals/, modes/ and snapshots/ whose numbers add
+    up passes, with a phase_mean statistic, a mesh.wall block and a signed
+    colorbar on a symmetric range; the same capsule written with CRLF line
+    ends passes too. A period that is not T / n_periods, a cumulative that
+    does not run with its fractions, a table that stops short of 0.999, a
+    fundamental pair off the bin of signals.json, pattern rows that do not
+    match their plane, coefficient rows that do not match the phases, a
+    signed range that is not -a to +a and a mesh.wall out of range warn,
+    and fail under --strict. modal_summary.json, the name before 0.14, fails
+    declared_files.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -567,6 +579,80 @@ def resolve_with(fake):
         check_capsule.subprocess.run = real
 
 
+def transient_files(bad):
+    """The text artifacts of a periodic capsule with signals/ and modes/."""
+    plane_rows = "".join("%.3f,0.000,1.000,0.000\n" % (0.25 * i)
+                         for i in range(6))
+    plane = ("# plane z_D = 0 | grid 3 x 2, spacing 0.25 D | 6 of 6 nodes "
+             "| time_mean and time_rms over tU/D 100 to 300 | fields %.3f "
+             "| nondimensional\nx_D,y_D,u_over_U_mean,cp_mean\n" + plane_rows)
+    pattern_rows = 5 if bad else 6
+    patterns = ("# modes of z0 | nondimensional\nx_D,y_D,m01_u,m01_v\n"
+                + "".join("%.3f,0.000,0.100,0.200\n" % (0.25 * i)
+                          for i in range(pattern_rows)))
+    header = ("# signals over tU/D 100 to 300 | 32 periods, St 0.16 "
+              "| 4 phases | nondimensional\n")
+    phases = header + "phase,cl_mean,cl_sd\n" + "".join(
+        "%g,0.000,0.001\n" % (j / 4.0) for j in range(4))
+    coefficients = header + "# decomposition: pod\nphase,a01_mean,a01_sd\n" \
+        + "".join("%g,0.000,0.001\n" % (j / 4.0)
+                  for j in range(3 if bad else 4))
+    signals = {"reference": "cl", "search_tU_over_L": [100.0, 300.0],
+               "window_tU_over_L": [100.0, 300.0], "n_periods": 32,
+               "st": 0.16, "phases": 4, "st_max": 2.0, "signals": ["cl"],
+               "period_tU_over_L": {"mean": 6.0 if bad else 6.25,
+                                    "sd": 0.01, "first": 6.24,
+                                    "last": 6.25}}
+    modes = {"method": "pod", "reference": "cl", "n_periods": 32,
+             "total_energy": 0.08, "modes": [
+                 {"mode": 1, "energy_fraction": 0.48, "cumulative": 0.48,
+                  "st": 0.16, "st_bin": 31 if bad else 32, "pair": 1},
+                 {"mode": 2, "energy_fraction": 0.47,
+                  "cumulative": 0.90 if bad else 0.95,
+                  "st": 0.16, "st_bin": 32, "pair": 1},
+                 {"mode": 3, "energy_fraction": 0.0491 if not bad else 0.02,
+                  "cumulative": 0.9991 if not bad else 0.97,
+                  "st": 0.32, "st_bin": 64, "pair": None}]}
+    bar = {"colormap": "viridis",
+           "range": [-0.5, 0.4] if bad else [-0.5, 0.5], "signed": True}
+    manifest = {"capsule": "capsule_transient", "modes": [
+        {"file": "modes/mode_01_u.png", "field": "m01_u", "colorbar": bar}]}
+    summary = {"case": "transient", "environment": ENVIRONMENT,
+               "reference": {"length_scale_D_m": 1.0, "re": 100},
+               "mesh": {"cells": 179040, "wall": {
+                   "layers": 12, "layer_coverage": 1.4 if bad else 0.97,
+                   "first_layer_D": 0.002}},
+               "convergence": {"status": "stationary"},
+               "probes": {"v_over_U_p1_phase25": {
+                   "value": 0.3, "sd": 0.02,
+                   "window_tU_over_L": [100.0, 300.0], "n_windows": 32,
+                   "statistic": "phase_mean",
+                   "position_D": [2.0, 0.5, 0.0]}}}
+    return {"setup.txt": "Case: transient\n",
+            "summary.json": json.dumps(summary, indent=2),
+            "manifest.json": json.dumps(manifest, indent=2),
+            "planes/plane_z0.csv": plane,
+            "signals/phase_average.csv": phases,
+            "signals/spectrum.csv": header + "St,psd_cl\n0,0.0\n",
+            "signals/signals.json": json.dumps(signals, indent=2),
+            "modes/modes.json": json.dumps(modes, indent=2),
+            "modes/coefficients.csv": coefficients,
+            "modes/modes_z0.csv": patterns}
+
+
+def build_transient(root, bad=False, crlf=False, old_name=False):
+    for rel, text in transient_files(bad).items():
+        if crlf:
+            text = text.replace("\n", "\r\n")
+        if old_name and rel == "modes/modes.json":
+            rel = "modes/modal_summary.json"
+        write(os.path.join(root, *rel.split("/")), text)
+    for rel in ("planes/plane_z0.png", "modes/mode_01_u.png",
+                "snapshots/snapshot_u_over_U_p25.png"):
+        os.makedirs(os.path.dirname(os.path.join(root, rel)), exist_ok=True)
+        write_png(os.path.join(root, *rel.split("/")))
+
+
 def status_of(root, check_id, strict=False):
     for check in check_capsule.validate(root):
         if check.id == check_id:
@@ -630,6 +716,14 @@ def main():
         view_saturated = os.path.join(workspace, "capsule_view_saturated")
         view_bands = os.path.join(workspace, "capsule_view_bands")
         view_bands_bare = os.path.join(workspace, "capsule_view_bands_bare")
+        transient_ok = os.path.join(workspace, "capsule_transient_ok")
+        transient_crlf = os.path.join(workspace, "capsule_transient_crlf")
+        transient_bad = os.path.join(workspace, "capsule_transient_bad")
+        transient_old = os.path.join(workspace, "capsule_transient_old")
+        build_transient(transient_ok)
+        build_transient(transient_crlf, crlf=True)
+        build_transient(transient_bad, bad=True)
+        build_transient(transient_old, old_name=True)
         build_view(view_blank, blank_view)
         build_view(view_field, field_view)
         build_view(view_sparse, sparse_view, name="view_u_z0_diff.png")
@@ -817,7 +911,7 @@ def main():
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
                      bad_colormap, environment, bad_hash, windowed_bad,
-                     view_blank, notation_bare):
+                     view_blank, notation_bare, transient_bad):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -1253,6 +1347,67 @@ def main():
                                                      "summary_blocks"))
         else:
             print("PASS  a block without status predates 0.4, stays silent")
+        # 11. Transient layers and signed fields.
+        for root, label in ((transient_ok, "LF"), (transient_crlf, "CRLF")):
+            got = failed_checks(root, strict=True)
+            ran = {c.id for c in check_capsule.validate(root)
+                   if c.status() != "SKIP"}
+            wanted = {"transient_layers", "signed_range"}
+            if got:
+                failures.append("a transient capsule that adds up (%s) "
+                                "should pass strict, failed %s: %s"
+                                % (label, sorted(got),
+                                   [findings(root, c) for c in got]))
+            elif not wanted <= ran:
+                failures.append("transient_layers and signed_range should "
+                                "run on it (%s), ran %s" % (label, sorted(ran)))
+            else:
+                print("PASS  signals/, modes/, snapshots/, phase_mean, "
+                      "mesh.wall and a signed range pass strict (%s)" % label)
+
+        wanted = {"transient_layers": [
+                      "T / n_periods", "so far sum to", "before 0.999",
+                      "fundamental pair", "rows of patterns",
+                      "rows of coefficients"],
+                  "signed_range": ["not -a to +a"],
+                  "summary_blocks": ["layer_coverage"]}
+        missed = {}
+        for check_id, words in wanted.items():
+            msgs = [f["message"] for f in findings(transient_bad, check_id)]
+            absent = [w for w in words if not any(w in m for m in msgs)]
+            if absent:
+                missed[check_id] = (absent, msgs)
+        loose = failed_checks(transient_bad)
+        tight = failed_checks(transient_bad, strict=True)
+        if missed:
+            failures.append("transient fixture missed %s" % missed)
+        elif loose & set(wanted):
+            failures.append("transient findings should warn, not fail: %s"
+                            % sorted(loose & set(wanted)))
+        elif not set(wanted) <= tight:
+            failures.append("transient findings should fail under --strict, "
+                            "failed %s" % sorted(tight))
+        else:
+            print("PASS  period, cumulative, 0.999, fundamental bin, pattern "
+                  "and coefficient rows, signed range and mesh.wall warn, "
+                  "fail strict")
+
+        bad_crlf = os.path.join(workspace, "capsule_transient_bad_crlf")
+        build_transient(bad_crlf, bad=True, crlf=True)
+        if failed_checks(bad_crlf, strict=True) != tight:
+            failures.append("CRLF changes the transient findings: %s vs %s"
+                            % (sorted(failed_checks(bad_crlf, strict=True)),
+                               sorted(tight)))
+        else:
+            print("PASS  the same defects with CRLF line ends give the same "
+                  "failures")
+
+        if "declared_files" not in failed_checks(transient_old):
+            failures.append("modal_summary.json in modes/ should fail "
+                            "declared_files since SPEC 0.14")
+        else:
+            print("PASS  modes/ refuses modal_summary.json, the name before "
+                  "0.14")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

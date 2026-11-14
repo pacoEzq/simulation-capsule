@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.13. Draft.**
+**Version 0.14. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -187,6 +187,14 @@ A name from another library proves nothing about the image: `viridis` in a
 manifest means the solver shipped a map by that name or the chain built one
 with those control points, not that the author meant something like it.
 
+A signed field, one whose values are as meaningful below zero as above (a
+fluctuation, a mode, a vorticity), keeps a lightness-monotonic map. Its range
+is symmetric, `-a` to `+a`, so zero sits at the middle of the bar, and the
+title says so (`signed, zero at mid-scale`). A diverging map gives `+a` and
+`-a` the same lightness, and a reader that takes lightness as magnitude loses
+the sign. `manifest.json` marks its colorbar `"signed": true` next to the
+range.
+
 Colorbar ranges are fixed and declared, never autoscaled per image. Two images of
 the same field with different autoscaled ranges cannot be compared, and a model has
 no way to detect the mismatch.
@@ -235,7 +243,9 @@ nondimensional time window: in the header comment of a CSV, in the burned-in
 title of an image (3.3). The names are those of 4.2.2.
 Written out, a span reads `over iterations <a>-<b>` for a steady run and
 `over tU/L <a> to <b>` for an unsteady one, with the reference length named
-as the case names it (`tU/D`, `tU/c`).
+as the case names it (`tU/D`, `tU/c`). A field held at one phase reads
+`phase_mean at phase 0.25 of cl, 32 cycles over tU/D <a> to <b>`, and the
+render of one instant `instantaneous at tU/D <t>, phase <p> of <reference>`.
 
 Two artifacts of one capsule may be formed differently, and often are: the
 scalars of a run judged by window statistics are window means, while its planes
@@ -427,8 +437,8 @@ statistic without its window is a number nobody can check. Wherever
 | `<name>_n_windows` | number of windows pooled |
 | `<name>_statistic` | how the value was formed |
 
-`_statistic` takes one of seven values. Five describe a steady run judged over
-iterations, two describe an unsteady run judged over physical time:
+`_statistic` takes one of eight values. Five describe a steady run judged over
+iterations, three describe an unsteady run judged over physical time:
 
 - `iteration_mean`: mean over the sampled iterations of the span.
 - `window_min`, `window_max`: the lowest or highest value reached at any sampled
@@ -439,6 +449,10 @@ iterations, two describe an unsteady run judged over physical time:
 - `time_rms`: root mean square of the fluctuation about `time_mean` over the
   same span; it is the spread of the signal, so a `time_rms` value carries no
   `_sd`.
+- `phase_mean`: mean over the cycles of a window (4.9.1) at one phase of the
+  reference signal, each cycle's value interpolated linearly in time as
+  `phase_average.csv` does, node by node for a field. Written out, a span
+  reads `phase_mean at phase <p> of <reference>, <n> cycles over tU/L <a> to <b>`.
 
 Extremes carry no `_sd`: a minimum over a span has no spread of its own to report.
 The quintet of `cp_min` is therefore four keys:
@@ -479,6 +493,15 @@ dimensional mass flow key appears anywhere in `mass`.
 
 **Mesh.** `mesh.cells` is an integer. `mesh.designed_for_Re_range` is the pair of
 integers `[low, high]` the mesh was sized for, and replaces `designed_for_Re`.
+
+`mesh.wall`, optional, says what a reader needs to judge a wall quantity:
+`layers`, the number of cell layers grown on the wall; `layer_coverage`, the
+share of the wall area whose cells carry all of them; `first_layer_L`, the
+height of the first cell over the reference length (`first_layer_D` for a
+body measured by `D`). Comparable key by key means the same quantity, not the
+same answer: two capsules that differ in mesh compare `cd_friction` or `cf`
+next to their `mesh.wall`. A key that names the mesher's own setting stays in
+`setup.txt`.
 
 #### 4.2.3 `convergence`
 
@@ -883,7 +906,8 @@ The shared principle is to factor time rather than sample it. A transient case
 becomes a small set of stationary derived fields plus the frequency content that
 explains the rest.
 
-`signals/` is specified below; `modes/` and `snapshots/` in Part 9.
+All three are specified below; `modes/` and `snapshots/` are written up in
+Part 9.
 
 #### 4.9.1 `signals/`
 
@@ -951,7 +975,8 @@ phase,cl_mean,cl_sd
 **`signals.json`.** The same facts for a program to read:
 
 ```
-signals.json { reference, search_tU_over_L, window_tU_over_L, n_periods, st, phases, st_max, signals, files }
+signals.json { reference, search_tU_over_L, window_tU_over_L, n_periods, st, phases, st_max, period_tU_over_L, signals, files }
+period_tU_over_L { mean, sd, first, last }
 files.<name> { rows, columns }
 ```
 
@@ -960,6 +985,110 @@ range it was cut from; `st` is `n_periods / T`, the frequency of the reference
 signal over the window; `phases` is `P`; `signals` lists the signals both files
 carry; `files.<name>.columns` repeats, column by column, what the header of
 that file says.
+
+`period_tU_over_L` gives the length of the cycles between consecutive upward
+crossings: `mean` is `T / n_periods`, `sd` the sample standard deviation over
+the cycles, `first` and `last` the first and the last cycle. A window still
+leaving a transient shows it as `first` and `last` apart by more than `sd`;
+`phase_average.csv` cannot show it, because it stretches every cycle to the
+same phases. It is new in 0.14, and a `signals.json` written before carries
+none.
+
+#### 4.9.2 `modes/`
+
+A modal decomposition publishes a fluctuating field as `r` spatial patterns
+that do not change in time and `r` coefficients that do. The patterns are
+stationary fields; the coefficients are signals, and follow 4.9.1. A reader
+rebuilds the field at a phase, row by row, from three files of the capsule:
+
+```
+u_over_U(x, phase) ≈ u_over_U_mean(x) + Σ_k a_k(phase) · m_k_u(x)
+```
+
+with the mean from `planes/`, `a_k` from `coefficients.csv` and `m_k_u` from
+`modes_<station>.csv`.
+
+```
+modes/
+├── modes.json
+├── coefficients.csv
+├── modes_<station>.csv
+└── mode_<kk>_<component>.png
+```
+
+**What is decomposed.** The fluctuation of the velocity components about their
+time mean over the capsule's window (4.9.1), sampled at equal steps in time.
+Whole periods keep the mean clean and put each pair on an exact bin of the
+spectrum.
+
+**Inner product and normalisation.** The inner product is the mean over the
+nodes used of `u'u' + v'v'`, on a uniform grid of a declared region; nodes in
+the body are left out by the rule of 4.3. Each mode has unit mean square over
+those nodes. The coefficient carries the amplitude, in units of `U`, and its
+variance over the window is the mode's energy. The energies sum to
+`total_energy`, the mean over the nodes of `(u_rms² + v_rms²) / U²`. Energies
+and fractions depend on the region: two capsules compare their modes only over
+the same region, and `modes.json` declares it.
+
+**Gauge.** A mode is defined up to its sign, and a pair of near-equal energies
+up to a rotation within the pair. Without a convention two builds of one run
+publish different tables. A pair, two consecutive modes at the same frequency
+whose energies differ by less than 20 percent, is rotated so that its first
+member crosses zero upward at phase 0 of the reference signal and its second
+lags a quarter of its period. A single mode takes the sign that makes its
+largest tabulated value positive. The energy is published per pair, which the
+rotation leaves unchanged, and per member as measured.
+
+**`modes.json`.**
+
+```
+modes.json { method, fields, reference, window_tU_over_L, n_periods, samples, region, inner_product, normalisation, gauge, total_energy, modes, tabulated, drawn, closure, files }
+samples { count, every_tU_over_L, per_period }
+region { x_L, y_L, grid, spacing, nodes_used, nodes_in_body }
+modes[] { mode, energy_fraction, cumulative, st, st_bin, pair, pair_energy_fraction, symmetry, symmetry_residual, wavelength_L }
+closure { rank, rms_max_abs_diff, probe_reconstruction }
+```
+
+`method` is `pod`; another method is a later version. `samples` are the
+instants the decomposition reads; the word snapshot is kept for 4.9.3.
+`modes[]` runs until `cumulative` reaches 0.999, in whole pairs, and
+`cumulative` is the running sum of `energy_fraction`. `st` and `st_bin` are
+the peak of the spectrum of `a_k` over the window; `st_bin` is the bin of
+4.9.1, and the fundamental pair falls on `n_periods`, the bin of
+`signals.json`. `symmetry` is `even` or `odd` about the body's own symmetry
+axis, with its residual, and is absent when the body has none.
+`wavelength_L` is the streamwise distance over which the phase of a pair,
+`atan2(m_k+1, m_k)`, turns once, the median over the tabulated nodes where
+the pair's amplitude exceeds half its maximum.
+`closure.rms_max_abs_diff` is the largest difference, over the station's
+nodes, between `sqrt(Σ energy_k m_k²)` over the tabulated modes and the rms
+of `planes/`; `closure.probe_reconstruction` gives, per probe, the share of
+the variance of its phase-averaged signal that the identity above rebuilds.
+Lengths follow the reference length of the case: `x_D`, `y_D` and
+`wavelength_D` for a body measured by `D`.
+
+**`coefficients.csv`.** The phases of `phase_average.csv`, with columns
+`phase`, `a<kk>_mean`, `a<kk>_sd` for the modes tabulated, formed as 4.9.1
+forms a signal. Header as 4.9.1, plus a line naming the decomposition.
+
+**`modes_<station>.csv`.** The patterns at the nodes of the station of
+`planes/` that shares its name, with the same rows left out, so that a row of
+a mode matches a row of the plane. Not interpolated: the sample grid contains
+the station's nodes. Columns `x_L, y_L, m<kk>_u, m<kk>_v`.
+
+**`mode_<kk>_<component>.png`.** One per pair, of its first member; signed
+field under 3.3, one range for all the modes drawn.
+
+#### 4.9.3 `snapshots/`
+
+Optional renders of a field at chosen phases of the reference signal, under a
+fixed colorbar: `snapshot_<field>_p<ff>.png`, with `ff` the phase in
+hundredths. They are images only; the numbers at a phase come from the
+identity of 4.9.2. A render is a `phase_mean` (4.2.2) over the window's
+cycles, and its title says so. A chain that cannot render a tabulated field
+may render one instant, and its title says `instantaneous at tU/L <t>,
+phase <p> of <reference>`. Two phases half a period apart are, for a body
+with a symmetry axis, mirror images, and one of them suffices.
 
 ### 4.10 `disclosure.json` (provisional)
 
@@ -986,7 +1115,8 @@ nothing.
 
 `tools/check_capsule.py` runs the mechanical half of this: naming, encoding,
 pairing, image geometry, whether a view shows a field (4.6), whether a compact
-`setup.txt` decodes (4.1) and the rules of section 3. It does not read archives, so run it on the expanded directory.
+`setup.txt` decodes (4.1), whether the transient layers add up (4.9) and the
+rules of section 3. It does not read archives, so run it on the expanded directory.
 
 ---
 
@@ -1007,6 +1137,7 @@ pairing, image geometry, whether a view shows a field (4.6), whether a compact
 | 0.11 | `signals/` specified (4.9.1): `phase_average.csv` and `spectrum.csv` over one window of whole periods of a reference signal, each column declaring how it was formed, and `signals.json` with the same facts. The file names allowed in `signals/` change; no new check: see below. |
 | 0.12 | 4.6: a view shows a field, measured on the pixels. One new check: see below. |
 | 0.13 | 4.1: an optional compact notation for `setup.txt`, lossless, opened by a fixed notation header. The plain form stays valid. One new check: see below. |
+| 0.14 | `modes/` and `snapshots/` specified (4.9.2, 4.9.3); the period cycle by cycle in `signals.json` (4.9.1); `phase_mean`, the eighth `_statistic` (4.2.2, 3.6); a signed field on a symmetric range (3.3); optional `mesh.wall` (4.2.2). The file names allowed in `modes/` and `snapshots/` change. Two new checks: see below. |
 
 ### 0.3 → 0.4
 
@@ -1178,3 +1309,33 @@ pairing, image geometry, whether a view shows a field (4.6), whether a compact
   carries one stays legal and fails only under `--strict`. Every capsule in
   `examples/` and `examples/as-published/` keeps the plain form, and the
   check skips all 17.
+
+### 0.13 → 0.14
+
+- 3.3: a signed field keeps a lightness-monotonic map on a range from `-a`
+  to `+a`, and `manifest.json` marks its colorbar `"signed": true`. New
+  check `signed_range`: a colorbar marked signed whose range is not
+  symmetric about zero warns.
+- 4.2.2: `phase_mean` joins `_statistic`, and 3.6 gives its written form.
+  `summary_blocks` accepts it.
+- 4.2.2: `mesh.wall`, optional, with `layers`, `layer_coverage` and
+  `first_layer_L`. `summary_blocks` warns when the block lacks one of them
+  or holds a value out of range. Capsules that carry a mesher's key of their
+  own, such as `prism_layers_nonwall` in `capsule_cube_re0300`, stay as
+  published.
+- 4.9.1: `period_tU_over_L` in `signals.json`. 4.9.2: `modes/`, with
+  `modes.json`, `coefficients.csv`, `modes_<station>.csv` and
+  `mode_<kk>_<component>.png`. 4.9.3: `snapshots/`, with
+  `snapshot_<field>_p<ff>.png`. The provisional names `mode_*.csv` and
+  `modal_summary.json` no longer pass `declared_files`; no capsule in
+  `examples/` carried them.
+- New check `transient_layers`. Where `signals/` or `modes/` is present: the
+  period's `mean` is `T / n_periods`; `cumulative` runs with the energy
+  fractions, stays within `total_energy` and reaches 0.999; the first pair
+  has `st_bin` equal to `n_periods`; a `modes_<station>.csv` has as many
+  rows as the plane of that station, and `coefficients.csv` as many as
+  `phase_average.csv`. Tolerance 0.1 percent, for rounded numbers.
+- Both new checks warn, so a capsule published before 0.14 stays legal as
+  published and fails only under `--strict`. Every capsule in `examples/`
+  passes them; the cylinder runs `transient_layers` and has no period, the
+  rest skip both.

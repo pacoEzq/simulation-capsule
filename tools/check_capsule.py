@@ -39,8 +39,8 @@ import zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import setup_v2  # noqa: E402
 
-SPEC_VERSION = "0.13"
-TOOL_VERSION = "1.14"
+SPEC_VERSION = "0.14"
+TOOL_VERSION = "1.15"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -72,8 +72,13 @@ SUBDIRS = {
     # SPEC 4.9.1 since 0.11: the phase average, the spectrum and their
     # machine readable twin, nothing else.
     "signals": [r"^(phase_average|spectrum)\.csv$", r"^signals\.json$"],
-    "modes": [r"^mode_[A-Za-z0-9_]+\.(csv|png)$", r"^modal_summary\.json$"],
-    "snapshots": [r"^[a-z0-9_]+\.png$"],
+    # SPEC 4.9.2 since 0.14: the decomposition's summary, its coefficients,
+    # its patterns at a station of planes/ and one picture per pair.
+    "modes": [r"^modes\.json$", r"^coefficients\.csv$",
+              r"^modes_[A-Za-z0-9_]+\.csv$",
+              r"^mode_\d{2,}_[A-Za-z0-9_]+\.png$"],
+    # SPEC 4.9.3 since 0.14: snapshot_<field>_p<ff>.png, ff in hundredths.
+    "snapshots": [r"^snapshot_[A-Za-z0-9_]+_p\d{2}\.png$"],
 }
 
 TEXT_SUFFIXES = {".json", ".txt", ".csv", ".java", ".md"}
@@ -142,7 +147,8 @@ PRECISIONS = ("single", "double", "mixed")
 CONVERGENCE_STATUSES = ("converged", "stationary", "not_stationary",
                         "no_steady_state")
 STATISTICS = ("iteration_mean", "window_min", "window_max",
-              "window_min_max", "instantaneous", "time_mean", "time_rms")
+              "window_min_max", "instantaneous", "time_mean", "time_rms",
+              "phase_mean")
 EXTREME_STATISTICS = ("window_min", "window_max", "window_min_max")
 QUINTET_SUFFIXES = ("_sd", "_window_iterations", "_n_windows", "_statistic")
 # SPEC 4.2.2 since 0.8: a span over physical time replaces the iteration
@@ -160,6 +166,17 @@ OSCILLATORY_STATUSES = ("converged", "nominal", "not_asymptotic")
 BANDED_STATUSES = ("converged", "reduced_order", "above_order")
 # SPEC 4.2 since 0.10: a split coefficient closes to within this fraction.
 SPLIT_TOLERANCE = 0.001
+# SPEC 4.9 since 0.14. Published numbers are rounded, so a sum or a ratio
+# that should hold exactly holds to within this fraction.
+TRANSIENT_TOLERANCE = 0.001
+# SPEC 4.9.2: the table of modes runs until the cumulative fraction of the
+# energy reaches this.
+MODES_CUMULATIVE = 0.999
+# SPEC 4.2 since 0.14: what mesh.wall carries, besides first_layer_<L>.
+MESH_WALL_KEYS = ("layers", "layer_coverage")
+# SPEC 3.3 since 0.14: a signed range is symmetric about zero to within this
+# fraction of its half width.
+SIGNED_TOLERANCE = 1e-6
 
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
@@ -1452,6 +1469,8 @@ def check_summary_blocks(root, entries):
                     and span[0] <= span[1]):
                 check.warn("mesh/designed_for_Re_range is %r, not two "
                            "integers low then high" % (span,), rel)
+        if "wall" in mesh:
+            check_mesh_wall(check, rel, mesh["wall"])
 
     uncertainty = convergence.get("uncertainty")
     if "uncertainty" in convergence:
@@ -1479,6 +1498,33 @@ def check_summary_blocks(root, entries):
     # well inside the tolerance.
     check_split_closure(check, rel, data)
     return check
+
+
+def check_mesh_wall(check, rel, wall):
+    """SPEC 4.2 since 0.14: optional, and when present it says what a reader
+    needs to judge a wall quantity."""
+    if not isinstance(wall, dict):
+        check.warn("mesh/wall is not an object", rel)
+        return
+    missing = [k for k in MESH_WALL_KEYS if k not in wall]
+    first = [k for k in wall if k.startswith("first_layer_")]
+    if not first:
+        missing.append("first_layer_L")
+    if missing:
+        check.warn("mesh/wall without %s" % ", ".join(missing), rel)
+    layers = wall.get("layers")
+    if "layers" in wall and not (is_integer(layers) and layers >= 0):
+        check.warn("mesh/wall/layers is %r, not a count of layers"
+                   % (layers,), rel)
+    coverage = wall.get("layer_coverage")
+    if "layer_coverage" in wall and not (is_number(coverage)
+                                         and 0.0 <= coverage <= 1.0):
+        check.warn("mesh/wall/layer_coverage is %r, not a share between 0 "
+                   "and 1" % (coverage,), rel)
+    for key in first:
+        if not (is_number(wall[key]) and wall[key] > 0):
+            check.warn("mesh/wall/%s is %r, not a positive height"
+                       % (key, wall[key]), rel)
 
 
 def check_split_closure(check, rel, data):
@@ -1651,6 +1697,211 @@ def check_setup_notation(root, entries):
     return check
 
 
+def data_rows(root, rel):
+    """Rows of values in a capsule CSV: comment lines and the row of names
+    left out. None when the file is unreadable."""
+    try:
+        text, _ = read_text(os.path.join(root, rel))
+    except (ValueError, OSError):
+        return None
+    lines = [line for line in text.splitlines()
+             if line.strip() and not line.startswith("#")]
+    return max(len(lines) - 1, 0)
+
+
+def close_to(value, target):
+    return abs(value - target) <= TRANSIENT_TOLERANCE * abs(target)
+
+
+def window_length(block):
+    window = block.get("window_tU_over_L")
+    if (isinstance(window, list) and len(window) == 2
+            and all(is_number(v) for v in window) and window[1] > window[0]):
+        return window[1] - window[0]
+    return None
+
+
+def check_period(check, signals):
+    """SPEC 4.9.1 since 0.14: the period cycle by cycle, when declared."""
+    rel = "signals/signals.json"
+    if "period_tU_over_L" not in signals:
+        return
+    period = signals["period_tU_over_L"]
+    if not isinstance(period, dict):
+        check.warn("period_tU_over_L is not an object", rel)
+        return
+    missing = [k for k in ("mean", "sd", "first", "last")
+               if not is_number(period.get(k))]
+    if missing:
+        check.warn("period_tU_over_L without %s" % ", ".join(missing), rel)
+    length = window_length(signals)
+    n = signals.get("n_periods")
+    mean = period.get("mean")
+    if length and is_integer(n) and n > 0 and is_number(mean) \
+            and not close_to(mean, length / n):
+        check.warn("period_tU_over_L/mean is %.6g, the window gives "
+                   "T / n_periods = %.6g" % (mean, length / n), rel)
+    if is_number(period.get("sd")) and period["sd"] < 0:
+        check.warn("period_tU_over_L/sd is negative", rel)
+
+
+def check_mode_table(check, rel, data):
+    """The energy fractions run up to their cumulative and stop at 0.999."""
+    modes = data.get("modes")
+    if not isinstance(modes, list) or not modes:
+        check.warn("modes.json carries no modes[]", rel)
+        return []
+    if not (is_number(data.get("total_energy"))
+            and data["total_energy"] > 0):
+        check.warn("total_energy is %r, not a positive number"
+                   % (data.get("total_energy"),), rel)
+    running, last = 0.0, None
+    for i, mode in enumerate(modes):
+        if not isinstance(mode, dict):
+            check.warn("modes[%d] is not an object" % i, rel)
+            continue
+        fraction = mode.get("energy_fraction")
+        cumulative = mode.get("cumulative")
+        if not (is_number(fraction) and 0.0 <= fraction <= 1.0):
+            check.warn("modes[%d]/energy_fraction is %r, not a share "
+                       "between 0 and 1" % (i, fraction), rel)
+            continue
+        running += fraction
+        if not is_number(cumulative):
+            check.warn("modes[%d]/cumulative is %r, not a number"
+                       % (i, cumulative), rel)
+            continue
+        if abs(cumulative - running) > TRANSIENT_TOLERANCE:
+            check.warn("modes[%d]/cumulative is %.6g, the energy fractions "
+                       "so far sum to %.6g" % (i, cumulative, running), rel)
+        last = cumulative
+    if last is not None:
+        if last > 1.0 + TRANSIENT_TOLERANCE:
+            check.warn("the energy fractions sum to %.6g of total_energy, "
+                       "more than all of it" % last, rel)
+        elif last < MODES_CUMULATIVE - TRANSIENT_TOLERANCE:
+            check.warn("modes[] stops at cumulative %.6g, before %g"
+                       % (last, MODES_CUMULATIVE), rel)
+    return [m for m in modes if isinstance(m, dict)]
+
+
+def check_modes(check, root, files, signals):
+    """SPEC 4.9.2 since 0.14: the table adds up, the fundamental pair sits
+    on the bin of signals.json and every pattern row matches a plane row."""
+    rel = "modes/modes.json"
+    if rel not in files:
+        check.warn("modes/ without modes.json: the decomposition has no "
+                   "summary", "modes/")
+        return
+    data = load_json(root, rel)
+    if not isinstance(data, dict):
+        check.warn("modes.json does not parse to an object", rel)
+        return
+    modes = check_mode_table(check, rel, data)
+
+    n_periods = data.get("n_periods")
+    if isinstance(signals, dict) and "n_periods" in signals:
+        if "n_periods" in data and n_periods != signals["n_periods"]:
+            check.warn("n_periods is %r here and %r in signals.json: a "
+                       "capsule has one window"
+                       % (n_periods, signals["n_periods"]), rel)
+        n_periods = signals["n_periods"]
+    paired = [m for m in modes if m.get("pair") not in (None, False, "")]
+    if paired and is_integer(n_periods) \
+            and paired[0].get("st_bin") != n_periods:
+        check.warn("the fundamental pair (mode %r) has st_bin %r, the bin "
+                   "of signals.json is n_periods = %r"
+                   % (paired[0].get("mode"), paired[0].get("st_bin"),
+                      n_periods), rel)
+
+    for name in files:
+        match = re.match(r"^modes/modes_([A-Za-z0-9_]+)\.csv$", name)
+        if not match:
+            continue
+        plane = "planes/plane_%s.csv" % match.group(1)
+        if plane not in files:
+            check.warn("no station %s in planes/ to match its rows"
+                       % match.group(1), name)
+            continue
+        rows, plane_rows = data_rows(root, name), data_rows(root, plane)
+        if None not in (rows, plane_rows) and rows != plane_rows:
+            check.warn("%d rows of patterns, %d rows in %s: a row of a mode "
+                       "matches a row of the plane"
+                       % (rows, plane_rows, plane), name)
+    coefficients = "modes/coefficients.csv"
+    phases = "signals/phase_average.csv"
+    if coefficients in files and phases in files:
+        rows = data_rows(root, coefficients)
+        phase_rows = data_rows(root, phases)
+        if None not in (rows, phase_rows) and rows != phase_rows:
+            check.warn("%d rows of coefficients, %d phases in "
+                       "phase_average.csv" % (rows, phase_rows),
+                       coefficients)
+
+
+def check_transient_layers(root, entries):
+    check = Check("transient_layers", "The transient layers add up",
+                  "SPEC 4.9.1, 4.9.2")
+    files = [e.replace("\\", "/") for e in entries]
+    has_signals = any(f.startswith("signals/") for f in files)
+    has_modes = any(f.startswith("modes/") for f in files)
+    if not (has_signals or has_modes):
+        check.skip("no signals/ or modes/")
+        return check
+    signals = load_json(root, "signals/signals.json")
+    if isinstance(signals, dict):
+        check_period(check, signals)
+    if has_modes:
+        check_modes(check, root, files, signals)
+    return check
+
+
+def colorbars(node, trail=()):
+    """Every colorbar object in the manifest, with where it sits."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == "colorbar" and isinstance(value, dict):
+                yield "/".join(trail + (key,)), value
+            else:
+                for found in colorbars(value, trail + (str(key),)):
+                    yield found
+    elif isinstance(node, list):
+        for i, value in enumerate(node):
+            for found in colorbars(value, trail + (str(i),)):
+                yield found
+
+
+def check_signed_range(root, entries):
+    check = Check("signed_range", "A signed field is drawn on a range "
+                  "symmetric about zero", "SPEC 3.3")
+    manifest = load_json(root, "manifest.json")
+    marked = [(where, bar) for where, bar in colorbars(manifest)
+              if "signed" in bar]
+    if not marked:
+        check.skip("no colorbar marked signed")
+        return check
+    for where, bar in marked:
+        if not isinstance(bar["signed"], bool):
+            check.warn("%s/signed is %r, not true or false"
+                       % (where, bar["signed"]), "manifest.json")
+            continue
+        if not bar["signed"]:
+            continue
+        span = bar.get("range")
+        if not (isinstance(span, list) and len(span) == 2
+                and all(is_number(v) for v in span)):
+            check.warn("%s: a signed colorbar without a [min, max] range"
+                       % where, "manifest.json")
+            continue
+        low, high = span
+        if not (low < 0 < high and abs(low + high)
+                <= SIGNED_TOLERANCE * (high - low) / 2.0):
+            check.warn("%s: signed, but its range %r is not -a to +a; zero "
+                       "sits at mid-scale only on a symmetric range"
+                       % (where, span), "manifest.json")
+    return check
+
+
 def check_encoding(root, entries):
     check = Check("encoding", "Every text artifact is valid UTF-8",
                   "SPEC 3.2")
@@ -1684,6 +1935,8 @@ CHECKS = [
     check_png_geometry,
     check_png_metadata,
     check_view_field,
+    check_signed_range,
+    check_transient_layers,
     check_reference_block,
     check_dimensional_flags,
     check_extensions,
