@@ -113,6 +113,7 @@ transcripts are not linked: its raw answers are kept with the project records.
 
 None came from human review, with one qualification: the Part 7c trap was found
 in the solver before the probe was written, and the probe tested whether the
-readers would get past it. The Part 4 row is why the validator exists: a
-reader named the trailing comma as the one packaging change it would make, and
-the capsule shipped with it anyway.
+readers would get past it. The Part 4 row is why the validator exists: the
+capsule was published with a trailing comma, a reader found it afterwards and
+named it as the one packaging change it would make, and it stayed there five
+weeks, until the capsule entered this repository.

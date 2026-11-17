@@ -100,7 +100,9 @@ place; the rest are recorded rather than patched.
   it got there by carrying a full plane set and an 800 point volume cloud at the
   same time. See [token-ledger.md](token-ledger.md).
 - **Fixed since publication.** A trailing comma made `summary.json` fail strict
-  JSON, and the plane images did not share a root with their tables. The probe
-  reader named the first as the one packaging change it would make, and it
-  shipped anyway. Both are now checks in `tools/check_capsule.py`.
+  JSON, and the plane images did not share a root with their tables. The
+  capsule was published with both; the probe reader found the comma afterwards
+  and named it as the one packaging change it would make. It stayed five weeks,
+  until the capsule entered this repository. Both are now checks in
+  `tools/check_capsule.py`.
 

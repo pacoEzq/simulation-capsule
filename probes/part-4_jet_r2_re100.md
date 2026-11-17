@@ -54,10 +54,12 @@ only on lines, and could never answer where the maximum is.
 ## Defects found in the capsule
 
 - **A trailing comma after `provenance` makes `summary.json` fail strict JSON.**
-  The reader found it in the first inventory, and named it again at the end as
-  the one packaging change it would make: a file declaring a machine readable
-  schema that stops `json.load` at line 121. It shipped anyway. That gap is why
-  `tools/check_capsule.py` exists, and `json_parses` is its first check.
+  The capsule had been published with it before the probe ran. The reader
+  found it in the first inventory, and named it again at the end as the one
+  packaging change it would make: a file declaring a machine readable schema
+  that stops `json.load` at line 121. It stayed in the published capsule for
+  five weeks and was fixed when the capsule entered this repository. That gap
+  is why `tools/check_capsule.py` exists, and `json_parses` is its first check.
 - The handedness of the coordinate triad is declared nowhere, and no PNG glyph
   shows the third axis, so the sign of the vortex pair circulation is
   interpretable only by assuming a right handed system.

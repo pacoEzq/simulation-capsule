@@ -1,9 +1,9 @@
 name: validate
-# Every capsule in examples/ is checked on every push. A reader found the
-# trailing comma in the jet capsule during the Part 4 probe test, named it as
-# the one packaging change worth making, and the capsule shipped with it
-# anyway. This workflow is the difference between finding a defect and
-# enforcing one.
+# Every capsule in examples/ is checked on every push. The jet capsule was
+# published with a trailing comma; a reader found it afterwards, in the Part 4
+# probe test, and named it as the one packaging change worth making. It stayed
+# five weeks, until the capsule entered this repository. This workflow is the
+# difference between finding a defect and enforcing one.
 on:
   push:
   pull_request:
