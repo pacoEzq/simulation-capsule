@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.14. Draft.**
+**Version 0.15. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -63,7 +63,7 @@ inside it is spent from the token budget. A `README.md` sitting next to
 
 An alias is an identifier, not a record. It names what distinguishes this
 capsule from the others it will sit beside; everything else about how it was
-made is inside, in `environment` (4.2.1) and `manifest.json` (4.8). Four rules
+made is inside, in `environment` (4.2.1) and `manifest.json` (4.8). Six rules
 cover every case so far.
 
 **A capsule on its own** is `capsule_<case>`, the case with the parameter
@@ -74,17 +74,34 @@ another solver, alone in its repository, is still `capsule_cube_re0300`.
 **A sweep** adds the swept variable to every alias, zero-padded to the width
 of the largest value so the names sort in parameter order:
 `capsule_cube_re0100` to `capsule_cube_re3000`. A decimal point is written
-`p` (`a13p3`), a power of ten `e` (`re1e6`). A single case carries its number
-unpadded, `capsule_cube_re200`.
+`p` (`a13p3`), a power of ten `e` (`re1e6`) and a minus sign `m`, before the
+digits it negates (`am5` for an incidence of -5 degrees). A single case
+carries its number unpadded, `capsule_cube_re200`.
+
+**Two parameters in one alias** go from what is built to what flows:
+geometry, attitude, flow parameter, as `capsule_delta65_a13p3_re1e6`
+already does. In a sweep over two of them each is padded to its own width,
+and `sweep.parameter` and `sweep.value` are lists in the order of the
+alias.
 
 **A pair or family that varies something other than the case** keeps the
 alias on the reference and adds, on each variant, a suffix naming the
 variable and its value: `_ofm` for a second solver, `_m2` for a second mesh,
 `_single` for a second precision. Several suffixes go in a fixed order:
-solver, mesh, precision (`_ofm_m2`). The suffix repeats what `summary.json`
-already states, on purpose: the Reynolds number in `re0300` is also a key
-inside, and the alias is where a reader sees the variable before opening
-anything.
+solver, mesh, precision, replica (`_ofm_m2`). The suffix repeats what
+`summary.json` already states, on purpose: the Reynolds number in `re0300`
+is also a key inside, and the alias is where a reader sees the variable
+before opening anything.
+
+**A replica** is another realization of the same case, same parameters and
+same build, that differs only in what seeds it: an initial perturbation, a
+random inflow. It is not a swept variable, since no reader orders the cases
+by it, and it has no reference to be a variant of. Every member of the set
+carries `_rep<nn>`, padded to the width of the set, after every other suffix:
+`capsule_<case>_th30_re0800_rep07`. The seed is a value, not a name: it goes
+in `summary.json` as `realization { index, count, seed }`, where `index` is
+the number the alias carries, counted from 1, and `count` the size of the
+set.
 
 **A solver code** is the short form of `environment.solver`, three
 lowercase letters. The table lists the codes defined so far; the product name
@@ -194,6 +211,16 @@ title says so (`signed, zero at mid-scale`). A diverging map gives `+a` and
 `-a` the same lightness, and a reader that takes lightness as magnitude loses
 the sign. `manifest.json` marks its colorbar `"signed": true` next to the
 range.
+
+A signed field drawn in discrete levels uses an odd number of them, so
+that zero falls inside the middle level. With an even number zero is the
+border between two levels, and the noise around it flips between two
+colours. In an 8-bit PNG the count is 255: each level keeps a gray value of
+its own, which 257 levels cannot. `manifest.json` declares the count in
+the `levels` of the colorbar.
+
+**Recipe (Simcenter STAR-CCM+).** Set the levels of the scalar bar to 255
+and its range to `-a`, `+a`.
 
 Colorbar ranges are fixed and declared, never autoscaled per image. Two images of
 the same field with different autoscaled ranges cannot be compared, and a model has
@@ -383,6 +410,38 @@ A single scalar that aggregates a worst case is an antipattern. Where a distribu
 matters, expose the distribution: a minimum cell quality alone says nothing useful
 without threshold counts at several levels.
 
+**Stations.** A scalar that belongs to one station of the capsule, a plane,
+a section or a line, ends in the token that names the station:
+`cp_min_x06` is read at the station of `planes/plane_x06.csv`. The token is
+the stem of the station's file without its prefix, the one `plane_extremes`
+uses (4.2.2), so the key leads to the rows it was read from. Nothing sits
+between the quantity and the token: `tracer_max_x5`, not `tracer_max_at_x5`.
+
+A new stem, and the token of a station with no file of its own, is the axis
+held constant and its value in reference lengths, written by the number
+rules of 2.1: `x0p6` for 0.6, `xm1` for -1. A probe keeps the reference
+length in its place, `u_over_U_axis_x2D`, as above.
+
+**Candidates.** A capsule may carry `candidates`: the scalars its author
+evaluated and did not publish, each with the reason. It answers a question
+before a reader fills the silence. Asked for a boundary-layer thickness the
+capsule does not hold, a reader that finds the entry and its cause says so
+instead of estimating one.
+
+```
+candidates.<name> { status, value, note, published_as }
+```
+
+`<name>` is the key the scalar would have had, by the rules of this section.
+`status` is `discarded` or `kept`. A `discarded` entry has `value: null` and
+a `note` giving the cause in terms of the data: what was measured and which
+criterion it failed. A `kept` entry records the check that sustained a
+published scalar. The scalar is published once, under its own key, and the
+entry names that key in `published_as`, its path from the root of
+`summary.json` written with dots (`wake.cvp_circulation_x10`), instead of
+repeating the value. An entry may hold the figures of its check under keys
+of its own.
+
 #### 4.2.1 `environment`
 
 A root block declaring the software and hardware the numbers came from. Two runs of
@@ -467,6 +526,15 @@ The quintet of `cp_min` is therefore four keys:
 `_window_iterations` counts the whole span, two windows of 2000 iterations give
 4000; `convergence.window_iterations` is the length of one window.
 
+**Angles.** The mean of an angle is circular. A key that declares an angle
+by its suffix, `_deg` or `_rad` (3.1), and carries `iteration_mean` or
+`time_mean`, holds the direction of the mean unit vector, `atan2` of the
+mean sine and the mean cosine. Its `_sd` is the circular standard
+deviation, `sqrt(-2 ln R)` with `R` the length of that mean vector, in the
+unit of the key. The arithmetic mean of a direction that wraps is an angle
+the flow may never have taken. Written out (3.6), the statistic reads
+`circular time_mean`.
+
 **Time windows.** A statistic over physical time declares its span as
 `<name>_window_tU_over_L: [a, b]`, the nondimensional start and end of the span
 with the reference length of 3.1, and `<name>_n_windows` as before.
@@ -475,13 +543,31 @@ the other, never both, and which one is a property of the run (4.2.3
 `time_basis`), not of the key. Probes and plane extremes carry the same
 keys unprefixed.
 
+A quantity that is itself a duration, an instant or a count of steps
+carries its basis in the key, as a span does: `_iterations` or
+`_tU_over_L` (`period_iterations`, `period_tU_over_L`). A bare `period` is
+not a key. This is the single form of 3.1 applied to time: no separate
+field next to the value states the basis.
+
+**One span, or a note.** The statistics of `summary.json` share one span
+unless the capsule says otherwise. Where two published statistics span
+different iterations or times, `summary.json` carries `windows_note`, one
+sentence naming which quantities use which span and why. A quantity is
+published over one span only: a value of the same quantity over another
+span is not a sibling key. Where it is worth keeping it is a candidate
+(4.2), `discarded`, with its span in the note. A field is apart: a plane, a
+sample or a mode declares its own span in its header (3.6, 4.9.1) and needs
+no note.
+
 **Probes.** `probes.<name>` is an object and carries the same keys unprefixed:
 `value`, `sd`, `window_iterations`, `n_windows`, `statistic`, next to `position_D`
 and the `report` it was read from.
 
 **Plane extremes.** `plane_extremes.<plane>.<field>` is a `[min, max]` pair, and the
 block carries `statistic`, `window_iterations` and `n_windows` once, for all of them.
-The plane keys follow the stems in `planes/`: `y0` for `plane_y0`.
+The plane keys follow the stems in `planes/`: `y0` for `plane_y0`. In a
+`converged` run each pair is read at the last iteration, and the block
+carries `statistic: "instantaneous"` and no window.
 
 **Forces.** `forces` may carry `cd_pressure`, `cd_friction` and
 `cd_viscous_normal` next to `cd`, each with its own quintet.
@@ -498,10 +584,12 @@ integers `[low, high]` the mesh was sized for, and replaces `designed_for_Re`.
 `layers`, the number of cell layers grown on the wall; `layer_coverage`, the
 share of the wall area whose cells carry all of them; `first_layer_L`, the
 height of the first cell over the reference length (`first_layer_D` for a
-body measured by `D`). Comparable key by key means the same quantity, not the
-same answer: two capsules that differ in mesh compare `cd_friction` or `cf`
-next to their `mesh.wall`. A key that names the mesher's own setting stays in
-`setup.txt`.
+body measured by `D`), as the mesh has it: the mean over the wall, weighted
+by face area. The height the mesher was asked for is a setting, and the two
+differ wherever the mesh does not deliver it. Comparable key by key means
+the same quantity, not the same answer: two capsules that differ in mesh
+compare `cd_friction` or `cf` next to their `mesh.wall`. A key that names
+the mesher's own setting stays in `setup.txt`.
 
 #### 4.2.3 `convergence`
 
@@ -513,13 +601,13 @@ without `status` is read as predating this section.
 | Key | Holds |
 |-----|-------|
 | `solver` | solver mode as run, in the solver's own terms (`steady segregated` in STAR-CCM+) |
-| `criterion` | name of the stopping criterion, `window_stationarity` |
+| `criterion` | name of the stopping criterion: `window_stationarity`, or one of the two under **Other stopping rules** |
 | `criterion_version` | integer version of that criterion |
 | `time_basis` | one sentence stating what an iteration mean is and is not |
 | `regime_expected` | `{ value, source, ref }`: the regime expected at this Reynolds number, `source` `declared` or `measured`, and the reference it comes from |
 | `status` | `converged`, `stationary`, `not_stationary` or `no_steady_state` |
 | `stop_reason` | one sentence, template below |
-| `solver_regime_mismatch` | boolean verdict of the chain on the solver mode against the expected regime |
+| `solver_regime_mismatch` | `true` when the run converged to a fixed point and the expected regime is not steady; `null` when no regime is declared |
 | `iterations` | iterations run |
 | `discard_iterations` | initial iterations discarded before the first window |
 | `window_iterations` | length of one window |
@@ -556,9 +644,16 @@ is below `max_iterations`. Reaching `max_iterations` with a signal that is not f
 is `no_steady_state`. That status names the flow, not the gate. A periodic limit
 cycle under a steady solver has no fixed point to reach, so the run is not on its
 way to steady: it is not steady, and its published values are window statistics
-all the same. `solver_regime_mismatch` is not a
-comparison of `solver` and `regime_expected`: the reference sample pairs a steady
-solver with an expected unsteady regime and writes `false`.
+all the same.
+
+`solver_regime_mismatch` judges what the solver reached, not which solver
+was chosen. It is `true` when `status` is `converged` and `regime_expected`
+is not steady: a fixed point where the flow is expected to have none. It is
+not a comparison of `solver` and `regime_expected`. The reference sample
+pairs a steady solver with an expected periodic regime, ends
+`no_steady_state` and writes `false`, because the state it found agrees
+with the regime expected.
+
 `converged` says the gate closed; `n_e` says how far from the fixed point it
 closed, and a run whose `n_e` is of the order of the whole run has not
 necessarily reached the limit.
@@ -584,6 +679,38 @@ Reached <max_iterations> iterations; <q> failed the stationarity gate in windows
 `n` is the smaller cycle count of the two windows. In the sd clause `x` is the raw
 absolute log ratio of the two standard deviations and `over tolerance` means above
 `k_sd` divided by the square root of `n`; it is not `sd_log_ratio_over_tol`.
+
+**One window, two halves.** A periodic run has the one window of 4.9.1 and
+no second window to compare it with. Its gate reads the two halves of that
+window, the first `n_periods // 2` periods against the last
+`n_periods // 2`, and the halves take the place of the last two windows in
+every key above: `window_means` and `window_sds` hold the first half and
+then the second, `drift_last` is the second mean minus the first, and the
+ratio of standard deviations is the second over the first. No key is left
+null for want of a second window. With an odd `n_periods` the middle period
+belongs to neither half.
+
+The cycles are those of the reference signal (4.9.1), one count for the
+capsule: `n_cycles_last` is the same number in every entry of `quantities`.
+A quantity that oscillates at another frequency, `cd` at twice that of `cl`
+behind a body shedding vortices, does not cut a window of its own. Its
+statistics are formed over the same window and inherit that count.
+
+**Other stopping rules.** `window_stationarity` is the criterion this
+section defines key by key. A run that reaches a fixed point is often
+stopped another way, and names it in the same key: `residual_tolerance`
+when the residuals fell below the tolerances set for them,
+`fixed_point_drift` when the extrapolated remaining change of the gated
+quantities, `residual_error_est`, fell below a tolerance. Such a block has
+`status: converged` and carries the keys that apply: `solver`, `criterion`,
+`status`, `stop_reason`, `iterations`, `max_iterations` and, under
+`quantities`, each gated quantity with `drift_last`, `n_e` and its
+companions where they were fitted. The window keys are absent, never null,
+and `stop_reason` says in one sentence which rule closed and at what value.
+
+Gate the quantity that settles last. Behind a body the length and the
+width of the recirculation bubble keep moving after `cd` has settled, so a
+steady wake is `converged` on their drift as well as on that of `cd`.
 
 **Uncertainty.** Optional. `convergence.uncertainty` declares the uncertainty of
 the published values:
@@ -676,6 +803,11 @@ published values come from is `mesh.cells`; the study says how far that
 mesh is from the limit. `mesh.note` free text about independence is retired
 by this block.
 
+The value a capsule publishes is the one computed on that mesh, never the
+extrapolate. `extrapolated` travels here, beside it, and a table that
+quotes extrapolates quotes this key, so two figures for one case are told
+apart by where they sit.
+
 ### 4.3 `planes/` (settled)
 
 Plane sections, exported as a CSV and PNG pair sharing a stem:
@@ -714,6 +846,9 @@ describe a domain of millions of cells.
 The weight travels with the data, one column per point, so the bias is documented
 rather than hidden. A model reading the cloud can recover what the sampling
 emphasized and discount accordingly.
+
+The header comment says how the values were formed (3.6), in the words a
+plane uses (4.3): one instant, or a statistic and its span.
 
 There is no universal point count. Eight hundred points kept every structure of the
 jet-in-crossflow case nameable at 19k tokens by the repository ledger. Part 4 quoted
@@ -811,7 +946,10 @@ carries the span, and the span differs between two instants of the same run.
 
 **Measure on grayscale.** The comparison runs on a render of the field with a
 `grayscale` colormap quantized to the 256 levels of the PNG, so that a pixel
-distance is a field distance. `diff.json` names both the published colormap and the
+distance is a field distance. A signed field (3.3) is measured on 255 levels,
+so that zero keeps a level of its own: `view_contract` then carries
+`"signed": true` and `colorbar_levels: 255`, and `level_size` is the range
+over 255. `diff.json` names both the published colormap and the
 measured one.
 
 **Threshold in physical units.** The threshold is declared in the units of the field
@@ -857,7 +995,7 @@ variant   { capsule, case }
 difference { parameter, base_value_deg, variant_value_deg, delta_deg,
              implementation, mesh_identical }
 view_contract { camera, width_px, export_height_px, artifact_height_px,
-                crop_rows_top, colorbar_levels, contour_style, body_fill,
+                crop_rows_top, colorbar_levels, signed, contour_style, body_fill,
                 colormap_published, colormap_measured, colorbar { cp, u_over_u } }
 pipeline  { order: "crop_then_mask_then_diff", body_dilation_px,
             colorbar_box_excluded_px, pixels_evaluated, tool, tool_version,
@@ -889,6 +1027,14 @@ solver owns; whatever names an object, a call or a setting of the producing
 software, a scene, a table, a font, an export call, a compiler version, goes in
 a `recipe` object inside the block it belongs to. A reader comparing two
 capsules reads the manifest and skips every `recipe`.
+
+`spec_version` is the version of this document the capsule was built to,
+written as the head of this document writes it (`"0.15"`). A rule
+that arrived later is not held against the capsule: what a version from
+0.15 on adds, the validator counts only where the declared version is at
+least that one, and otherwise reports as information. A capsule without a
+manifest, or whose manifest declares no version, is read as built before
+0.15, the first version to define the key.
 
 Macros are idempotent, fail loudly on missing preconditions, and never invent object
 names. Each script or macro in the chain declares the solver build it was verified
@@ -931,8 +1077,16 @@ about its mean over the range, and closes at the last such crossing,
 `n_periods` cycles on. Whole periods make the two files agree: the phase
 average sees every phase as often as every other, and the line of the reference
 signal falls exactly on bin `n_periods` of the spectrum, with no leakage into
-its neighbours. Where `summary.json` declares a window for the same run,
-`signals/` uses that window: a capsule has one window. The window is written as
+its neighbours. The crossings fall between samples: each is placed by
+linear interpolation in time between the two samples where the fluctuation
+changes sign, so the ends of the window are real numbers and nothing is
+rounded to a sample or to an iteration. Where `summary.json` declares a
+window for the same run, `signals/` uses that window: the signals of a
+capsule and the scalars formed from them have one window. A field
+statistic is set up before the run and need not share it: a plane, a
+sample or a mode averaged by the solver declares its own span in its
+header (3.6), which may contain the window of the signals or differ from
+it. The window is written as
 3.6 writes a span, `over tU/D <a> to <b>`, and in `signals.json` as
 `window_tU_over_L: [a, b]`, next to the search range,
 `search_tU_over_L: [a, b]`.
@@ -1115,8 +1269,18 @@ nothing.
 
 `tools/check_capsule.py` runs the mechanical half of this: naming, encoding,
 pairing, image geometry, whether a view shows a field (4.6), whether a compact
-`setup.txt` decodes (4.1), whether the transient layers add up (4.9) and the
-rules of section 3. It does not read archives, so run it on the expanded directory.
+`setup.txt` decodes (4.1), whether the transient layers add up (4.9), whether
+a table says how its values were formed (3.6), whether the statistics share
+a span or say why not (4.2.2) and the rules of section 3. It does not read
+archives, so run it on the expanded directory.
+
+It checks form, not plausibility. `pressure.cp_stagnation` in
+`capsule_cube_re0100` is 2.39, the maximum over the cube faces read in a
+corner cell, and it passes `--strict`. No bound on a pressure coefficient
+holds for every case: the stagnation value itself exceeds 1 at low Reynolds
+number. What finds a number like that is the other half, a read of the
+clean copy by a model, and each remark is checked against the files of the
+case before anything is corrected.
 
 ---
 
@@ -1138,6 +1302,7 @@ rules of section 3. It does not read archives, so run it on the expanded directo
 | 0.12 | 4.6: a view shows a field, measured on the pixels. One new check: see below. |
 | 0.13 | 4.1: an optional compact notation for `setup.txt`, lossless, opened by a fixed notation header. The plain form stays valid. One new check: see below. |
 | 0.14 | `modes/` and `snapshots/` specified (4.9.2, 4.9.3); the period cycle by cycle in `signals.json` (4.9.1); `phase_mean`, the eighth `_statistic` (4.2.2, 3.6); a signed field on a symmetric range (3.3); optional `mesh.wall` (4.2.2). The file names allowed in `modes/` and `snapshots/` change. Two new checks: see below. |
+| 0.15 | What a reader would otherwise supply: `candidates` and the token of a station (4.2); the basis of a duration in its key, one span or `windows_note`, the circular mean of an angle (4.2.2); the gate of a single window on its two halves, other stopping rules and the meaning of `solver_regime_mismatch` (4.2.3). Two parameters and a replica in an alias (2.1); a signed field in an odd number of levels, 255 (3.3, 4.7); `spec_version` in `manifest.json` (4.8). Three new checks, counted from the version a capsule declares: see below. |
 
 ### 0.3 → 0.4
 
@@ -1339,3 +1504,50 @@ rules of section 3. It does not read archives, so run it on the expanded directo
   published and fails only under `--strict`. Every capsule in `examples/`
   passes them; the cylinder runs `transient_layers` and has no period, the
   rest skip both.
+
+### 0.14 → 0.15
+
+- 4.8: `manifest.json` declares `spec_version`, the version the capsule was
+  built to. The key is in every manifest published since Part 7, as `"0.4"`
+  or `"0.7"`; this version defines it. What 0.15 adds is counted where the
+  declared version is 0.15 or later, and reported as information otherwise.
+- 3.6, 4.3, 4.4: new check `plane_formation`. The header of every
+  `planes/*.csv` and of `samples.csv` names a statistic of 4.2.2 and its
+  instant or span. The rule is that of 0.6; the check is new because a
+  reader given no statement supplied one, `instantaneous at iteration
+  15000`, three times out of three.
+- 4.2.2: the statistics of `summary.json` share one span or the capsule
+  carries `windows_note`; a quantity is published over one span. New check
+  `window_consistency` compares the spans of `summary.json`, outside
+  `convergence`, and the window of `signals.json`. A duration, an instant
+  or a count of steps carries its basis in the key. The mean of an angle is
+  circular. `plane_extremes` of a `converged` run is `instantaneous`.
+  `mesh.wall.first_layer_L` is the mean over the wall, weighted by area.
+- 4.2: `candidates`, with `status`, a `note` on a `discarded` entry and
+  `published_as` on a `kept` one, and new check `candidates`. A scalar read
+  at a station ends in the token of that station.
+- 2.1: a minus sign is `m`; two parameters in one alias go from what is
+  built to what flows; a replica carries `_rep<nn>` and `summary.json` its
+  `realization { index, count, seed }`, which `summary_blocks` checks
+  against the alias.
+- 3.3, 4.7: a signed field is drawn in an odd number of levels, 255 in an
+  8-bit PNG. `signed_range` warns on an even `levels`; `diff.json` may
+  declare `colorbar_levels: 255` when `view_contract` is marked signed.
+- 4.2.3: the gate of a run with one window reads its two halves, and the
+  cycle count is that of the reference signal; `criterion` may be
+  `residual_tolerance` or `fixed_point_drift`; `solver_regime_mismatch` is
+  `true` only for a fixed point under an expected regime that is not
+  steady. 4.9.1: the crossings are interpolated between samples, and a
+  field statistic declares its own span. 4.2.4: the published value is the
+  one on the mesh, and the extrapolate travels beside it.
+- 5: the validator checks form, not plausibility.
+- Compatibility: no capsule in `examples/` or `examples/as-published/`
+  changes its result, with or without `--strict`. None declares 0.15, so
+  the findings below are information, listed under `--verbose` and
+  announced in one line of the report. Eight capsules in `examples/` carry
+  plane tables whose header does not say how the values were formed, the
+  five Part 7 cubes, `capsule_cube_re200`, the delta wing and the jet, the
+  jet in `samples.csv` too; `capsule_cylinder_re0100` says it. The jet
+  keeps its keys written with `_at_`, such as `tracer_max_at_x5`, and a
+  `kept` candidate that holds its value and no `published_as`. They stay
+  as published.

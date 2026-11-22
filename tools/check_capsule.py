@@ -39,8 +39,8 @@ import zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import setup_v2  # noqa: E402
 
-SPEC_VERSION = "0.14"
-TOOL_VERSION = "1.15"
+SPEC_VERSION = "0.15"
+TOOL_VERSION = "1.16"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -178,6 +178,25 @@ MESH_WALL_KEYS = ("layers", "layer_coverage")
 # fraction of its half width.
 SIGNED_TOLERANCE = 1e-6
 
+# SPEC 4.8 since 0.15: manifest.json says which version of the SPEC the
+# capsule was built to, and what 0.15 or a later version adds counts only
+# from that version on. Below it, or with no version declared, the finding
+# is reported as information: a published capsule is never patched to meet
+# a rule that arrived after it.
+SINCE_0_15 = (0, 15)
+SPEC_VERSION_FORM = re.compile(r"^(\d+)\.(\d+)$")
+# SPEC 4.2 since 0.15: a candidate was dropped or it sustained a scalar.
+CANDIDATE_STATUSES = ("discarded", "kept")
+# SPEC 2.1 since 0.15: a replica carries _rep<nn> after every other suffix.
+REPLICA_SUFFIX = re.compile(r"_rep(\d+)$")
+# SPEC 3.6: a table of a field names a statistic of 4.2.2 and then its
+# instant or its span, 'instantaneous at iteration 15000' or 'time_mean and
+# time_rms over tU/D 100 to 300', inside one segment of its header.
+FORMATION = re.compile(r"\b(?:%s)\b[^|]*?\b(?:at|over)\b"
+                       % "|".join(STATISTICS))
+# Two spans are the same span when they agree to this fraction.
+SPAN_TOLERANCE = 1e-9
+
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
 KNOWN_EXTENSIONS = {"diff": "SPEC 4.7"}
@@ -209,8 +228,10 @@ INSTRUMENT_HASH_KEYS = ("base_frame", "variant_frame")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 # SPEC 4.7: a pixel distance is a field distance only when the render is
-# quantized to the levels the PNG carries.
+# quantized to the levels the PNG carries. Since 0.15 a signed field is
+# measured on 255, so that zero keeps a level of its own (SPEC 3.3).
 COLORBAR_LEVELS = 256
+SIGNED_LEVELS = 255
 MEASURED_COLORMAP = "grayscale"
 
 # The comparison sign is not cosmetic: '>' cuts at the next level up and
@@ -237,6 +258,8 @@ class Check:
         self.findings = []
         self.skipped = False
         self.skip_reason = ""
+        # Set when a rule newer than the capsule is reported, not counted.
+        self.later = False
 
     def add(self, severity, message, path=""):
         self.findings.append({"severity": severity, "message": message,
@@ -878,6 +901,26 @@ def load_json(root, rel):
         return None
 
 
+def built_to(root):
+    """The version of the SPEC manifest.json declares, as a pair of
+    integers, or None when the capsule declares none. SPEC 4.8."""
+    manifest = load_json(root, "manifest.json")
+    value = manifest.get("spec_version") if isinstance(manifest, dict) \
+        else None
+    match = SPEC_VERSION_FORM.match(value) if isinstance(value, str) else None
+    return (int(match.group(1)), int(match.group(2))) if match else None
+
+
+def since(check, root, version=SINCE_0_15):
+    """How a rule new in that version is reported for this capsule: a
+    warning where the capsule was built to it, information otherwise."""
+    built = built_to(root)
+    if built is not None and built >= version:
+        return check.warn
+    check.later = True
+    return check.info
+
+
 def declared_extensions(root, entries):
     """Return the extensions summary.json declares, SPEC 3.4. The
     declaration lives in that file and nowhere else: a validator reads it
@@ -1115,9 +1158,20 @@ def check_diff_manifest(root, entries):
         check.error("view_contract/colorbar_levels is missing: a pixel "
                     "distance is a field distance only when the quantization "
                     "is declared", rel)
+    elif levels == SIGNED_LEVELS:
+        if contract.get("signed") is not True:
+            check.error("view_contract/colorbar_levels is %d, the count for "
+                        "a signed field, and the contract is not marked "
+                        "signed: the PNG carries %d"
+                        % (SIGNED_LEVELS, COLORBAR_LEVELS), rel)
     elif levels != COLORBAR_LEVELS:
         check.error("view_contract/colorbar_levels is %r, the PNG carries %d"
                     % (levels, COLORBAR_LEVELS), rel)
+    elif contract.get("signed") is True:
+        since(check, root)("view_contract is marked signed and measured on "
+                           "%d levels: a signed field is measured on %d, so "
+                           "that zero keeps a level of its own"
+                           % (COLORBAR_LEVELS, SIGNED_LEVELS), rel)
     measured = contract.get("colormap_measured")
     if measured != MEASURED_COLORMAP:
         check.warn("view_contract/colormap_measured is %r: the comparison "
@@ -1386,8 +1440,9 @@ def check_window_entry(check, rel, where, entry, prefix, windowed):
 def check_summary_blocks(root, entries):
     check = Check("summary_blocks", "Windowed scalars carry their window, "
                   "mass and mesh their 0.4 form, a discretization study "
-                  "its five states, a split coefficient closes",
-                  "SPEC 4.2, 4.2.2, 4.2.3, 4.2.4")
+                  "its five states, a split coefficient closes, a replica "
+                  "its number",
+                  "SPEC 2.1, 4.2, 4.2.2, 4.2.3, 4.2.4")
     if "summary.json" not in entries:
         check.skip("no summary.json")
         return check
@@ -1497,7 +1552,39 @@ def check_summary_blocks(root, entries):
     # New in SPEC 0.10, a warning: every capsule published before it closes
     # well inside the tolerance.
     check_split_closure(check, rel, data)
+
+    # New in SPEC 0.15, and only where the block exists.
+    if "realization" in data:
+        check_realization(since(check, root), rel, data["realization"],
+                          os.path.basename(os.path.normpath(root)))
     return check
+
+
+def check_realization(flag, rel, block, alias):
+    """SPEC 2.1 since 0.15: a replica says which one of how many it is and
+    what seeded it, and its alias carries the same number."""
+    if not isinstance(block, dict):
+        flag("realization is not an object", rel)
+        return
+    index, count = block.get("index"), block.get("count")
+    counted = is_integer(index) and is_integer(count)
+    if not (counted and 1 <= index <= count):
+        flag("realization/index and count are %r and %r, not 1 <= index <= "
+             "count" % (index, count), rel)
+    if block.get("seed") is None:
+        flag("realization without seed: the seed is a value, and this is "
+             "where it goes", rel)
+    match = REPLICA_SUFFIX.search(alias)
+    if not match:
+        flag("a realization block, and the alias carries no _rep<nn> after "
+             "its other suffixes", rel)
+        return
+    if is_integer(index) and int(match.group(1)) != index:
+        flag("the alias says replica %s, realization/index says %r"
+             % (match.group(1), index), rel)
+    if counted and count >= 1 and len(match.group(1)) != len(str(count)):
+        flag("_rep%s is not padded to the width of a set of %d"
+             % (match.group(1), count), rel)
 
 
 def check_mesh_wall(check, rel, wall):
@@ -1899,6 +1986,191 @@ def check_signed_range(root, entries):
             check.warn("%s: signed, but its range %r is not -a to +a; zero "
                        "sits at mid-scale only on a symmetric range"
                        % (where, span), "manifest.json")
+        # New in SPEC 0.15: zero falls inside a level, not between two.
+        levels = bar.get("levels")
+        if is_integer(levels) and levels > 0 and levels % 2 == 0:
+            since(check, root)("%s: signed, and drawn in %d levels; with an "
+                               "even number zero is the border between two "
+                               "levels. Use an odd one, 255 in an 8-bit PNG"
+                               % (where, levels), "manifest.json")
+    return check
+
+
+def header_lines(text):
+    """The comment lines a CSV opens with. A blank line among them does not
+    end the header: a file whose CRLF line ends were written in text mode
+    on Windows carries one after every line."""
+    lines = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        if not line.startswith("#"):
+            break
+        lines.append(line)
+    return lines
+
+
+def check_plane_formation(root, entries):
+    check = Check("plane_formation", "Every table of a field says how its "
+                  "values were formed", "SPEC 3.6, 4.3, 4.4")
+    names = [e.replace("\\", "/") for e in entries]
+    targets = [n for n in names
+               if (n.startswith("planes/") and n.lower().endswith(".csv"))
+               or n == "samples.csv"]
+    if not targets:
+        check.skip("no plane CSV and no samples.csv")
+        return check
+    flag = since(check, root)
+    for rel in targets:
+        try:
+            text, _ = read_text(os.path.join(root, *rel.split("/")))
+        except (ValueError, OSError):
+            continue  # the encoding check reports it
+        if not any(FORMATION.search(line) for line in header_lines(text)):
+            flag("the header does not say how the values were formed: one "
+                 "instant, 'instantaneous at iteration <n>', or a statistic "
+                 "of 4.2.2 and its span, 'time_mean over tU/D <a> to <b>'. "
+                 "A reader given no statement supplies one", rel)
+    return check
+
+
+def spans(node, trail=()):
+    """Every span a summary.json declares for a statistic, with where it
+    sits: _window_iterations as a count, _window_tU_over_L as a pair.
+    convergence describes the gate, candidates what was not published and
+    discretization another study, so their windows are left out."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if not trail and key in ("convergence", "candidates",
+                                     "discretization"):
+                continue
+            where = "/".join(trail + (str(key),))
+            if key == "window_iterations" \
+                    or key.endswith("_window_iterations"):
+                if is_number(value):
+                    yield ("iterations", (float(value),)), where
+            elif key == "window_tU_over_L" \
+                    or key.endswith("_window_tU_over_L"):
+                if isinstance(value, list) and len(value) == 2 \
+                        and all(is_number(v) for v in value):
+                    yield ("tU_over_L", tuple(float(v) for v in value)), where
+            else:
+                for found in spans(value, trail + (str(key),)):
+                    yield found
+    elif isinstance(node, list):
+        for i, value in enumerate(node):
+            for found in spans(value, trail + (str(i),)):
+                yield found
+
+
+def same_span(a, b):
+    return a[0] == b[0] and all(
+        abs(x - y) <= SPAN_TOLERANCE * max(1.0, abs(x), abs(y))
+        for x, y in zip(a[1], b[1]))
+
+
+def written_span(span):
+    kind, values = span
+    if kind == "iterations":
+        return "%g iterations" % values[0]
+    return "tU/L %g to %g" % values
+
+
+def check_window_consistency(root, entries):
+    check = Check("window_consistency", "The statistics share one span, or "
+                  "windows_note says which use which", "SPEC 4.2.2, 4.9.1")
+    data = load_json(root, "summary.json")
+    if not isinstance(data, dict):
+        check.skip("no summary.json that parses")
+        return check
+    found = [(span, "summary.json " + where) for span, where in spans(data)]
+    signals = load_json(root, "signals/signals.json")
+    if isinstance(signals, dict):
+        found += [(span, "signals/signals.json " + where)
+                  for span, where in spans(signals)]
+    if not found:
+        check.skip("no statistic declares a span")
+        return check
+    flag = since(check, root)
+    note = data.get("windows_note")
+    if "windows_note" in data and not (isinstance(note, str)
+                                       and note.strip()):
+        flag("windows_note is %r, not a sentence" % (note,), "summary.json")
+    distinct = []
+    for span, where in found:
+        for group in distinct:
+            if same_span(group[0], span):
+                group[2] += 1
+                break
+        else:
+            distinct.append([span, where, 1])
+    if len(distinct) > 1 and not (isinstance(note, str) and note.strip()):
+        flag("%d different spans and no windows_note: %s. One sentence in "
+             "summary.json says which quantities use which span and why"
+             % (len(distinct),
+                "; ".join("%s (%s, %d key%s)"
+                          % (written_span(span), where, n,
+                             "" if n == 1 else "s")
+                          for span, where, n in distinct[:4])),
+             "summary.json")
+    return check
+
+
+def resolve_key(data, path):
+    """The node a dotted path names from the root of summary.json, or
+    None. candidates itself is not a place a scalar is published."""
+    parts = path.split(".")
+    if not all(parts) or parts[0] == "candidates":
+        return None
+    node = data
+    for part in parts:
+        if not isinstance(node, dict) or part not in node:
+            return None
+        node = node[part]
+    return node
+
+
+def check_candidates(root, entries):
+    check = Check("candidates", "A candidate says whether it was dropped "
+                  "or which published scalar it sustained", "SPEC 4.2")
+    data = load_json(root, "summary.json")
+    if not isinstance(data, dict) or "candidates" not in data:
+        check.skip("no candidates block")
+        return check
+    rel = "summary.json"
+    flag = since(check, root)
+    block = data["candidates"]
+    if not isinstance(block, dict):
+        flag("candidates is not an object", rel)
+        return check
+    for name, entry in block.items():
+        where = "candidates/%s" % name
+        if not isinstance(entry, dict):
+            flag("%s is not an object" % where, rel)
+            continue
+        status = entry.get("status")
+        if status not in CANDIDATE_STATUSES:
+            flag("%s/status is %r, the SPEC allows %s"
+                 % (where, status, " or ".join(CANDIDATE_STATUSES)), rel)
+            continue
+        note = entry.get("note")
+        if status == "discarded":
+            if entry.get("value") is not None:
+                flag("%s: discarded, and it carries a value" % where, rel)
+            if not (isinstance(note, str) and note.strip()):
+                flag("%s: discarded without a note giving the cause"
+                     % where, rel)
+            continue
+        target = entry.get("published_as")
+        if not (isinstance(target, str) and target):
+            flag("%s: kept without published_as, the key the scalar is "
+                 "published under" % where, rel)
+        elif resolve_key(data, target) is None:
+            flag("%s/published_as names %r, and summary.json has no such "
+                 "key" % (where, target), rel)
+        if entry.get("value") is not None:
+            flag("%s: kept, and it repeats the value; the scalar is "
+                 "published once, under published_as" % where, rel)
     return check
 
 
@@ -1936,6 +2208,9 @@ CHECKS = [
     check_png_metadata,
     check_view_field,
     check_signed_range,
+    check_plane_formation,
+    check_window_consistency,
+    check_candidates,
     check_transient_layers,
     check_reference_block,
     check_dimensional_flags,
@@ -1977,6 +2252,14 @@ def report_text(root, checks, strict, verbose):
             where = finding["path"] or name
             lines.append("           %-5s %s" % (finding["severity"], where))
             lines.append("                 %s" % finding["message"])
+    later = [f for c in checks if c.later for f in c.findings
+             if f["severity"] == INFO]
+    if later:
+        built = built_to(root)
+        lines.append("  [NOTE] built to SPEC %s: %d finding(s) of 0.15 "
+                     "reported, not counted; --verbose lists them"
+                     % ("%d.%d" % built if built else "before 0.15, no "
+                        "spec_version in manifest.json", len(later)))
     total = len([c for c in checks if not c.skipped])
     if failed:
         lines.append("  RESULT: failed %d of %d checks in %d place(s): %s"

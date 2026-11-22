@@ -72,6 +72,20 @@ Three things are proved here.
     and fail under --strict. modal_summary.json, the name before 0.14, fails
     declared_files.
 
+12. What 0.15 adds, SPEC 2.1, 3.3, 3.6, 4.2, 4.2.2, 4.7 and 4.8. A capsule
+    whose manifest declares 0.15 passes with a formation in the header of
+    its plane and of samples.csv, two spans and a windows_note, a discarded
+    candidate with its cause and a kept one that names a published key, a
+    replica whose alias carries its number, and a signed colorbar in 255
+    levels; written with CRLF line ends it passes too. A header without a
+    formation, two spans and no note, a candidate without status, cause or
+    target, a kept one that repeats the value, a replica whose alias says
+    another number, and a signed bar in 256 levels warn, and fail under
+    --strict. The same defects in a capsule that declares 0.14, or no
+    version, are reported as information and fail nothing. A diff measured
+    on 255 levels passes when its contract is marked signed and is an error
+    when it is not.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -653,6 +667,75 @@ def build_transient(root, bad=False, crlf=False, old_name=False):
         write_png(os.path.join(root, *rel.split("/")))
 
 
+def v015_files(bad, declared):
+    """A capsule that uses what SPEC 0.15 adds: a replica with candidates,
+    two spans, a signed bar and tables that say how they were formed."""
+    formation = "" if bad else "| iteration_mean over iterations 1000-5000 "
+    plane = ("# plane y_D = 0 | grid 3 x 2, spacing 0.25 D | 6 of 6 nodes "
+             + formation + "| fields %.3f | nondimensional\n"
+             "x_D,z_D,u_over_U,cp\n"
+             + "".join("%.3f,0.000,1.000,0.000\n" % (0.25 * i)
+                       for i in range(6)))
+    samples = ("# samples | importance-weighted sample of the volume\n"
+               + ("" if bad else "# formed: instantaneous at iteration "
+                  "5000 | nondimensional\n")
+               + "x_D,y_D,z_D,u_over_U,weight\n0.000,0.000,0.000,1.000,1.0\n")
+
+    def quintet(name, value, span):
+        return {name: value, name + "_sd": 0.05,
+                name + "_window_iterations": span, name + "_n_windows": 2,
+                name + "_statistic": "iteration_mean"}
+    candidates = {
+        "bl_thickness_D_xm1": {
+            "status": "discarded", "value": 0.4 if bad else None,
+            "note": "" if bad else "u_over_U never reaches 0.99 on the "
+                                   "line x = -1, its maximum is 0.962"},
+        "recirculation_length_D": dict(
+            {"status": "kept", "symmetry_check_ratio": 0.00003},
+            **({"value": 2.27} if bad
+               else {"published_as": "wake.recirculation_length_D"})),
+        "cp_min_x06": {"status": "kept",
+                       "published_as": "pressure.cp_floor" if bad
+                       else "pressure.cp_min_x06"},
+        "st_secondary": {"status": "maybe" if bad else "discarded",
+                         "value": None,
+                         "note": "no second line above the noise of the "
+                                 "spectrum"}}
+    summary = {
+        "case": "replica", "environment": ENVIRONMENT,
+        "reference": {"side_m": 1.0, "re": 800},
+        "realization": {"index": 4 if bad else 3, "count": 12,
+                        "seed": 20261122},
+        "convergence": {"status": "stationary"},
+        "forces": quintet("cd", 1.12, 4000),
+        "pressure": quintet("cp_min_x06", -1.5, 4000),
+        "wake": quintet("recirculation_length_D", 2.27, 2000),
+        "candidates": candidates}
+    if not bad:
+        summary["windows_note"] = ("recirculation_length_D spans the last "
+                                   "2000 iterations, where the bubble has "
+                                   "stopped growing; the rest span 4000.")
+    manifest = {"capsule": "capsule_replica_re0800_rep03", "views": [{
+        "file": "views/view_w_y0.png", "colorbar": {
+            "colormap": "viridis", "range": [-0.5, 0.5], "signed": True,
+            "levels": 256 if bad else 255}}]}
+    if declared:
+        manifest["spec_version"] = declared
+    return {"setup.txt": "Case: replica\n",
+            "summary.json": json.dumps(summary, indent=2),
+            "manifest.json": json.dumps(manifest, indent=2),
+            "planes/plane_y0.csv": plane,
+            "samples.csv": samples}
+
+
+def build_v015(root, bad=False, declared="0.15", crlf=False):
+    for rel, text in v015_files(bad, declared).items():
+        if crlf:
+            text = text.replace("\n", "\r\n")
+        write(os.path.join(root, *rel.split("/")), text)
+    write_png(os.path.join(root, "planes", "plane_y0.png"))
+
+
 def status_of(root, check_id, strict=False):
     for check in check_capsule.validate(root):
         if check.id == check_id:
@@ -720,6 +803,25 @@ def main():
         transient_crlf = os.path.join(workspace, "capsule_transient_crlf")
         transient_bad = os.path.join(workspace, "capsule_transient_bad")
         transient_old = os.path.join(workspace, "capsule_transient_old")
+        v015_ok = os.path.join(workspace, "ok", "capsule_replica_re0800_rep03")
+        v015_crlf = os.path.join(workspace, "crlf",
+                                 "capsule_replica_re0800_rep03")
+        v015_bad = os.path.join(workspace, "bad",
+                                "capsule_replica_re0800_rep03")
+        v015_bad_crlf = os.path.join(workspace, "bad_crlf",
+                                     "capsule_replica_re0800_rep03")
+        v015_before = os.path.join(workspace, "before",
+                                   "capsule_replica_re0800_rep03")
+        v015_silent = os.path.join(workspace, "silent",
+                                   "capsule_replica_re0800_rep03")
+        signed_diff = os.path.join(workspace, "capsule_signed_diff")
+        unsigned_diff = os.path.join(workspace, "capsule_unsigned_diff")
+        build_v015(v015_ok)
+        build_v015(v015_crlf, crlf=True)
+        build_v015(v015_bad, bad=True)
+        build_v015(v015_bad_crlf, bad=True, crlf=True)
+        build_v015(v015_before, bad=True, declared="0.14")
+        build_v015(v015_silent, bad=True, declared=None)
         build_transient(transient_ok)
         build_transient(transient_crlf, crlf=True)
         build_transient(transient_bad, bad=True)
@@ -884,6 +986,11 @@ def main():
         build_variant(bad_sign, overrides={"pairs": [pair]})
         build_variant(bad_colormap, overrides={
             "view_contract": dict(contract, colormap_measured="viridis")})
+        build_variant(signed_diff, overrides={
+            "view_contract": dict(contract, colorbar_levels=255,
+                                  signed=True)})
+        build_variant(unsigned_diff, overrides={
+            "view_contract": dict(contract, colorbar_levels=255)})
         build_variant(zero_base, overrides={"scalar_deltas": {
             "delta_cl": {"base": 0.55, "variant": 0.88, "relative": 0.6},
             "delta_cm_quarter_chord": {"base": 0.0, "variant": 0.004,
@@ -911,7 +1018,7 @@ def main():
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
                      bad_colormap, environment, bad_hash, windowed_bad,
-                     view_blank, notation_bare, transient_bad):
+                     view_blank, notation_bare, transient_bad, v015_bad):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -1408,6 +1515,94 @@ def main():
         else:
             print("PASS  modes/ refuses modal_summary.json, the name before "
                   "0.14")
+
+        # 12. What 0.15 adds.
+        new_checks = {"plane_formation", "window_consistency", "candidates"}
+        for root, label in ((v015_ok, "LF"), (v015_crlf, "CRLF")):
+            got = failed_checks(root, strict=True)
+            ran = {c.id for c in check_capsule.validate(root)
+                   if c.status() != "SKIP"}
+            if got:
+                failures.append("a 0.15 capsule in order (%s) should pass "
+                                "strict, failed %s: %s"
+                                % (label, sorted(got),
+                                   [findings(root, c) for c in got]))
+            elif not (new_checks | {"signed_range"}) <= ran:
+                failures.append("the 0.15 checks should run on it (%s), ran "
+                                "%s" % (label, sorted(ran)))
+            else:
+                print("PASS  formation, windows_note, candidates, a replica "
+                      "and 255 signed levels pass strict (%s)" % label)
+
+        wanted = {"plane_formation": ["planes/plane_y0.csv", "samples.csv"],
+                  "window_consistency": ["2 different spans"],
+                  "candidates": ["carries a value", "without a note",
+                                 "kept without published_as",
+                                 "repeats the value", "has no such key",
+                                 "status is 'maybe'"],
+                  "signed_range": ["256 levels"],
+                  "summary_blocks": ["the alias says replica 03"]}
+        missed = {}
+        for check_id, words in wanted.items():
+            said = ["%s %s" % (f["path"], f["message"])
+                    for f in findings(v015_bad, check_id)]
+            absent = [w for w in words if not any(w in m for m in said)]
+            if absent:
+                missed[check_id] = (absent, said)
+        loose = failed_checks(v015_bad)
+        tight = failed_checks(v015_bad, strict=True)
+        if missed:
+            failures.append("0.15 fixture missed %s" % missed)
+        elif loose:
+            failures.append("0.15 findings should warn, not fail: %s"
+                            % sorted(loose))
+        elif tight != set(wanted):
+            failures.append("0.15 findings should fail under --strict in "
+                            "%s, failed %s" % (sorted(wanted), sorted(tight)))
+        else:
+            print("PASS  no formation, two spans without a note, candidates "
+                  "out of form, a replica off its alias and 256 signed "
+                  "levels warn, fail strict")
+
+        if failed_checks(v015_bad_crlf, strict=True) != tight:
+            failures.append("CRLF changes the 0.15 findings: %s vs %s"
+                            % (sorted(failed_checks(v015_bad_crlf,
+                                                    strict=True)),
+                               sorted(tight)))
+        else:
+            print("PASS  the same 0.15 defects with CRLF line ends give the "
+                  "same failures")
+
+        for root, label in ((v015_before, "declares 0.14"),
+                            (v015_silent, "declares no version")):
+            got = failed_checks(root, strict=True)
+            told = [f for check_id in wanted
+                    for f in findings(root, check_id)]
+            if got:
+                failures.append("a capsule that %s is not held to 0.15, yet "
+                                "failed %s" % (label, sorted(got)))
+            elif len(told) < 10 or any(f["severity"] != check_capsule.INFO
+                                       for f in told):
+                failures.append("a capsule that %s should be told what 0.15 "
+                                "asks, as information: %s" % (label, told))
+            else:
+                print("PASS  a capsule that %s is told what 0.15 asks and "
+                      "fails nothing" % label)
+
+        levels = [f for f in findings(signed_diff, "diff_manifest")
+                  if "colorbar_levels" in f["message"]]
+        refused = [f for f in findings(unsigned_diff, "diff_manifest")
+                   if "not marked signed" in f["message"]]
+        if levels:
+            failures.append("a signed diff on 255 levels should pass: %s"
+                            % levels)
+        elif not refused or refused[0]["severity"] != check_capsule.ERROR:
+            failures.append("255 levels without signed should be an error, "
+                            "got %s" % findings(unsigned_diff,
+                                                "diff_manifest"))
+        else:
+            print("PASS  a diff on 255 levels passes when marked signed, "
+                  "fails when not")
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

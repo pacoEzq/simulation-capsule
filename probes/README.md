@@ -18,6 +18,9 @@ the model.
 5. A wrong answer from a mid tier model is ambiguous, capsule and reader being
    confounded. A wrong answer any reader would have given counts regardless.
 6. Where reader and record share a family, the record says so.
+7. A control read by a small model, after `--strict`, is a cheap search for
+   ambiguity. A miss is a place to look in the capsule, not a finding
+   (rule 5), and it is never a score.
 
 ## Kits are versioned by the record
 
