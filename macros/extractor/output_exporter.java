@@ -7,7 +7,8 @@
 // directory; every station, view, part, range, colormap and title comes from it. It creates,
 // renames and deletes no simulation object, with one exception: a view of card.views whose scene
 // view_<s> the .sim does not have gets it created in memory, as t7/output_exporter.java did (H4), and
-// so does the plane scene LLM_plane_<field> of a station image (H6). It
+// so does the plane scene LLM_plane_<field> of a station image (H6), and so does the lookup table of
+// card.body.colormap when it is viridis, cividis, inferno or magma and the .sim lacks it (H12c). It
 // never saves the simulation, so nothing created outlives the session. Every other object it touches is
 // resolved by name and a missing one throws with its name; the stations (planes, tables) must exist.
 // Changing the parts of a displayer, a camera or an annotation text is not creating. The capsule itself is assembled later, outside the session,
@@ -37,6 +38,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -75,6 +77,7 @@ import star.vis.ScalarFillMode;
 import star.vis.Scene;
 import star.vis.SimpleAnnotation;
 import star.vis.SimpleAnnotationProp;
+import star.vis.UserLookupTable; // TODO(unverified signature): class from the 2606 GUI recording, which imports star.vis.* (package inferred)
 import star.vis.VisProjectionMode; // TODO(unverified signature): same import as run_macro.java
 // TODO(unverified signature): package of the next one, imported in t7/output_exporter.java; star.vis is
 // the inferred one. If javac rejects it, the class is in star.common or star.base.neo.
@@ -132,12 +135,22 @@ public class output_exporter extends StarMacro {
     // never saved. Title: font on the annotation, height on the scene's prop of it; the position and
     // the shadow of the title stay as prepare sets them (a created view title gets them in createViewScene). Legend: width, position and no shadow, and
     // the label format of run_macro.java; 6 labels and the ranges stay as prepare sets them.
-    private static final String TITLE_FONT = "Siemens Sans Global-Plain";
+    private static final String TITLE_FONT = "SansSerif-Plain";
     private static final double TITLE_HEIGHT = 0.04;
     private static final double LEGEND_WIDTH = 0.3;
     private static final double[] LEGEND_POSITION = { 0.6, 0.08 };
     private static final boolean LEGEND_SHADOW = false;
     private static final String COLOR_BAR_LABEL_FORMAT = "%.2f";
+    // 2D (H12c): the field fills the frame behind the title, so the title gets an opaque background of
+    // this colour (its text stays black); see applyTitleBackground.
+    private static final double[] TITLE_BACKGROUND_COLOR = { 1.0, 1.0, 1.0 };
+
+    // card.body.colormap values imported from colormaps/<name>.colormap (next to the macro, else in the
+    // session directory) when the .sim has no table of that name (H12c). Any other value must be a table
+    // of the .sim already; grayscale is the predefined one.
+    private static final Set<String> IMPORTABLE_COLORMAPS = new HashSet<String>(Arrays.asList(
+        "viridis", "cividis", "inferno", "magma"));
+    private static final String COLORMAP_DIR = "colormaps";
 
     // environment of summary.json (SPEC 0.4, 4.2.1): its five keys, the Version: line field each one
     // is copied from (null: solver, which is not on that line), the product name SPEC 4.2.1 fixes for
@@ -202,6 +215,12 @@ public class output_exporter extends StarMacro {
     private String groupSymbol;
     private String fluidRegion;
     private String colormap;
+    private boolean colormapImported; // the table was imported by this run (not saved)
+    private String colormapFrom; // "macro_directory" or "session_directory" when imported; null otherwise
+    private String titleBackground; // 2D: "opaque" or "shadow", as applyTitleBackground set it; null in 3D
+    // 2D region (same test as station_builder): no grid_<stem> nor section_<stem>; the stations are the
+    // line probes grid_<stem>_rNN and what would paint section_<stem> paints the fluid region instead.
+    private boolean twoD;
     private Double halfWidth; // card.body.half_width; null: no missing node is excused
     private String unitParameter = "D"; // card.body.length.parameter; absent: "D"; null: none checked
     private String formationFields; // card.body.formation.fields, in the titles of the images
@@ -233,6 +252,7 @@ public class output_exporter extends StarMacro {
         String[] columns;
         int rowsWritten;
         int missingInBody;
+        boolean lines; // 2D: grid_<stem> is the grid[1] LineParts grid_<stem>_rNN
         Camera camera;
     }
 
@@ -277,6 +297,7 @@ public class output_exporter extends StarMacro {
             log("start card=" + CARD_NAME + " alias=" + alias + " " + groupSymbol + "=" + reTarget
                 + " point=" + rel(pointDir) + " summary=" + (caseSummary != null ? "case macro" : "run mode"));
 
+            ensureColormap();
             checkObjects();
             readSummary();
             exportPlanes();
@@ -781,10 +802,73 @@ public class output_exporter extends StarMacro {
         return sc;
     }
 
+    // grid_<stem> and section_<stem> (3D) or the grid[1] line probes grid_<stem>_rNN of a 2D case
+    // (station_builder); object_audit checks their classes and resolutions.
+    private void gridParts(Station st) {
+        st.lines = twoD;
+        if (!twoD) {
+            derivedPart("grid_" + st.stem);
+            derivedPart("section_" + st.stem);
+            return;
+        }
+        for (int j = 0; j < st.grid[1]; j++) {
+            derivedPart(rowName(st, j));
+        }
+    }
+
+    // In 2D, section_<stem> of a station is painted as the fluid region (a section of a 2D region holds
+    // no data, as a PlaneProbePart extracts none); any other name, and every name in 3D, as it is.
+    private String paintedPart(String name) {
+        if (twoD) {
+            for (int i = 0; i < stations.size(); i++) {
+                if (name.equals("section_" + stations.get(i).stem)) {
+                    return fluidRegion;
+                }
+            }
+        }
+        return name;
+    }
+
+    private static final String SUBSTITUTION_REASON = "2D region: section_<stem> holds no data";
+
+    // render.json entry of the parts painted in place of the card's, or "" when none is.
+    private String substitutedJson(String[] names) {
+        StringBuilder sb = new StringBuilder();
+        for (int k = 0; k < names.length; k++) {
+            String to = paintedPart(names[k]);
+            if (!to.equals(names[k])) {
+                sb.append(sb.length() == 0 ? "" : ", ").append("{\"from\": ").append(str(names[k]))
+                  .append(", \"to\": ").append(str(to)).append(", \"reason\": ").append(str(SUBSTITUTION_REASON)).append('}');
+            }
+        }
+        return sb.length() == 0 ? "" : "\"part_substituted\": [" + sb + "]";
+    }
+
+    // Region.getPhysicsContinuum() and PhysicsContinuum.getModelManager(): TODO(unverified signature),
+    // as in station_builder; the Two Dimensional space model matched by its simple class name.
+    private boolean isTwoDimensional(Region fluid) {
+        if (fluid.getPhysicsContinuum() == null) {
+            throw new RuntimeException("output_exporter: region '" + fluidRegion + "' has no physics continuum.");
+        }
+        for (Object model : fluid.getPhysicsContinuum().getModelManager().getObjects()) {
+            if (model != null && model.getClass().getSimpleName().equals("TwoDimensionalModel")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String rowName(Station st, int j) {
+        return "grid_" + st.stem + "_r" + (j < 10 ? "0" : "") + j;
+    }
+
     // Every object the exporter touches, before anything is written. A station or a view whose object
     // the .sim does not have stops the macro with the station or the view named.
     private void checkObjects() {
         Region fluid = region(fluidRegion);
+        twoD = isTwoDimensional(fluid);
+        log("region '" + fluidRegion + "' is " + (twoD ? "2D: line probes grid_<stem>_rNN, section_<stem> painted as the region"
+            : "3D"));
         if (!stations.isEmpty()) {
             // The coordinate columns belong to the plane CSVs only.
             for (int i = 0; i < COORD_COLUMNS.length; i++) {
@@ -799,8 +883,7 @@ public class output_exporter extends StarMacro {
         for (int i = 0; i < stations.size(); i++) {
             Station st = stations.get(i);
             try {
-                derivedPart("grid_" + st.stem);
-                derivedPart("section_" + st.stem);
+                gridParts(st);
                 table("LLM_table_" + st.stem);
                 for (int k = COORD_COLUMNS.length; k < st.columns.length; k++) {
                     fieldFunction(st.columns[k]);
@@ -828,7 +911,7 @@ public class output_exporter extends StarMacro {
                 }
                 fieldFunction(v.field);
                 for (int k = 0; k < v.partNames.length; k++) {
-                    viewPart(fluid, v.partNames[k]);
+                    viewPart(fluid, paintedPart(v.partNames[k]));
                 }
             } catch (RuntimeException e) {
                 throw named("view", v.file, e);
@@ -921,7 +1004,7 @@ public class output_exporter extends StarMacro {
                     + e.getMessage());
             }
             st.rowsWritten = normalisePlaneCsv(out, name, st.columns);
-            st.missingInBody = checkLattice(out, st);
+            st.missingInBody = st.lines ? checkLineLattice(out, st) : checkLattice(out, st);
             log("plane " + plane + " rows " + st.rowsWritten + "/" + st.rowsExpected
                 + " missing_in_body " + st.missingInBody + " half_width " + (halfWidth == null ? "null" : num(halfWidth.doubleValue())));
         }
@@ -1001,6 +1084,70 @@ public class output_exporter extends StarMacro {
                 xyz[a] = ea.getValue().doubleValue();
                 xyz[b] = eb.getValue().doubleValue();
                 xyz[c] = constant;
+                if (!insideBody(xyz)) {
+                    throw new RuntimeException(plane + " missing node (" + xyz[0] + "," + xyz[1] + "," + xyz[2] + ")"
+                        + (halfWidth == null ? ", card.body.half_width absent" : ""));
+                }
+                missingInBody++;
+            }
+        }
+        return missingInBody;
+    }
+
+    // 2D: the grid[0] x grid[1] lattice is the card's (origin + i * spacing), and every row of the CSV must
+    // sit on one of its nodes, once, at the station's value. A node absent from the CSV (a line probe drops
+    // the points inside the body) is tolerated only inside the body, with the test of the 3D lattice;
+    // outside it fails with its coordinates. Returns the number of absent nodes inside the body.
+    private int checkLineLattice(File f, Station st) {
+        String plane = st.stem;
+        int a = st.axes[0];
+        int b = st.axes[1];
+        int c = st.axes[2];
+        boolean[][] present = new boolean[st.grid[0]][st.grid[1]];
+        List<String> lines = readLines(f);
+        boolean header = true;
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).trim().length() == 0 || lines.get(i).startsWith("#")) {
+                continue;
+            }
+            if (header) {
+                header = false;
+                continue;
+            }
+            String[] cells = splitCsv(lines.get(i));
+            double[] xyz = new double[3];
+            try {
+                xyz[a] = Double.parseDouble(cells[a]);
+                xyz[b] = Double.parseDouble(cells[b]);
+                xyz[c] = Double.parseDouble(cells[c]);
+            } catch (RuntimeException e) {
+                throw new RuntimeException(plane + " lattice incomplete (unreadable coordinates on line "
+                    + (i + 1) + " of " + rel(f) + ")");
+            }
+            long ia = Math.round((xyz[a] - st.origin[0]) / st.spacing);
+            long ib = Math.round((xyz[b] - st.origin[1]) / st.spacing);
+            if (ia < 0 || ia >= st.grid[0] || ib < 0 || ib >= st.grid[1]
+                    || !(Math.abs(xyz[a] - (st.origin[0] + ia * st.spacing)) <= COORD_TOL)
+                    || !(Math.abs(xyz[b] - (st.origin[1] + ib * st.spacing)) <= COORD_TOL)
+                    || !(Math.abs(xyz[c] - st.value) <= COORD_TOL)) {
+                throw new RuntimeException(plane + " node (" + xyz[0] + "," + xyz[1] + "," + xyz[2] + ") on line "
+                    + (i + 1) + " of " + rel(f) + " is off the card lattice");
+            }
+            if (present[(int) ia][(int) ib]) {
+                throw new RuntimeException(plane + " node (" + xyz[0] + "," + xyz[1] + "," + xyz[2] + ") twice in " + rel(f));
+            }
+            present[(int) ia][(int) ib] = true;
+        }
+        int missingInBody = 0;
+        for (int ia = 0; ia < st.grid[0]; ia++) {
+            for (int ib = 0; ib < st.grid[1]; ib++) {
+                if (present[ia][ib]) {
+                    continue;
+                }
+                double[] xyz = new double[3];
+                xyz[a] = st.origin[0] + ia * st.spacing;
+                xyz[b] = st.origin[1] + ib * st.spacing;
+                xyz[c] = st.value;
                 if (!insideBody(xyz)) {
                     throw new RuntimeException(plane + " missing node (" + xyz[0] + "," + xyz[1] + "," + xyz[2] + ")"
                         + (halfWidth == null ? ", card.body.half_width absent" : ""));
@@ -1172,6 +1319,10 @@ public class output_exporter extends StarMacro {
             viewsJson.append("      \"camera\": ").append(camera).append(",\n");
             viewsJson.append("      \"colorbar\": ").append(colorbarJson(sd, v.displayer)).append(",\n");
             viewsJson.append("      \"title\": ").append(str(title.getText()));
+            String substituted = substitutedJson(v.partNames);
+            if (substituted.length() > 0) {
+                viewsJson.append(", ").append(substituted);
+            }
             if (v.question != null) {
                 viewsJson.append(", \"question\": ").append(str(v.question));
             }
@@ -1236,8 +1387,10 @@ public class output_exporter extends StarMacro {
     }
 
     // A view title longer than TITLE_ONE_LINE characters does not fit 1024 px at TITLE_HEIGHT, so it is
-    // broken in two at the ", " separator nearest its middle; the comma stays on the first line.
-    private static final int TITLE_ONE_LINE = 110;
+    // broken in two at the ", " separator nearest its middle; the comma stays on the first line. 110 was
+    // measured with the former title font; SansSerif-Plain is wider and cut a 101-character title at
+    // about 100, so the limit leaves room below that.
+    private static final int TITLE_ONE_LINE = 90;
 
     private static String twoLines(String t) {
         if (t.length() <= TITLE_ONE_LINE) {
@@ -1365,6 +1518,81 @@ public class output_exporter extends StarMacro {
         }
     }
 
+    // card.body.colormap as a lookup table of the .sim. viridis, cividis, inferno and magma, when no table
+    // has that name, are imported from colormaps/<name>.colormap with the calls recorded in the 2606 GUI
+    // (importLookupTables(resolvePath(..)), the new table cast to UserLookupTable, setPresentationName).
+    // The import may name the table "<name> 2", so the new one is found by comparing the names before and
+    // after and renamed <name>. Like the scenes created here, it is never saved.
+    private void ensureColormap() {
+        LookupTableManager mgr = sim.get(LookupTableManager.class);
+        Set<String> before = lookupTableNames(mgr);
+        if (!IMPORTABLE_COLORMAPS.contains(colormap) || before.contains(colormap)) {
+            lookupTable(colormap);
+            log("colormap '" + colormap + "': table of the .sim, not imported");
+            return;
+        }
+        String rel = COLORMAP_DIR + "/" + colormap + ".colormap";
+        // TODO(unverified signature): StarMacro.resolvePath(String) returning String (the recording passes
+        // its result straight to importLookupTables); a relative path resolves against the macro's directory.
+        String path = resolvePath(rel);
+        String from = "macro_directory";
+        if (path == null || !new File(path).isFile()) {
+            File f = new File(sessionBase, COLORMAP_DIR + File.separator + colormap + ".colormap");
+            if (!f.isFile()) {
+                throw new RuntimeException("output_exporter: card.body.colormap '" + colormap + "' is no lookup table "
+                    + "of the .sim and '" + rel + "' is neither next to the macro nor in the session directory.");
+            }
+            path = resolvePath(f.getPath());
+            from = "session_directory";
+        }
+        mgr.importLookupTables(path);
+        UserLookupTable created = null;
+        // TODO(unverified signature): LookupTableManager.getObjects(), as lookupTableNames.
+        for (Object o : mgr.getObjects()) {
+            if (o instanceof NamedObject && !before.contains(((NamedObject) o).getPresentationName())) {
+                if (created != null || !(o instanceof UserLookupTable)) {
+                    throw new RuntimeException("output_exporter: importing '" + rel + "' left a new table '"
+                        + ((NamedObject) o).getPresentationName() + "' "
+                        + (created != null ? "besides '" + created.getPresentationName() + "'." : "that is not a UserLookupTable."));
+                }
+                created = (UserLookupTable) o;
+            }
+        }
+        if (created == null) {
+            throw new RuntimeException("output_exporter: importing '" + rel + "' added no lookup table.");
+        }
+        String importedAs = created.getPresentationName();
+        if (!colormap.equals(importedAs)) {
+            created.setPresentationName(colormap);
+        }
+        if (lookupTable(colormap) != created) {
+            throw new RuntimeException("output_exporter: lookup table '" + colormap + "' does not read back as the one "
+                + "imported from '" + rel + "' (imported as '" + importedAs + "').");
+        }
+        colormapImported = true;
+        colormapFrom = from;
+        log("colormap '" + colormap + "': imported from " + rel + " (" + from.replace('_', ' ') + ")"
+            + (colormap.equals(importedAs) ? "" : " as '" + importedAs + "', renamed '" + colormap + "'") + " (not saved)");
+    }
+
+    // TODO(unverified signature): LookupTableManager.getObjects() -- the managers of scenes and models are
+    // iterated the same way in this file; this one is not in a compiled source.
+    private Set<String> lookupTableNames(LookupTableManager mgr) {
+        Set<String> names = new HashSet<String>();
+        for (Object o : mgr.getObjects()) {
+            if (o instanceof NamedObject) {
+                names.add(((NamedObject) o).getPresentationName());
+            }
+        }
+        return names;
+    }
+
+    // render.json entry of the table applied to every displayer.
+    private String colormapJson() {
+        return "{\"table\": " + str(colormap) + ", \"imported\": " + colormapImported + ", \"from\": "
+            + (colormapFrom == null ? "null" : str(colormapFrom)) + "}";
+    }
+
     // The predefined table by its name, looked up as run_macro.colorBarLookupTable does; absent throws
     // with the name.
     private LookupTable lookupTable(String name) {
@@ -1428,7 +1656,9 @@ public class output_exporter extends StarMacro {
               .append(", \"displayer\": ").append(str(PLANE_DISP + f)).append(", \"field\": ").append(str(f)).append(",\n");
             planesJson.append("      \"camera\": ").append(camera).append(",\n");
             planesJson.append("      \"colorbar\": ").append(colorbarJson(sd, PLANE_DISP + f)).append(",\n");
-            planesJson.append("      \"title\": ").append(str(titleRead)).append("}")
+            String substituted = substitutedJson(new String[] { "section_" + plane });
+            planesJson.append("      \"title\": ").append(str(titleRead))
+              .append(substituted.length() > 0 ? ", " + substituted : "").append("}")
               .append(p == stations.size() - 1 ? "\n" : ",\n");
             log(rel(out) + " " + VIEW_WIDTH + "x" + VIEW_HEIGHT + " bytes=" + out.length() + " camera " + camera);
         }
@@ -1437,6 +1667,7 @@ public class output_exporter extends StarMacro {
         sb.append("{\n");
         sb.append("  \"export\": {\"call\": ").append(str(printCall())).append("},\n");
         sb.append("  \"layout\": ").append(layoutJson()).append(",\n");
+        sb.append("  \"colormap\": ").append(colormapJson()).append(",\n");
         sb.append("  \"planes\": {\n").append(planesJson).append("  },\n");
         sb.append("  \"views\": [\n").append(viewsJson).append("  ],\n");
         sb.append("  \"half_width\": ").append(halfWidth == null ? "null" : num(halfWidth.doubleValue())).append(",\n");
@@ -1564,6 +1795,9 @@ public class output_exporter extends StarMacro {
     private void applyRenderLayout(Scene sc, String sceneName, ScalarDisplayer sd, SimpleAnnotation title,
             String titleName) {
         title.setFontString(TITLE_FONT);
+        if (twoD) {
+            titleBackground = applyTitleBackground(title);
+        }
         Object p = sc.getAnnotationPropManager().getObject(titleName);
         if (!(p instanceof SimpleAnnotationProp)) {
             throw new RuntimeException("output_exporter: prop of '" + titleName + "' in '" + sceneName + "' read as "
@@ -1577,7 +1811,52 @@ public class output_exporter extends StarMacro {
         legend.setLabelFormat(COLOR_BAR_LABEL_FORMAT);
         log("layout " + sceneName + ": title font '" + TITLE_FONT + "' height " + num(TITLE_HEIGHT)
             + ", legend width " + num(LEGEND_WIDTH) + " position [" + num(LEGEND_POSITION[0]) + ", "
-            + num(LEGEND_POSITION[1]) + "] shadow " + LEGEND_SHADOW + " label format '" + COLOR_BAR_LABEL_FORMAT + "'");
+            + num(LEGEND_POSITION[1]) + "] shadow " + LEGEND_SHADOW + " label format '" + COLOR_BAR_LABEL_FORMAT + "'"
+            + (twoD ? ", title background " + titleBackground : ""));
+    }
+
+    // 2D: the fluid region fills the frame, and black title text on the dark end of the colormap does not
+    // read. The annotation gets an opaque background of TITLE_BACKGROUND_COLOR behind its text, which
+    // covers only the text box; if its class has no such call, its shadow is switched on instead, which
+    // outlines the text and covers no field. The calls are looked up by reflection so that a missing one
+    // falls back at run time instead of failing javac; the choice goes to run_log and render.json.
+    // TODO(unverified signature): SimpleAnnotation.setBackground(boolean) and setBackgroundColor(DoubleVector
+    // or java.awt.Color), named after the GUI properties of an annotation; setShadow(boolean) is recorded.
+    private String applyTitleBackground(SimpleAnnotation title) {
+        Method on = method(title, "setBackground", boolean.class);
+        if (on == null) {
+            title.setShadow(true);
+            return "shadow";
+        }
+        invoke(title, on, Boolean.TRUE);
+        Method color = method(title, "setBackgroundColor", DoubleVector.class);
+        if (color != null) {
+            invoke(title, color, new DoubleVector(TITLE_BACKGROUND_COLOR));
+        } else {
+            color = method(title, "setBackgroundColor", java.awt.Color.class);
+            if (color != null) {
+                invoke(title, color, new java.awt.Color((float) TITLE_BACKGROUND_COLOR[0],
+                    (float) TITLE_BACKGROUND_COLOR[1], (float) TITLE_BACKGROUND_COLOR[2]));
+            }
+        }
+        return "opaque";
+    }
+
+    private static Method method(Object o, String name, Class<?> arg) {
+        try {
+            return o.getClass().getMethod(name, arg);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private static void invoke(SimpleAnnotation o, Method m, Object arg) {
+        try {
+            m.invoke(o, arg);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException("output_exporter: " + m.getName() + " on '" + o.getPresentationName()
+                + "' failed: " + (e.getCause() != null ? e.getCause() : e));
+        }
     }
 
     // The layout as applied, for render.json; manifest_writer copies it into the colorbar and
@@ -1592,7 +1871,8 @@ public class output_exporter extends StarMacro {
         }
         scenes.setLength(scenes.length() - 2);
         return "{\"scenes\": [" + scenes + "], \"title\": {\"font_string\": " + str(TITLE_FONT)
-            + ", \"height\": " + num(TITLE_HEIGHT) + "}, \"colorbar\": {\"width\": " + num(LEGEND_WIDTH)
+            + ", \"height\": " + num(TITLE_HEIGHT) + ", \"background\": "
+            + (titleBackground == null ? "null" : str(titleBackground)) + "}, \"colorbar\": {\"width\": " + num(LEGEND_WIDTH)
             + ", \"position\": [" + num(LEGEND_POSITION[0]) + ", " + num(LEGEND_POSITION[1]) + "], \"shadow\": "
             + LEGEND_SHADOW + ", \"label_format\": " + str(COLOR_BAR_LABEL_FORMAT) + "}}";
     }
@@ -1617,6 +1897,12 @@ public class output_exporter extends StarMacro {
     // Leaves section_<plane> as the only part the plane displayer shows, with the two calls recorded in
     // the 2606 GUI on 29.09: the query is cleared, then the part list is set to that one section.
     private void showOnlySection(ScalarDisplayer sd, String plane) {
+        if (twoD) {
+            log("plane " + plane + ": section_" + plane + " painted as region '" + fluidRegion + "' (" + SUBSTITUTION_REASON + ")");
+            sd.getInputParts().setQuery(null);
+            sd.getInputParts().setObjects(region(fluidRegion));
+            return;
+        }
         Object target = derivedPart("section_" + plane);
         if (!(target instanceof NamedObject)) {
             throw new RuntimeException("output_exporter: derived part 'section_" + plane + "' is not a NamedObject.");
@@ -1636,7 +1922,11 @@ public class output_exporter extends StarMacro {
         Region fluid = region(fluidRegion);
         NamedObject[] parts = new NamedObject[v.partNames.length];
         for (int k = 0; k < parts.length; k++) {
-            parts[k] = viewPart(fluid, v.partNames[k]);
+            String painted = paintedPart(v.partNames[k]);
+            if (!painted.equals(v.partNames[k])) {
+                log("view " + v.file + ": " + v.partNames[k] + " painted as region '" + painted + "' (" + SUBSTITUTION_REASON + ")");
+            }
+            parts[k] = viewPart(fluid, painted);
         }
         sd.getInputParts().setQuery(null);
         sd.getInputParts().setObjects(parts);

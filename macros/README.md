@@ -41,6 +41,10 @@ Usage notes:
    waiting for a value, and nothing else in the capsule depends on them.
    This macro redacts nothing: on your own case it copies both as the report
    gives them, so remove them before the capsule leaves your machine.
+6. Depth in the tree tables is read from the column of each node's connector.
+   The version attached to the article counted `|` marks only and lost one
+   level under every ancestor that is a last child; `setup.txt` files already
+   published keep that indentation.
 
 Origin: published with
 [Making AI Understand Your Simulations](https://community.sw.siemens.com/s/question/0D5Vb0000181bwjKAA/making-ai-understand-your-simulations)
@@ -89,7 +93,7 @@ and the view come from the extractor below, with the card in `examples/`.
 
 ## extractor/
 
-The Simulation Capsule extractor's adapter for Simcenter STAR-CCM+: three macros that read a solved
+The Simulation Capsule extractor's adapter for Simcenter STAR-CCM+: four macros that read a solved
 `.sim` and its extraction card and leave the neutral package that `tools/extract_capsule.py` turns
 into `capsule_<alias>/`. Order, inputs and v0 limitations are in `extractor/README.md`.
 

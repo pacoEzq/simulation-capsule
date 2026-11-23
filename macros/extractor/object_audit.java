@@ -5,7 +5,9 @@
 // Walks the object managers of the open, solved .sim and checks it against the closed list built from
 // card.json (H5): the Derived Parts grid_<stem> and section_<stem> and the table LLM_table_<stem> of
 // every station, the boundaries card.body.body_boundaries.names and the region
-// card.body.fluid_region.name. The scenes view_<s> and LLM_plane_<field> are not on the list: output_exporter
+// card.body.fluid_region.name. grid_<stem> counts only as a PlaneProbePart. On a 2D region (same test
+// as station_builder) the list per station is instead the grid[1] LineParts grid_<stem>_rNN, each with
+// resolution grid[0] - 1, and LLM_table_<stem>, which must take exactly those parts. The scenes view_<s> and LLM_plane_<field> are not on the list: output_exporter
 // creates them when the .sim lacks them, so they are not inputs of the case. RESULT PASS when every name of that list exists; any other
 // object is counted as other and never fails the audit. object_audit.json goes to work/<card.body.alias>/,
 // which output_exporter has already written (with its run_log.txt). card.json is looked up like
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +44,9 @@ import star.common.Boundary;
 import star.common.Region;
 import star.common.Simulation;
 import star.common.StarMacro;
+import star.common.XyzInternalTable;
+import star.common.*; // TODO(unverified signature): package of LinePart not read; the two on-demand imports cover either
+import star.vis.*;
 
 public class object_audit extends StarMacro {
 
@@ -83,6 +89,10 @@ public class object_audit extends StarMacro {
     private final Set<String> ownedSeen = new HashSet<String>();
     private final List<String> missingOwned = new ArrayList<String>();
     private final List<String> pendingLog = new ArrayList<String>();
+    private boolean twoD;
+    private final Map<String, int[]> gridByStem = new LinkedHashMap<String, int[]>(); // stem -> card grid
+    private final Map<String, Object> partsByName = new HashMap<String, Object>();
+    private final Map<String, Object> tablesByName = new HashMap<String, Object>();
 
     // ================================================================= entry point
     public void execute() {
@@ -101,6 +111,7 @@ public class object_audit extends StarMacro {
             walkGlobalParameters();
             walkAnnotations();
             lookUpRegionAndBoundaries();
+            checkGrids();
 
             collectMissingOwned();
 
@@ -170,13 +181,24 @@ public class object_audit extends StarMacro {
             throw new RuntimeException("object_audit: " + CARD_NAME + " body.alias '" + alias + "' is not a directory name.");
         }
         fluidRegion = requireString(card, CARD_NAME, "body", "fluid_region", "name");
+        twoD = isTwoDimensional();
+        pendingLog.add("region '" + fluidRegion + "' is " + (twoD ? "2D: stations as grid_<stem>_rNN, no section_<stem>" : "3D"));
 
         List<Object> st = requireList(card, CARD_NAME, "stations");
         for (int i = 0; i < st.size(); i++) {
             String where = CARD_NAME + " stations[" + i + "]";
-            String stem = requireString(asObject(st.get(i), where), where, "stem");
-            addOwned(M_PARTS, "grid_" + stem);
-            addOwned(M_PARTS, "section_" + stem);
+            Map<String, Object> m = asObject(st.get(i), where);
+            String stem = requireString(m, where, "stem");
+            int[] grid = gridOf(m, where);
+            gridByStem.put(stem, grid);
+            if (twoD) {
+                for (int j = 0; j < grid[1]; j++) {
+                    addOwned(M_PARTS, rowName(stem, j));
+                }
+            } else {
+                addOwned(M_PARTS, "grid_" + stem);
+                addOwned(M_PARTS, "section_" + stem);
+            }
             addOwned(M_TABLES, "LLM_table_" + stem);
         }
         List<Object> names = requireList(card, CARD_NAME, "body", "body_boundaries", "names");
@@ -234,11 +256,24 @@ public class object_audit extends StarMacro {
     }
 
     private void walkParts() {
-        walk(M_PARTS, sim.getPartManager(), sim.getPartManager().getObjects());
+        Collection<?> all = sim.getPartManager().getObjects();
+        walk(M_PARTS, sim.getPartManager(), all);
+        byName(all, partsByName);
     }
 
     private void walkTables() {
-        walk(M_TABLES, sim.getTableManager(), sim.getTableManager().getObjects());
+        Collection<?> all = sim.getTableManager().getObjects();
+        walk(M_TABLES, sim.getTableManager(), all);
+        byName(all, tablesByName);
+    }
+
+    private static void byName(Collection<?> objects, Map<String, Object> into) {
+        if (objects == null) {
+            return;
+        }
+        for (Object o : objects) {
+            into.put(nameOf(o), o);
+        }
     }
 
     private void walkScenes() {
@@ -331,6 +366,98 @@ public class object_audit extends StarMacro {
             return n == null ? "" : n;
         }
         return "";
+    }
+
+    // ================================================================= grids
+    // 3D: grid_<stem> of another class than PlaneProbePart is missing. 2D: a row grid_<stem>_rNN that is not
+    // a LinePart of resolution grid[0] - 1 is missing, and so is LLM_table_<stem> when it does not take
+    // exactly the grid[1] rows.
+    private void checkGrids() {
+        for (Map.Entry<String, int[]> e : gridByStem.entrySet()) {
+            String stem = e.getKey();
+            int[] grid = e.getValue();
+            if (!twoD) {
+                Object g = partsByName.get("grid_" + stem);
+                if (g != null && !"PlaneProbePart".equals(g.getClass().getSimpleName())) {
+                    notOwned(M_PARTS, "grid_" + stem, "is " + g.getClass().getSimpleName() + ", not a PlaneProbePart");
+                }
+                continue;
+            }
+            Set<String> rows = new HashSet<String>();
+            for (int j = 0; j < grid[1]; j++) {
+                String rn = rowName(stem, j);
+                rows.add(rn);
+                Object o = partsByName.get(rn);
+                if (o == null) {
+                    continue;
+                }
+                if (!(o instanceof LinePart)) {
+                    notOwned(M_PARTS, rn, "is " + o.getClass().getSimpleName() + ", not a LinePart");
+                    continue;
+                }
+                // TODO(unverified signature): LinePart.getResolution(); setResolution(n) gives n + 1 points.
+                int res = ((LinePart) o).getResolution();
+                if (res != grid[0] - 1) {
+                    notOwned(M_PARTS, rn, "resolution " + res + ", expected " + (grid[0] - 1) + " (" + grid[0] + " points)");
+                }
+            }
+            String tn = "LLM_table_" + stem;
+            Object t = tablesByName.get(tn);
+            if (t == null) {
+                continue;
+            }
+            if (!(t instanceof XyzInternalTable)) {
+                notOwned(M_TABLES, tn, "is " + t.getClass().getSimpleName() + ", not an XyzInternalTable");
+                continue;
+            }
+            // TODO(unverified signature): XyzInternalTable.getParts().getObjects().
+            Collection<?> parts = ((XyzInternalTable) t).getParts().getObjects();
+            Set<String> on = new HashSet<String>();
+            for (Object p : parts) {
+                on.add(nameOf(p));
+            }
+            if (!on.equals(rows)) {
+                notOwned(M_TABLES, tn, "takes " + on.size() + " parts, expected exactly the " + grid[1] + " rows grid_"
+                    + stem + "_rNN");
+            }
+        }
+    }
+
+    // A name of the closed list present with the wrong class or setup: it counts as missing, the reason logged.
+    private void notOwned(String manager, String name, String why) {
+        ownedSeen.remove(manager + "\n" + name);
+        for (int i = 0; i < objectRows.size(); i++) {
+            String[] r = objectRows.get(i);
+            if (r[0].equals(manager) && r[1].equals(name)) {
+                r[3] = C_OTHER;
+            }
+        }
+        pendingLog.add(name + " " + why);
+    }
+
+    // 2D when the space model of the region's physics continuum is Two Dimensional (as station_builder);
+    // a region that cannot be read is taken as 3D here and reported missing by lookUpRegionAndBoundaries.
+    // TODO(unverified signature): Region.getPhysicsContinuum(), PhysicsContinuum.getModelManager().
+    private boolean isTwoDimensional() {
+        Region r;
+        try {
+            r = region(fluidRegion);
+        } catch (RuntimeException e) {
+            return false;
+        }
+        if (r.getPhysicsContinuum() == null) {
+            return false;
+        }
+        for (Object model : r.getPhysicsContinuum().getModelManager().getObjects()) {
+            if (model != null && model.getClass().getSimpleName().equals("TwoDimensionalModel")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String rowName(String stem, int j) {
+        return "grid_" + stem + "_r" + (j < 10 ? "0" : "") + j;
     }
 
     private void collectMissingOwned() {
@@ -733,6 +860,26 @@ public class object_audit extends StarMacro {
             throw new RuntimeException("object_audit: " + file + " " + String.join(".", path) + " is not a string.");
         }
         return (String) v;
+    }
+
+    // stations[].grid as two integers of at least 2.
+    private static int[] gridOf(Map<String, Object> m, String where) {
+        List<Object> g = requireList(m, where, "grid");
+        if (g.size() != 2 || !(g.get(0) instanceof JsonNumber) || !(g.get(1) instanceof JsonNumber)) {
+            throw new RuntimeException("object_audit: " + where + " grid is not two numbers.");
+        }
+        int[] r = new int[2];
+        for (int k = 0; k < 2; k++) {
+            try {
+                r[k] = Integer.parseInt(((JsonNumber) g.get(k)).raw);
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("object_audit: " + where + " grid[" + k + "] is not an integer.");
+            }
+            if (r[k] < 2) {
+                throw new RuntimeException("object_audit: " + where + " grid[" + k + "] is below 2.");
+            }
+        }
+        return r;
     }
 
     @SuppressWarnings("unchecked")

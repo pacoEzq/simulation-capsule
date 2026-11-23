@@ -278,6 +278,8 @@ public class TrimReportForAI extends StarMacro {
     
     private String parseTreeTable(List<String> lines, int start, int end) {
         StringBuilder sb = new StringBuilder();
+        // Column of each open ancestor's connector; depth = ancestors to the left.
+        List<Integer> cols = new ArrayList<>();
         
         Pattern ttPat = Pattern.compile("<tt>(.*?)</tt>");
         Pattern namePat = Pattern.compile("</tt>(?:<b>)?([^<]+)(?:</b>)?</td>");
@@ -314,9 +316,10 @@ public class TrimReportForAI extends StarMacro {
             int depth = 0;
             Matcher ttm = ttPat.matcher(ln);
             if (ttm.find()) {
-                depth = computeDepth(ttm.group(1));
                 Matcher nm = namePat.matcher(ln);
                 if (nm.find()) nodeName = nm.group(1).trim();
+                depth = (nodeName != null) ? nodeDepth(ttm.group(1), cols)
+                                           : computeDepth(ttm.group(1));
             }
             
             // Build output
@@ -337,6 +340,22 @@ public class TrimReportForAI extends StarMacro {
     // UTILITIES
     // ================================================================
     
+    /**
+     * Depth of a node row from the column of its connector ("+-" or "`-").
+     * Counting "|" alone loses a level under any ancestor that is a last
+     * child, because the tree draws blanks there instead of "|".
+     */
+    private int nodeDepth(String ttContent, List<Integer> cols) {
+        String s = ttContent.replace("&nbsp;", " ");
+        int c = s.indexOf("+-");
+        int c2 = s.indexOf("`-");
+        if (c < 0 || (c2 >= 0 && c2 < c)) c = c2;
+        if (c < 0) return computeDepth(ttContent);
+        while (!cols.isEmpty() && cols.get(cols.size() - 1) >= c) cols.remove(cols.size() - 1);
+        cols.add(c);
+        return cols.size();
+    }
+
     /** Compute tree depth from <tt> content ("|" = parent level, "+-" or "`-" = +1). */
     private int computeDepth(String ttContent) {
         String s = ttContent.replace("&nbsp;", " ");
