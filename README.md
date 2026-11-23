@@ -144,6 +144,7 @@ extension.
 | Path | What it holds |
 |------|---------------|
 | `SPEC.md` | The capsule contract: directory layout, per-artifact rules, naming |
+| `CHANGELOG.md` | What each version added, newest first |
 | `examples/` | Complete capsules from the series reference cases |
 | `diffsrc/` | Grayscale frames the published image diffs were measured from |
 | `probes/` | Probe test records: what models could and could not read from each capsule |
