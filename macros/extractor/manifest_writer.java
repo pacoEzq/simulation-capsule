@@ -1,8 +1,8 @@
 // manifest_writer.java
-// xtr chain (Capsule Extractor v0, STAR-CCM+ adapter) -- last of three. Simcenter STAR-CCM+ 2606.
-// Order of execution on an already solved .sim: output_exporter, object_audit (mode=run),
-// manifest_writer. It writes adapter.json, and nothing else, into work/<card.body.alias>/: the solver
-// session read from setup.txt, the .sim and its sha256, the sha256 of the three xtr macros, the mesh
+// xtr chain (Capsule Extractor v0, STAR-CCM+ adapter) -- last of the chain. Simcenter STAR-CCM+ 2606.
+// Order of execution on an already solved .sim: station_builder (when the case needs it),
+// output_exporter, object_audit (mode=run), manifest_writer. It writes adapter.json, and nothing else, into work/<card.body.alias>/: the solver
+// session read from setup.txt, the .sim and its sha256, the sha256 of the xtr macros that ran, the mesh
 // block (cells only, read from the report that card.references[key=cells].from names; no such
 // reference, no block) and result and summary copied from object_audit.json. render.json is read only as proof that output_exporter ran on this point. It
 // creates, renames and deletes no simulation object and does not save the simulation; every object it
@@ -49,8 +49,11 @@ public class manifest_writer extends StarMacro {
     private static final String AUDIT_JSON = "object_audit.json";
 
     // Chain files, in order of execution, hashed from the session directory; path is where each one
-    // lives in the simulation-capsule repository.
+    // lives in the simulation-capsule repository. station_builder leads the chain when its log is in
+    // the point directory, which is the trace it leaves of having run on this point.
     private static final String[] CHAIN_KEYS = { "output_exporter", "object_audit", "manifest_writer" };
+    private static final String STATION_BUILDER = "station_builder";
+    private static final String STATION_BUILDER_LOG = "station_builder.log";
     private static final String CHAIN_PATH_PREFIX = "macros/extractor/";
 
     // Sentinel for a JSON null read from disk (a Map can hold null, but containsKey is clumsier).
@@ -90,9 +93,10 @@ public class manifest_writer extends StarMacro {
 
             // ---- 4. the .sim and the chain files
             String simSha = sha256OrNull(simFile, simFile.getName());
-            String[] chainSha = new String[CHAIN_KEYS.length];
-            for (int i = 0; i < CHAIN_KEYS.length; i++) {
-                String f = CHAIN_KEYS[i] + ".java";
+            String[] chainKeys = chainKeys();
+            String[] chainSha = new String[chainKeys.length];
+            for (int i = 0; i < chainKeys.length; i++) {
+                String f = chainKeys[i] + ".java";
                 chainSha[i] = sha256OrNull(new File(sessionBase, f), f);
             }
 
@@ -103,7 +107,7 @@ public class manifest_writer extends StarMacro {
             appendSession(sb, setup);
             sb.append("  \"sim\": {\"file\": ").append(str(simFile.getName()))
               .append(", \"sha256\": ").append(str(simSha)).append("},\n");
-            appendChain(sb, chainSha);
+            appendChain(sb, chainKeys, chainSha);
             if (cellsReport != null) {
                 sb.append("  \"mesh\": {\"cells\": ").append(cells).append("},\n");
             }
@@ -389,15 +393,27 @@ public class manifest_writer extends StarMacro {
     }
 
     // ================================================================= step 4: chain and session
-    // The three xtr macros as {file, path, sha256}, in order of execution; sha256 is null when the file
-    // is absent from the session directory.
-    private void appendChain(StringBuilder sb, String[] chainSha) {
+    // CHAIN_KEYS, led by station_builder when station_builder.log is in the point directory.
+    private String[] chainKeys() {
+        if (!new File(pointDir, STATION_BUILDER_LOG).isFile()) {
+            log(STATION_BUILDER_LOG + " absent from the point directory, " + STATION_BUILDER + " left out of the chain");
+            return CHAIN_KEYS;
+        }
+        String[] keys = new String[CHAIN_KEYS.length + 1];
+        keys[0] = STATION_BUILDER;
+        System.arraycopy(CHAIN_KEYS, 0, keys, 1, CHAIN_KEYS.length);
+        return keys;
+    }
+
+    // The xtr macros that ran as {file, path, sha256}, in order of execution; sha256 is null when the
+    // file is absent from the session directory.
+    private void appendChain(StringBuilder sb, String[] chainKeys, String[] chainSha) {
         sb.append("  \"chain\": [\n");
-        for (int i = 0; i < CHAIN_KEYS.length; i++) {
-            sb.append("    {\"file\": ").append(str(CHAIN_KEYS[i]))
-              .append(", \"path\": ").append(str(CHAIN_PATH_PREFIX + CHAIN_KEYS[i] + ".java"))
+        for (int i = 0; i < chainKeys.length; i++) {
+            sb.append("    {\"file\": ").append(str(chainKeys[i]))
+              .append(", \"path\": ").append(str(CHAIN_PATH_PREFIX + chainKeys[i] + ".java"))
               .append(", \"sha256\": ").append(str(chainSha[i])).append('}')
-              .append(i < CHAIN_KEYS.length - 1 ? ",\n" : "\n");
+              .append(i < chainKeys.length - 1 ? ",\n" : "\n");
         }
         sb.append("  ],\n");
     }

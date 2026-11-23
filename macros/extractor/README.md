@@ -10,6 +10,8 @@ Order: `station_builder`, `output_exporter`, `object_audit`, `manifest_writer`, 
 station parts and tables) and saves `<name>_xtr.sim` next to the original, which it never overwrites; the other three run on that copy.
 On a 2D region a station is a set of line probes `grid_<stem>_rNN` gathered in `LLM_table_<stem>`, with no `section_<stem>`.
 `summary.json` is the case macro's, in the session directory, when it exists; otherwise the one in `work/<alias>/`.
+`manifest_writer` hashes the chain macros it finds in the session directory, so copy the four `.java` next to the `.sim`; a macro it does not find there gets `sha256: null`.
+`station_builder` leads `adapter.json`'s `chain` when `work/<alias>/station_builder.log` exists.
 
 Two cards rebuild published capsules: `tools/fixtures/pkg_cube_re0300/card.json` (planes and one view)
 and `examples/capsule_naca0012_aoa5.card.json` (views only, `stations: []`).
