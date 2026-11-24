@@ -140,7 +140,6 @@ extension.
 - [Wake Symmetry Breaking in Transient CFD: How the Initial Condition Selects the Side-Force Plane of a Cube at Re = 300](docs/side-runs/cube-re300-symmetry-plane/README.md) shows that the initial condition selects the plane in which the cube wake breaks symmetry, while drag and Strouhal numbers do not change.
 - [Symmetry-Plane Selection in the Cube Wake at Re = 300: Rotated, Tilted and Wide-Domain Runs](docs/side-runs/cube-re300-turned/README.md) turns and tilts the cube inside a fixed mesh and finds that the wake always oscillates in a plane through a face, while the mesh only decides which face.
 - [Strouhal and Drag of a 2D Cylinder from Re = 50 to 180: the Two Per Cent That Was the Domain](docs/side-runs/cylinder-re-sweep/README.md) sweeps the cylinder from Re 50 to 180 and traces a steady 2 per cent excess in Strouhal number to the side boundaries at 15 diameters, not to mesh or time step.
-- [Limiter sensitivity of the recirculation length: 2D cylinder at Re 700](docs/side-runs/cylinder-limiter-bubble-length/README.md) steps the TVB factor of the Modified Venkatakrishnan limiter from 1 down to 0 on the cylinder at Re 700: the recirculation bubble shortens by up to 20% while drag moves by less than 1.6%.
 
 ## Repository contents
 
