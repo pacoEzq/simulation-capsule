@@ -29,6 +29,6 @@ Each value from ψ = 1 down to 0.02 ran 50 000 iterations. Below that, 150 000.
 - Cd hardly moves. Over the whole range it changes by less than 1.6%, and at the far end it even turns, with TVB off giving more drag than ψ = 0. Watch Cd alone and you would miss the limiter, which Lr gives away.
 - No hysteresis. Stepping back up from ψ = 0 to 0.0001, 0.001 and 0.01 lands Lr on the same values as on the way down, to the nearest cell face, which leaves a single branch in which Lr depends on ψ alone and not on the path that led there.
 
-Text and data are [CC BY 4.0](../../LICENSE-DOCS).
+Text and data are [CC BY 4.0](../../../LICENSE-DOCS).
 
 Personal project by [Francisco Ezquerra Larrodé](https://github.com/pacoEzq), published with the [simulation-capsule](https://github.com/pacoEzq/simulation-capsule) repository. Views are my own.

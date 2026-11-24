@@ -35,4 +35,4 @@ pinned at commit `ee7ff59`. The grayscale frame it measures sits in
 - **The capsule declares no domain extents.** The comparison with the literature
   needed them and had to take them from Part 3. Against Khan et al. (2020) the
   drag, 0.987, is 8% above the Khan correlation
-  (see [docs/cube-literature-anchors](../docs/cube-literature-anchors/README.md)).
+  (see [docs/side-runs/cube-literature-anchors](../docs/side-runs/cube-literature-anchors/README.md)).

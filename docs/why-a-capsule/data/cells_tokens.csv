@@ -1,0 +1,13 @@
+capsule,cells,tokens
+capsule_naca0012_aoa5,65885,8449
+capsule_naca0012_aoa7,65885,13171
+capsule_cylinder_re0100,179040,35249
+capsule_cube_re200,405673,26497
+capsule_jet_r2_re100,436390,65148
+capsule_cube_re0100,501860,32583
+capsule_cube_re0300,501860,35615
+capsule_cube_re0600,501860,35437
+capsule_cube_re1000,501860,35422
+capsule_cube_re3000,501860,35562
+capsule_ahmed25_re1e6,5870000,17225
+capsule_delta65_a13p3_re1e6,6491106,49339

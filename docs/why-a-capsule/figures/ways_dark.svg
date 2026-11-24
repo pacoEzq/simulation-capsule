@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 250" role="img" aria-label="Three ways to hand a solved case to a model: raw export, screenshot, capsule">
+<rect width="980" height="250" fill="#1a1a19"/>
+<rect x="20" y="20" width="300" height="200" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<text x="42" y="52" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#c3c2b7" text-anchor="start">RAW EXPORT</text>
+<line x1="42" y1="70" x2="42" y2="110" stroke="#8f8e86"/>
+<line x1="50" y1="70" x2="50" y2="110" stroke="#8f8e86"/>
+<line x1="58" y1="70" x2="58" y2="110" stroke="#8f8e86"/>
+<line x1="66" y1="70" x2="66" y2="110" stroke="#8f8e86"/>
+<line x1="74" y1="70" x2="74" y2="110" stroke="#8f8e86"/>
+<line x1="82" y1="70" x2="82" y2="110" stroke="#8f8e86"/>
+<line x1="90" y1="70" x2="90" y2="110" stroke="#8f8e86"/>
+<line x1="98" y1="70" x2="98" y2="110" stroke="#8f8e86"/>
+<line x1="106" y1="70" x2="106" y2="110" stroke="#8f8e86"/>
+<line x1="42" y1="70" x2="106" y2="70" stroke="#8f8e86"/>
+<line x1="42" y1="78" x2="106" y2="78" stroke="#8f8e86"/>
+<line x1="42" y1="86" x2="106" y2="86" stroke="#8f8e86"/>
+<line x1="42" y1="94" x2="106" y2="94" stroke="#8f8e86"/>
+<line x1="42" y1="102" x2="106" y2="102" stroke="#8f8e86"/>
+<line x1="42" y1="110" x2="106" y2="110" stroke="#8f8e86"/>
+<text x="42" y="146" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#f0efec" text-anchor="start">grows with the mesh</text>
+<text x="42" y="172" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">Spends the budget on structure</text>
+<text x="42" y="190" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">the model cannot use.</text>
+<rect x="340" y="20" width="300" height="200" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<text x="362" y="52" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#c3c2b7" text-anchor="start">SCREENSHOT</text>
+<rect x="362" y="70" width="64" height="40" rx="3" fill="none" stroke="#8f8e86" stroke-width="2"/>
+<path d="M366,104 l16,-18 l12,12 l10,-8 l18,14" fill="none" stroke="#8f8e86" stroke-width="2"/>
+<text x="362" y="146" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#f0efec" text-anchor="start">keeps no numbers</text>
+<text x="362" y="172" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">Leaves the model guessing</text>
+<text x="362" y="190" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">magnitudes from pixel colors.</text>
+<rect x="660" y="20" width="300" height="200" rx="10" fill="#1f3350" stroke="#3987e5" stroke-width="2"/>
+<text x="682" y="52" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f0efec" text-anchor="start">CAPSULE</text>
+<rect x="682" y="70" width="64" height="10" rx="3" fill="#3987e5"/>
+<rect x="682" y="85" width="64" height="10" rx="3" fill="#3987e5"/>
+<rect x="682" y="100" width="64" height="10" rx="3" fill="#3987e5"/>
+<text x="682" y="146" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#f0efec" text-anchor="start">small files, one question each</text>
+<text x="682" y="172" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">Sized to fit the window, with</text>
+<text x="682" y="190" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">room left for the conversation.</text>
+</svg>

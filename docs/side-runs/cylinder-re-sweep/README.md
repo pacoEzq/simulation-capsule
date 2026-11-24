@@ -81,6 +81,6 @@ One mesh family and one solver. The domain test was done at $\mathrm{Re} = 100$ 
 - `data/sensitivity_re100.csv`: the five runs of the sensitivity table at $\mathrm{Re} = 100$.
 - `scripts/plot_st_cd.py`: reads both sweeps and writes `figures/st_vs_re` and `figures/cd_vs_re` (PNG at 300 dpi and SVG).
 
-Text, figures and data are [CC BY 4.0](../../LICENSE-DOCS); the script is [MIT](../../LICENSE).
+Text, figures and data are [CC BY 4.0](../../../LICENSE-DOCS); the script is [MIT](../../../LICENSE).
 
 Personal project by [Francisco Ezquerra Larrodé](https://github.com/pacoEzq), published with the [simulation-capsule](https://github.com/pacoEzq/simulation-capsule) repository. Views are my own.

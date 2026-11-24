@@ -26,7 +26,7 @@ sweep. Only at $Re_D = 100$ does the corner win.
 The cause is the pressure singularity that viscous flow develops at a sharp corner,
 which weighs more as the Reynolds number falls. A mesh-refinement study confirms it:
 with good cells the corner value keeps rising as the mesh is refined, while drag and
-the stagnation point converge (see [docs/cube-re100](../docs/cube-re100/README.md)).
+the stagnation point converge (see [docs/side-runs/cube-re100](../docs/side-runs/cube-re100/README.md)).
 Read 1.068 as the stagnation value of this capsule.
 
 ## Known issues
@@ -41,4 +41,4 @@ Read 1.068 as the stagnation value of this capsule.
   take them from Part 3. Against that literature the drag, 1.342, sits 34% above
   Khan et al. (2020) and 9% above the Haider and Levenspiel cube correlation; a
   lateral probe rules out the lateral walls, and the inlet distance and the
-  reference itself remain open (see [docs/cube-literature-anchors](../docs/cube-literature-anchors/README.md)).
+  reference itself remain open (see [docs/side-runs/cube-literature-anchors](../docs/side-runs/cube-literature-anchors/README.md)).

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 150" role="img" aria-label="How a graded probe is run, in five steps">
+<rect width="980" height="150" fill="#1a1a19"/>
+<rect x="20" y="20" width="172" height="110" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<circle cx="46" cy="46" r="12" fill="#3987e5"/>
+<text x="46" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+<text x="66" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#f0efec" text-anchor="start">Freeze the kit</text>
+<text x="34" y="84" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">sha256 of each file,</text>
+<text x="34" y="102" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">before any reader runs</text>
+<line x1="194" y1="75" x2="204" y2="75" stroke="#8f8e86" stroke-width="2"/><polygon points="211,75 202,70 202,80" fill="#8f8e86"/>
+<rect x="212" y="20" width="172" height="110" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<circle cx="238" cy="46" r="12" fill="#3987e5"/>
+<text x="238" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<text x="258" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#f0efec" text-anchor="start">Fresh chat</text>
+<text x="226" y="84" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">the capsule attached</text>
+<text x="226" y="102" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">whole, no other context</text>
+<line x1="386" y1="75" x2="396" y2="75" stroke="#8f8e86" stroke-width="2"/><polygon points="403,75 394,70 394,80" fill="#8f8e86"/>
+<rect x="404" y="20" width="172" height="110" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<circle cx="430" cy="46" r="12" fill="#3987e5"/>
+<text x="430" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<text x="450" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#f0efec" text-anchor="start">Answer</text>
+<text x="418" y="84" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">a value and an interval;</text>
+<text x="418" y="102" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">expected answers unseen</text>
+<line x1="578" y1="75" x2="588" y2="75" stroke="#8f8e86" stroke-width="2"/><polygon points="595,75 586,70 586,80" fill="#8f8e86"/>
+<rect x="596" y="20" width="172" height="110" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<circle cx="622" cy="46" r="12" fill="#3987e5"/>
+<text x="622" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+<text x="642" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#f0efec" text-anchor="start">Grade</text>
+<text x="610" y="84" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">against the files or what</text>
+<text x="610" y="102" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">the solver recorded</text>
+<line x1="770" y1="75" x2="780" y2="75" stroke="#8f8e86" stroke-width="2"/><polygon points="787,75 778,70 778,80" fill="#8f8e86"/>
+<rect x="788" y="20" width="172" height="110" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<circle cx="814" cy="46" r="12" fill="#3987e5"/>
+<text x="814" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+<text x="834" y="51" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#f0efec" text-anchor="start">Audit</text>
+<text x="802" y="84" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">what traces to the files,</text>
+<text x="802" y="102" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">what to training</text>
+</svg>

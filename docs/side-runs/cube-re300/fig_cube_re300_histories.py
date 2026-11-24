@@ -2,7 +2,7 @@
 
 Reads cube_re300_steady_monitors.csv and cube_re300_transient_monitors.csv from this folder and writes
 cube-re300-steady-vs-transient-histories.png next to them. numpy and matplotlib only.
-Run from a clean clone:  python docs/cube-re300/fig_cube_re300_histories.py
+Run from a clean clone:  python docs/side-runs/cube-re300/fig_cube_re300_histories.py
 """
 from pathlib import Path
 import numpy as np

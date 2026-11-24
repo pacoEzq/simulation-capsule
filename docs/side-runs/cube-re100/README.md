@@ -70,6 +70,6 @@ The capsule is [`capsule_cube_re0100`](https://github.com/pacoEzq/simulation-cap
 
 ---
 
-The figures are drawn by [`fig_cube_re100_corner.py`](fig_cube_re100_corner.py) from [`cube_re100_corner_diagonal.csv`](cube_re100_corner_diagonal.csv), both in this folder. Text, figures and data are [CC BY 4.0](../../LICENSE-DOCS); the script is [MIT](../../LICENSE).
+The figures are drawn by [`fig_cube_re100_corner.py`](fig_cube_re100_corner.py) from [`cube_re100_corner_diagonal.csv`](cube_re100_corner_diagonal.csv), both in this folder. Text, figures and data are [CC BY 4.0](../../../LICENSE-DOCS); the script is [MIT](../../../LICENSE).
 
 Personal project by [Francisco Ezquerra Larrodé](https://github.com/pacoEzq), published with the [simulation-capsule](https://github.com/pacoEzq/simulation-capsule) repository. Views are my own.

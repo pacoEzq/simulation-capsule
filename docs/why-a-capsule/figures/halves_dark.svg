@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 290" role="img" aria-label="The two halves of AI-assisted CFD: writing the simulation and reading the result">
+<rect width="980" height="290" fill="#1a1a19"/>
+<text x="20" y="34" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#c3c2b7" text-anchor="start">THE HALF THAT WRITES</text>
+<text x="20" y="52" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">starccm-javadoc-mcp</text>
+<line x1="20" y1="62" x2="440" y2="62" stroke="#3f3f3b" stroke-width="3"/>
+<text x="960" y="34" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f0efec" text-anchor="end">THE HALF THAT READS</text>
+<text x="960" y="52" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#f0efec" text-anchor="end">simulation-capsule</text>
+<line x1="520" y1="62" x2="960" y2="62" stroke="#3987e5" stroke-width="3"/>
+<rect x="20" y="96" width="160" height="64" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<text x="100" y="133" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#f0efec" text-anchor="middle">Language model</text>
+<rect x="280" y="96" width="160" height="64" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<text x="360" y="133" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#f0efec" text-anchor="middle">Solver</text>
+<rect x="540" y="96" width="160" height="64" rx="10" fill="#262624" stroke="#3f3f3b" stroke-width="1"/>
+<text x="620" y="133" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#f0efec" text-anchor="middle">Solved case</text>
+<rect x="800" y="96" width="160" height="64" rx="10" fill="#1f3350" stroke="#3987e5" stroke-width="2"/>
+<text x="880" y="133" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#f0efec" text-anchor="middle">Simulation Capsule</text>
+<line x1="188" y1="128" x2="267" y2="128" stroke="#c3c2b7" stroke-width="2"/><polygon points="274,128 265,123 265,133" fill="#c3c2b7"/>
+<text x="230" y="116" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="middle">writes macros</text>
+<line x1="448" y1="128" x2="527" y2="128" stroke="#c3c2b7" stroke-width="2"/><polygon points="534,128 525,123 525,133" fill="#c3c2b7"/>
+<text x="490" y="116" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="middle">solves</text>
+<line x1="708" y1="128" x2="787" y2="128" stroke="#3987e5" stroke-width="2"/><polygon points="794,128 785,123 785,133" fill="#3987e5"/>
+<text x="750" y="116" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="middle">extraction</text>
+<path d="M880,160 L880,226 L100,226 L100,170" fill="none" stroke="#3987e5" stroke-width="2"/>
+<polygon points="100,161 95,171 105,171" fill="#3987e5"/>
+<rect x="372" y="212" width="236" height="28" rx="14" fill="#1a1a19" stroke="#3987e5"/>
+<text x="490" y="231" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#f0efec" text-anchor="middle">reads, audits, questions</text>
+<text x="490" y="272" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="middle">Without the lower path, the model writes a simulation and never sees what came out.</text>
+</svg>

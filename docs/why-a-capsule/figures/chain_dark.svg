@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 430" role="img" aria-label="From a solved case to a capsule to the context window, cylinder at Re 100">
+<rect width="980" height="430" fill="#1a1a19"/>
+<rect x="20" y="40" width="215" height="330" rx="10" fill="#262624" stroke="#3f3f3b"/>
+<text x="127" y="68" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#c3c2b7" text-anchor="middle">SOLVED CASE</text>
+<text x="127" y="90" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#c3c2b7" text-anchor="middle">cylinder at Re 100</text>
+<text x="127" y="138" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#f0efec" text-anchor="middle">179,040</text>
+<text x="127" y="158" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#c3c2b7" text-anchor="middle">cells</text>
+<text x="127" y="206" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#f0efec" text-anchor="middle">15,000</text>
+<text x="127" y="226" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#c3c2b7" text-anchor="middle">time steps</text>
+<line x1="47" y1="252" x2="47" y2="306" stroke="#3f3f3b"/>
+<line x1="74" y1="252" x2="74" y2="306" stroke="#3f3f3b"/>
+<line x1="101" y1="252" x2="101" y2="306" stroke="#3f3f3b"/>
+<line x1="128" y1="252" x2="128" y2="306" stroke="#3f3f3b"/>
+<line x1="155" y1="252" x2="155" y2="306" stroke="#3f3f3b"/>
+<line x1="182" y1="252" x2="182" y2="306" stroke="#3f3f3b"/>
+<line x1="209" y1="252" x2="209" y2="306" stroke="#3f3f3b"/>
+<line x1="47" y1="252" x2="209" y2="252" stroke="#3f3f3b"/>
+<line x1="47" y1="279" x2="209" y2="279" stroke="#3f3f3b"/>
+<line x1="47" y1="306" x2="209" y2="306" stroke="#3f3f3b"/>
+<path d="M47,279 C74,246 101,312 128,279 S182,246 209,279" fill="none" stroke="#3987e5" stroke-width="2"/>
+<text x="127" y="336" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="middle">fields, mesh, scenes,</text>
+<text x="127" y="353" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="middle">solver history</text>
+<polygon points="247,52 407,110 407,300 247,358" fill="#1f3350" stroke="#3987e5" stroke-dasharray="5 4"/>
+<text x="327" y="150" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f0efec" text-anchor="middle">EXTRACTION</text>
+<text x="327" y="178" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#f0efec" text-anchor="middle">one artifact, one question</text>
+<text x="327" y="200" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#f0efec" text-anchor="middle">nondimensional by default</text>
+<text x="327" y="222" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#f0efec" text-anchor="middle">token budget stated</text>
+<text x="327" y="244" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#f0efec" text-anchor="middle">sealed to a commit</text>
+<text x="327" y="278" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="middle">extraction card + chain</text>
+<rect x="419" y="40" width="320" height="330" rx="10" fill="#1a1a19" stroke="#3987e5" stroke-width="2"/>
+<text x="435" y="68" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="13" font-weight="700" fill="#f0efec" text-anchor="start">capsule_cylinder_re0100/</text>
+<text x="723" y="68" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="end">tokens</text>
+<rect x="433" y="84" width="292" height="32" rx="6" fill="#262624"/>
+<text x="443" y="105" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">setup.txt</text>
+<text x="556" y="105" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">the case setup</text>
+<text x="717" y="105" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="end">7,056</text>
+<rect x="433" y="124" width="292" height="32" rx="6" fill="#262624"/>
+<text x="443" y="145" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">summary.json</text>
+<text x="556" y="145" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">global scalars</text>
+<text x="717" y="145" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="end">960</text>
+<rect x="433" y="164" width="292" height="32" rx="6" fill="#262624"/>
+<text x="443" y="185" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">planes/</text>
+<text x="556" y="185" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">sections, CSV + image</text>
+<text x="717" y="185" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="end">13,705</text>
+<rect x="433" y="204" width="292" height="32" rx="6" fill="#262624"/>
+<text x="443" y="225" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">views/</text>
+<text x="556" y="225" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">one question each</text>
+<text x="717" y="225" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="end">1,200</text>
+<rect x="433" y="244" width="292" height="32" rx="6" fill="#262624"/>
+<text x="443" y="265" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">signals/</text>
+<text x="556" y="265" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">one cycle + spectrum</text>
+<text x="717" y="265" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="end">10,532</text>
+<rect x="433" y="284" width="292" height="32" rx="6" fill="#262624"/>
+<text x="443" y="305" font-family="'DejaVu Sans Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">manifest.json</text>
+<text x="556" y="305" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#c3c2b7" text-anchor="start">build record</text>
+<text x="717" y="305" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="end">1,796</text>
+<line x1="433" y1="328" x2="725" y2="328" stroke="#3f3f3b"/>
+<text x="443" y="352" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">whole capsule</text>
+<text x="717" y="352" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#f0efec" text-anchor="end">35,249</text>
+<rect x="751" y="40" width="209" height="330" rx="10" fill="#262624" stroke="#3f3f3b"/>
+<text x="855" y="68" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#c3c2b7" text-anchor="middle">CONTEXT WINDOW</text>
+<text x="855" y="86" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="middle">200,000 tokens</text>
+<rect x="771" y="102" width="46" height="250" rx="4" fill="#1a1a19" stroke="#3f3f3b"/>
+<rect x="771" y="102" width="46" height="44.1" rx="4" fill="#3987e5"/>
+<line x1="765" y1="177.0" x2="823" y2="177.0" stroke="#f0efec" stroke-dasharray="4 3"/>
+<text x="831" y="122" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">this capsule</text>
+<text x="831" y="139" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">35,249, 18%</text>
+<text x="831" y="181.0" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">design budget</text>
+<text x="831" y="198.0" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">60,000, 30%</text>
+<text x="831" y="274" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">left for the</text>
+<text x="831" y="291" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f0efec" text-anchor="start">conversation</text>
+<text x="831" y="308" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c3c2b7" text-anchor="start">164,751</text>
+<path d="M739,205 L749,205" stroke="#3987e5" stroke-width="2"/>
+<text x="490" y="405" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#c3c2b7" text-anchor="middle">A Simulation Capsule is to a CFD case what llms.txt is to a website.</text>
+</svg>

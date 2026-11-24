@@ -2,7 +2,7 @@
 
 Reads cube_re300_steady_monitors.csv and cube_re300_transient_monitors.csv from this folder and writes
 cube-re300-steady-vs-transient-side-force.png next to them. numpy and matplotlib only.
-Run from a clean clone:  python docs/cube-re300/fig_cube_re300_side_force.py
+Run from a clean clone:  python docs/side-runs/cube-re300/fig_cube_re300_side_force.py
 """
 from pathlib import Path
 import numpy as np

@@ -10,7 +10,7 @@ minimum of -3.51. `plane_extremes.y0.cp[1]` is 1.0676, the maximum on the plane
 y = 0 that crosses the middle of the face, and it matches a point probe of the
 solver 0.001 D upstream of the face middle. The label says stagnation. The
 number is a mesh maximum, and the [Side Run on the corner
-singularity](../docs/cube-re100/README.md) shows it growing as the cells shrink
+singularity](../docs/side-runs/cube-re100/README.md) shows it growing as the cells shrink
 while the stagnation value stays at 1.070.
 
 Both readers walked past the label. Each took the stagnation value from

@@ -134,13 +134,13 @@ extension.
 
 **Side Runs.** Articles outside the series.
 
-- [Steady vs Transient CFD of Vortex Shedding: a Cube at Re = 300](docs/cube-re300/README.md) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
-- [Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at Re = 100](docs/cube-re100/README.md) tests the two stagnation values that `capsule_cube_re0100` reports.
-- [Cube Drag Coefficient from Re = 100 to 3000: Six Simulation Capsules Against the Literature](docs/cube-literature-anchors/README.md) anchors the cube capsules to Khan et al. 2020 and rules out the lateral walls as the cause of the Re 100 excess.
-- [Wake Symmetry Breaking in Transient CFD: How the Initial Condition Selects the Side-Force Plane of a Cube at Re = 300](docs/cube-re300-symmetry-plane/README.md) shows that the initial condition selects the plane in which the cube wake breaks symmetry, while drag and Strouhal numbers do not change.
-- [Symmetry-Plane Selection in the Cube Wake at Re = 300: Rotated, Tilted and Wide-Domain Runs](docs/cube-re300-turned/README.md) turns and tilts the cube inside a fixed mesh and finds that the wake always oscillates in a plane through a face, while the mesh only decides which face.
-- [Strouhal and Drag of a 2D Cylinder from Re = 50 to 180: the Two Per Cent That Was the Domain](docs/cylinder-re-sweep/README.md) sweeps the cylinder from Re 50 to 180 and traces a steady 2 per cent excess in Strouhal number to the side boundaries at 15 diameters, not to mesh or time step.
-- [Limiter sensitivity of the recirculation length: 2D cylinder at Re 700](docs/cylinder-limiter-bubble-length/README.md) steps the TVB factor of the Modified Venkatakrishnan limiter from 1 down to 0 on the cylinder at Re 700: the recirculation bubble shortens by up to 20% while drag moves by less than 1.6%.
+- [Steady vs Transient CFD of Vortex Shedding: a Cube at Re = 300](docs/side-runs/cube-re300/README.md) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
+- [Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at Re = 100](docs/side-runs/cube-re100/README.md) tests the two stagnation values that `capsule_cube_re0100` reports.
+- [Cube Drag Coefficient from Re = 100 to 3000: Six Simulation Capsules Against the Literature](docs/side-runs/cube-literature-anchors/README.md) anchors the cube capsules to Khan et al. 2020 and rules out the lateral walls as the cause of the Re 100 excess.
+- [Wake Symmetry Breaking in Transient CFD: How the Initial Condition Selects the Side-Force Plane of a Cube at Re = 300](docs/side-runs/cube-re300-symmetry-plane/README.md) shows that the initial condition selects the plane in which the cube wake breaks symmetry, while drag and Strouhal numbers do not change.
+- [Symmetry-Plane Selection in the Cube Wake at Re = 300: Rotated, Tilted and Wide-Domain Runs](docs/side-runs/cube-re300-turned/README.md) turns and tilts the cube inside a fixed mesh and finds that the wake always oscillates in a plane through a face, while the mesh only decides which face.
+- [Strouhal and Drag of a 2D Cylinder from Re = 50 to 180: the Two Per Cent That Was the Domain](docs/side-runs/cylinder-re-sweep/README.md) sweeps the cylinder from Re 50 to 180 and traces a steady 2 per cent excess in Strouhal number to the side boundaries at 15 diameters, not to mesh or time step.
+- [Limiter sensitivity of the recirculation length: 2D cylinder at Re 700](docs/side-runs/cylinder-limiter-bubble-length/README.md) steps the TVB factor of the Modified Venkatakrishnan limiter from 1 down to 0 on the cylinder at Re 700: the recirculation bubble shortens by up to 20% while drag moves by less than 1.6%.
 
 ## Repository contents
 
@@ -154,7 +154,8 @@ extension.
 | `tools/` | Python for building and checking capsule artifacts |
 | `macros/` | Java macros for Simcenter STAR-CCM+ export |
 | `assets/` | Figures used by the series |
-| `docs/` | Side Runs, one article per folder with its text, figures, data and scripts |
+| [`docs/why-a-capsule/`](docs/why-a-capsule/README.md) | Why a Simulation Capsule, in five steps: the argument, what models did with one, and how to try it |
+| `docs/side-runs/` | Side Runs, one article per folder with its text, figures, data and scripts |
 
 ## Validation
 
@@ -220,7 +221,7 @@ Two licenses, because this repository holds two kinds of thing.
 | What | License |
 |---|---|
 | `tools/`, `macros/`, the `.py` scripts and `.java` macros in `docs/` | [MIT](LICENSE) |
-| `SPEC.md`, `README.md`, `examples/`, `probes/`, `assets/`, `docs/` (Side Runs: text, figures, data) | [CC BY 4.0](LICENSE-DOCS) |
+| `SPEC.md`, `README.md`, `examples/`, `probes/`, `assets/`, `docs/` (articles and Side Runs: text, figures, data) | [CC BY 4.0](LICENSE-DOCS) |
 
 The code is MIT so you can run it, fork it and ship it inside your own
 workflow without asking anyone. The specification, the example capsules and

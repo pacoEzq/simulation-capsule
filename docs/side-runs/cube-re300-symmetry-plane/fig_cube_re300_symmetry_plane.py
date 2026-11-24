@@ -2,7 +2,7 @@
 
 Reads the run-2 monitors in this folder and the run-1 monitors in ../cube-re300/, and writes
 cube-re300-symmetry-plane-side-force.png and cube-re300-symmetry-plane-histories.png next to this script.
-numpy and matplotlib only. Run from a clean clone:  python docs/cube-re300-symmetry-plane/fig_cube_re300_symmetry_plane.py
+numpy and matplotlib only. Run from a clean clone:  python docs/side-runs/cube-re300-symmetry-plane/fig_cube_re300_symmetry_plane.py
 """
 from pathlib import Path
 import numpy as np

@@ -5,7 +5,7 @@ capsule_sweep,600,0.987,capsule_cube_re0600
 capsule_sweep,1000,1.071,capsule_cube_re1000
 capsule_sweep,3000,1.129,capsule_cube_re3000
 capsule_part3,200,0.967,capsule_cube_re200 other mesh
-transient,300,0.883,docs/cube-re300 time mean
+transient,300,0.883,docs/side-runs/cube-re300 time mean
 khan2020,84,1.02,read from Fig. 19
 khan2020,100,1.00,text: around 1
 khan2020,150,0.884,Table 4

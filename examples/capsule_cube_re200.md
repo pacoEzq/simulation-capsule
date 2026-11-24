@@ -88,4 +88,4 @@ are recorded rather than patched.
 - **Literature comparison.** Against Khan et al. (2020) the drag is 16% high and
   the recirculation bubble 15% short, and against the Haider and Levenspiel cube
   correlation the drag is 5% low; a lateral probe on the sweep mesh rules out the
-  lateral walls as the cause (see [docs/cube-literature-anchors](../docs/cube-literature-anchors/README.md)).
+  lateral walls as the cause (see [docs/side-runs/cube-literature-anchors](../docs/side-runs/cube-literature-anchors/README.md)).

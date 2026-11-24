@@ -2,7 +2,7 @@
 
 Reads the five monitor files in this folder and the run-1 monitors in ../cube-re300/, and writes
 the figures cube-re300-turned-*.png next to this script.
-numpy and matplotlib only. Run from a clean clone:  python docs/cube-re300-turned/fig_cube_re300_turned.py
+numpy and matplotlib only. Run from a clean clone:  python docs/side-runs/cube-re300-turned/fig_cube_re300_turned.py
 """
 from pathlib import Path
 import numpy as np

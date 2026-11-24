@@ -2,7 +2,7 @@
 
 Reads cube_re300_transient_monitors.csv from this folder and writes cube-re300-transient-period.png next to it.
 numpy and matplotlib only.
-Run from a clean clone:  python docs/cube-re300/fig_cube_re300_period.py
+Run from a clean clone:  python docs/side-runs/cube-re300/fig_cube_re300_period.py
 """
 from pathlib import Path
 import numpy as np
