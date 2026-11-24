@@ -63,6 +63,8 @@ capsule_<alias>/
 ├── planes/             plane sections, CSV and image in pairs
 │   ├── plane_*.csv
 │   └── plane_*.png
+├── lines/              stations along a line, CSV only
+│   └── line_*.csv
 ├── samples.csv         importance-weighted volume sample
 ├── features.json       named flow features with their properties
 ├── views/              renders, each answering a declared question
@@ -159,11 +161,10 @@ extension.
 A capsule gets checked twice, by a program and by a reader.
 
 The program is [`tools/check_capsule.py`](tools/check_capsule.py), which turns the
-mechanical parts of the SPEC into twenty checks: standard library only, nothing to
-install. A capsule runs the checks its layers call for: fifteen without plane
-sections or a comparison, seventeen with plane sections, eighteen with the `diff`
-extension and twenty with both. Every capsule in `examples/` runs through it on
-every push.
+mechanical parts of the SPEC into twenty-eight checks: standard library only,
+nothing to install. A capsule runs the checks its layers call for, and
+[`tools/README.md`](tools/README.md) says which. Every capsule in `examples/`
+runs through it on every push.
 
 ```bash
 python3 tools/check_capsule.py examples/capsule_*/          # errors fail, warnings show

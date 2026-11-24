@@ -2,7 +2,11 @@
 
 What changed in the Simulation Capsule, newest first: the specification, the validator, the extractor and the example capsules. Each release is a version of `SPEC.md`, tagged `spec-0.N`; tools, macros and capsules are listed under the version they were written for. Until 1.0 a version may change what counts as a valid capsule. When it does, section 6 of `SPEC.md` says how, and `tools/check_capsule.py` counts each new check from the version a capsule declares, so a capsule published earlier stays valid as published.
 
-## Since 0.15 (on main)
+## 0.16 (2026-11-25)
+
+### Symmetry, lines and the domain
+
+A case computed on half or a quarter of a symmetric body says so in `symmetry` and lists what the symmetry leaves out. `lines/` holds a station of one dimension less, a CSV with no image; in a two-dimensional case the stations across the flow are lines. `domain` gives the extent of the computational domain and `discretization.domain` a study of it. In an alias the domain is the first suffix, and a suffix never reuses the letter of a parameter. One new check, `line_tables`: `check_capsule.py` 1.17 runs twenty-eight.
 
 ### The extractor builds its own stations (2026-11-23)
 

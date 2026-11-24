@@ -86,6 +86,18 @@ Three things are proved here.
     on 255 levels passes when its contract is marked signed and is an error
     when it is not.
 
+13. What 0.16 adds, SPEC 4.2, 4.2.4 and 4.3.1. A capsule whose manifest
+    declares 0.16 passes with a symmetry block that lists what it leaves
+    out, a domain given as pairs, a study of the domain and a line in
+    lines/ named by the coordinate it holds; written with CRLF line ends it
+    passes too. A part that is neither half nor quarter, a symmetry
+    without planes or note, a key listed as not applicable and published
+    all the same, an extent that is not low then high, a study outside the
+    eight names, sizes out of order, a studied quantity nobody publishes or
+    without its values and delta, and a line whose stem or header says too
+    little warn, and fail under --strict. In a capsule that declares 0.15,
+    or no version, the same defects are information.
+
 Run: python test_check_capsule.py
 Exit 0 when all hold. Standard library only, temporary files, nothing
 written outside the system temp directory.
@@ -736,6 +748,53 @@ def build_v015(root, bad=False, declared="0.15", crlf=False):
     write_png(os.path.join(root, "planes", "plane_y0.png"))
 
 
+def v016_files(bad, declared):
+    """A wake computed on half the body: what SPEC 0.16 adds."""
+    line = ("# line x_D = 2 | 5 points, spacing 0.05 D | 5 of 5 points "
+            "| instantaneous at iteration 4000 | fields %.4f "
+            "| nondimensional\ny_D,u_over_U\n"
+            + "".join("%.4f,%.4f\n" % (0.05 * i, 0.2 * i) for i in range(5)))
+    if bad:
+        line = "# wake profile | fields %.4f\ny_D,u_over_U\n0.0000,0.1000\n"
+    study = {"parameter": "y_D, half-height of the domain",
+             "sizes": [40, 20] if bad else [20, 40],
+             "method": "two-level difference",
+             "quantities": {"drag": {"values": [1.07]}} if bad
+             else {"cd": {"values": [1.07, 1.05], "delta": -0.019}}}
+    summary = {
+        "case": "wake", "environment": ENVIRONMENT,
+        "reference": {"length_scale_D_m": 1.0, "re": 600},
+        "symmetry": {"modeled": "third" if bad else "half",
+                     "planes": [] if bad else ["y_D = 0"],
+                     "not_applicable": ["cl", "cd"] if bad else ["cl", "st"],
+                     "note": "" if bad else "The model cannot break the "
+                     "symmetry, so no vortex is shed."},
+        "domain": {"x_D": [80, -20] if bad else [-20, 80],
+                   "y_D": [0, 40]},
+        "convergence": {"status": "converged",
+                        "criterion": "fixed_point_drift"},
+        "forces": {"cd": 1.05},
+        "wake": {"u_over_U_min_x2": -0.12,
+                 "u_over_U_min_x2_sampling": {"line_points": 5}},
+        "discretization": {"study": "domain_space" if bad else "domain",
+                           "domain": study}}
+    manifest = {"capsule": "capsule_wake_re0600_h40"}
+    if declared:
+        manifest["spec_version"] = declared
+    name = "lines/profile_wake.csv" if bad else "lines/line_x2.csv"
+    return {"setup.txt": "Case: wake\n",
+            "summary.json": json.dumps(summary, indent=2),
+            "manifest.json": json.dumps(manifest, indent=2),
+            name: line}
+
+
+def build_v016(root, bad=False, declared="0.16", crlf=False):
+    for rel, text in v016_files(bad, declared).items():
+        if crlf:
+            text = text.replace("\n", "\r\n")
+        write(os.path.join(root, *rel.split("/")), text)
+
+
 def status_of(root, check_id, strict=False):
     for check in check_capsule.validate(root):
         if check.id == check_id:
@@ -816,6 +875,16 @@ def main():
                                    "capsule_replica_re0800_rep03")
         signed_diff = os.path.join(workspace, "capsule_signed_diff")
         unsigned_diff = os.path.join(workspace, "capsule_unsigned_diff")
+        v016 = {}
+        for label, options in (
+                ("ok", {}), ("crlf", {"crlf": True}), ("bad", {"bad": True}),
+                ("bad_crlf", {"bad": True, "crlf": True}),
+                ("before", {"bad": True, "declared": "0.15"}),
+                ("silent", {"bad": True, "declared": None})):
+            v016[label] = os.path.join(workspace, "v016_" + label,
+                                       "capsule_wake_re0600_h40")
+            build_v016(v016[label], **options)
+        v016_bad = v016["bad"]
         build_v015(v015_ok)
         build_v015(v015_crlf, crlf=True)
         build_v015(v015_bad, bad=True)
@@ -1018,7 +1087,8 @@ def main():
         for root in (jet_bad, torture, anchorless, blind, badname, legacy,
                      undeclared, promised, instrument, bad_sign,
                      bad_colormap, environment, bad_hash, windowed_bad,
-                     view_blank, notation_bare, transient_bad, v015_bad):
+                     view_blank, notation_bare, transient_bad, v015_bad,
+                     v016_bad):
             fired |= failed_checks(root, strict=True)
         all_ids = {c(workspace, []).id for c in check_capsule.CHECKS}
         silent = sorted(all_ids - fired)
@@ -1603,6 +1673,73 @@ def main():
         else:
             print("PASS  a diff on 255 levels passes when marked signed, "
                   "fails when not")
+
+        # 13. What 0.16 adds.
+        for label in ("ok", "crlf"):
+            got = failed_checks(v016[label], strict=True)
+            ran = {c.id for c in check_capsule.validate(v016[label])
+                   if c.status() != "SKIP"}
+            if got:
+                failures.append("a 0.16 capsule in order (%s) should pass "
+                                "strict, failed %s: %s"
+                                % (label, sorted(got),
+                                   [findings(v016[label], c) for c in got]))
+            elif not {"line_tables", "plane_formation"} <= ran:
+                failures.append("line_tables and plane_formation should run "
+                                "on it (%s), ran %s" % (label, sorted(ran)))
+            else:
+                print("PASS  a symmetry, a domain, its study and a line "
+                      "pass strict (%s)" % label)
+
+        wanted = {"summary_blocks": [
+                      "modeled is 'third'", "symmetry without planes",
+                      "symmetry without a note", "not_applicable lists cd",
+                      "domain/x_D", "study is 'domain_space'",
+                      "smallest first", "publishes no key of that name",
+                      "one number per entry", "without delta"],
+                  "line_tables": ["does not name the coordinates",
+                                  "header omits"],
+                  "plane_formation": ["lines/profile_wake.csv"]}
+        missed = {}
+        for check_id, words in wanted.items():
+            said = ["%s %s" % (f["path"], f["message"])
+                    for f in findings(v016_bad, check_id)]
+            absent = [w for w in words if not any(w in m for m in said)]
+            if absent:
+                missed[check_id] = (absent, said)
+        loose = failed_checks(v016_bad)
+        tight = failed_checks(v016_bad, strict=True)
+        if missed:
+            failures.append("0.16 fixture missed %s" % missed)
+        elif loose:
+            failures.append("0.16 findings should warn, not fail: %s"
+                            % sorted(loose))
+        elif tight != set(wanted):
+            failures.append("0.16 findings should fail under --strict in "
+                            "%s, failed %s" % (sorted(wanted), sorted(tight)))
+        elif failed_checks(v016["bad_crlf"], strict=True) != tight:
+            failures.append("CRLF changes the 0.16 findings: %s"
+                            % sorted(failed_checks(v016["bad_crlf"],
+                                                   strict=True)))
+        else:
+            print("PASS  a symmetry, a domain, a study and a line out of "
+                  "form warn, fail strict, the same with CRLF line ends")
+
+        for label, said in (("before", "declares 0.15"),
+                            ("silent", "declares no version")):
+            got = failed_checks(v016[label], strict=True)
+            told = [f for check_id in wanted
+                    for f in findings(v016[label], check_id)]
+            if got:
+                failures.append("a capsule that %s is not held to 0.16, yet "
+                                "failed %s" % (said, sorted(got)))
+            elif len(told) < 13 or any(f["severity"] != check_capsule.INFO
+                                       for f in told):
+                failures.append("a capsule that %s should be told what 0.16 "
+                                "asks, as information: %s" % (said, told))
+            else:
+                print("PASS  a capsule that %s is told what 0.16 asks and "
+                      "fails nothing" % said)
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

@@ -39,8 +39,8 @@ import zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import setup_v2  # noqa: E402
 
-SPEC_VERSION = "0.15"
-TOOL_VERSION = "1.16"
+SPEC_VERSION = "0.16"
+TOOL_VERSION = "1.17"
 
 ERROR = "ERROR"
 WARN = "WARN"
@@ -64,6 +64,9 @@ ROOT_FILES = {
 # one place and not in two.
 SUBDIRS = {
     "planes": [r"^.+\.(csv|png)$"],
+    # SPEC 4.3.1 since 0.16: a line is a table with no image. The stem is
+    # policed by the line_tables check, as plane_pairs does for planes/.
+    "lines": [r"^.+\.csv$"],
     "views": [r"^[a-z0-9_]+\.png$"],
     # diff/ holds the published difference images and nothing else. The
     # manifest that describes them is diff.json at the root, per SPEC 4.7,
@@ -184,6 +187,7 @@ SIGNED_TOLERANCE = 1e-6
 # is reported as information: a published capsule is never patched to meet
 # a rule that arrived after it.
 SINCE_0_15 = (0, 15)
+SINCE_0_16 = (0, 16)
 SPEC_VERSION_FORM = re.compile(r"^(\d+)\.(\d+)$")
 # SPEC 4.2 since 0.15: a candidate was dropped or it sustained a scalar.
 CANDIDATE_STATUSES = ("discarded", "kept")
@@ -196,6 +200,20 @@ FORMATION = re.compile(r"\b(?:%s)\b[^|]*?\b(?:at|over)\b"
                        % "|".join(STATISTICS))
 # Two spans are the same span when they agree to this fraction.
 SPAN_TOLERANCE = 1e-9
+# SPEC 4.2 since 0.16: which part of a symmetric body was computed.
+SYMMETRY_PARTS = ("half", "quarter")
+# SPEC 4.2.4 since 0.16: what was studied, in the order space, time,
+# domain, joined by underscores.
+STUDIES = ("none", "space", "time", "space_time", "domain", "space_domain",
+           "time_domain", "space_time_domain")
+# SPEC 4.3.1 since 0.16: the stem of a line names every coordinate held
+# constant, in the order x, y, z, each written by the number rules of 2.1:
+# line_x2, line_x0p5_ym1.
+_COORDINATE = r"m?\d+(?:p\d+)?"
+LINE_STEM = re.compile(r"^line(?:_x%s)?(?:_y%s)?(?:_z%s)?$"
+                       % (_COORDINATE, _COORDINATE, _COORDINATE))
+# SPEC 4.2 since 0.16: an extent of the domain along an axis, x_L or y_D.
+DOMAIN_EXTENT = re.compile(r"^[xyz]_[A-Za-z]+$")
 
 # Extensions SPEC 3.4 defines. An extension is additive: what it adds is
 # checked only when summary.json declares it.
@@ -1441,7 +1459,7 @@ def check_summary_blocks(root, entries):
     check = Check("summary_blocks", "Windowed scalars carry their window, "
                   "mass and mesh their 0.4 form, a discretization study "
                   "its five states, a split coefficient closes, a replica "
-                  "its number",
+                  "its number, a symmetry what it leaves out",
                   "SPEC 2.1, 4.2, 4.2.2, 4.2.3, 4.2.4")
     if "summary.json" not in entries:
         check.skip("no summary.json")
@@ -1557,7 +1575,134 @@ def check_summary_blocks(root, entries):
     if "realization" in data:
         check_realization(since(check, root), rel, data["realization"],
                           os.path.basename(os.path.normpath(root)))
+
+    # New in SPEC 0.16, and only where the blocks exist.
+    if "symmetry" in data:
+        check_symmetry(since(check, root, SINCE_0_16), rel, data)
+    if "domain" in data:
+        check_domain(since(check, root, SINCE_0_16), rel, data["domain"])
+    if isinstance(data.get("discretization"), dict):
+        check_domain_study(since(check, root, SINCE_0_16), rel, data)
     return check
+
+
+def carries_key(node, name):
+    """Whether a key of that name sits anywhere under the node."""
+    if isinstance(node, dict):
+        return name in node or any(carries_key(v, name)
+                                   for v in node.values())
+    if isinstance(node, list):
+        return any(carries_key(v, name) for v in node)
+    return False
+
+
+def published(data, name, apart):
+    """Whether summary.json publishes a key: a dotted path from its root,
+    or a bare key anywhere outside the blocks set apart."""
+    if "." in name:
+        return resolve_key(data, name) is not None
+    return any(carries_key(value, name) or key == name
+               for key, value in data.items() if key not in apart)
+
+
+def check_symmetry(flag, rel, data):
+    """SPEC 4.2 since 0.16: the capsule describes the whole case, says
+    which part was computed and lists what the symmetry leaves out."""
+    block = data["symmetry"]
+    if not isinstance(block, dict):
+        flag("symmetry is not an object", rel)
+        return
+    if block.get("modeled") not in SYMMETRY_PARTS:
+        flag("symmetry/modeled is %r, the SPEC allows %s"
+             % (block.get("modeled"), " or ".join(SYMMETRY_PARTS)), rel)
+    planes = block.get("planes")
+    if not (isinstance(planes, list) and planes
+            and all(isinstance(p, str) and p.strip() for p in planes)):
+        flag("symmetry without planes: the planes of symmetry, named as "
+             "the header of a plane names its plane", rel)
+    note = block.get("note")
+    if not (isinstance(note, str) and note.strip()):
+        flag("symmetry without a note saying what the symmetry rules out",
+             rel)
+    left_out = block.get("not_applicable", [])
+    if not isinstance(left_out, list):
+        flag("symmetry/not_applicable is not a list of keys", rel)
+        return
+    for name in left_out:
+        if isinstance(name, str) and published(data, name,
+                                               ("symmetry", "candidates")):
+            flag("symmetry/not_applicable lists %s, and summary.json "
+                 "publishes it: a quantity the symmetry fixes is omitted"
+                 % name, rel)
+
+
+def check_domain(flag, rel, block):
+    """SPEC 4.2 since 0.16: the extent of the domain along each axis, in
+    reference lengths, as a pair. Keys of another form are left alone:
+    capsules published before 0.16 give the domain in their own."""
+    if not isinstance(block, dict):
+        flag("domain is not an object", rel)
+        return
+    for key, value in block.items():
+        if not DOMAIN_EXTENT.match(key):
+            continue
+        if not (isinstance(value, list) and len(value) == 2
+                and all(is_number(v) for v in value)
+                and value[0] < value[1]):
+            flag("domain/%s is %r, not a pair low then high" % (key, value),
+                 rel)
+
+
+def check_domain_study(flag, rel, data):
+    """SPEC 4.2.4 since 0.16: study names what was studied, and a study
+    of the domain gives each published quantity in every domain."""
+    block = data["discretization"]
+    study = block.get("study")
+    if "study" in block and study not in STUDIES:
+        flag("discretization/study is %r, the SPEC allows %s"
+             % (study, ", ".join(STUDIES)), rel)
+    named = isinstance(study, str) and "domain" in study.split("_")
+    domain = block.get("domain")
+    if named != ("domain" in block) and study in STUDIES:
+        flag("discretization/study is %r and the block %s a domain study"
+             % (study, "carries" if "domain" in block else "lacks"), rel)
+    if "domain" not in block:
+        return
+    if not isinstance(domain, dict):
+        flag("discretization/domain is not an object", rel)
+        return
+    sizes = domain.get("sizes")
+    ordered = isinstance(sizes, list) and len(sizes) >= 2 \
+        and all(is_number(v) for v in sizes) \
+        and all(a < b for a, b in zip(sizes, sizes[1:]))
+    if not ordered:
+        flag("discretization/domain/sizes is %r, not two or more values, "
+             "smallest first" % (sizes,), rel)
+    for key in ("parameter", "method"):
+        if not (isinstance(domain.get(key), str) and domain[key].strip()):
+            flag("discretization/domain without %s" % key, rel)
+    quantities = domain.get("quantities")
+    if not isinstance(quantities, dict) or not quantities:
+        flag("discretization/domain without quantities", rel)
+        return
+    for name, entry in quantities.items():
+        where = "discretization/domain/quantities/%s" % name
+        if not published(data, name, ("discretization", "candidates")):
+            flag("%s: summary.json publishes no key of that name" % where,
+                 rel)
+        if not isinstance(entry, dict):
+            flag("%s is not an object" % where, rel)
+            continue
+        values = entry.get("values")
+        if not (isinstance(values, list)
+                and all(is_number(v) for v in values)
+                and (not isinstance(sizes, list)
+                     or len(values) == len(sizes))):
+            flag("%s/values is %r, not one number per entry of sizes"
+                 % (where, values), rel)
+        if not is_number(entry.get("delta")):
+            flag("%s without delta, the relative change between the two "
+                 "largest domains" % where, rel)
 
 
 def check_realization(flag, rel, block, alias):
@@ -2012,16 +2157,19 @@ def header_lines(text):
 
 def check_plane_formation(root, entries):
     check = Check("plane_formation", "Every table of a field says how its "
-                  "values were formed", "SPEC 3.6, 4.3, 4.4")
+                  "values were formed", "SPEC 3.6, 4.3, 4.3.1, 4.4")
     names = [e.replace("\\", "/") for e in entries]
     targets = [n for n in names
-               if (n.startswith("planes/") and n.lower().endswith(".csv"))
+               if (n.startswith(("planes/", "lines/"))
+                   and n.lower().endswith(".csv"))
                or n == "samples.csv"]
     if not targets:
-        check.skip("no plane CSV and no samples.csv")
+        check.skip("no plane or line CSV and no samples.csv")
         return check
-    flag = since(check, root)
     for rel in targets:
+        # lines/ arrived with 0.16, the rest of the rule with 0.15.
+        flag = since(check, root, SINCE_0_16 if rel.startswith("lines/")
+                     else SINCE_0_15)
         try:
             text, _ = read_text(os.path.join(root, *rel.split("/")))
         except (ValueError, OSError):
@@ -2031,6 +2179,46 @@ def check_plane_formation(root, entries):
                  "instant, 'instantaneous at iteration <n>', or a statistic "
                  "of 4.2.2 and its span, 'time_mean over tU/D <a> to <b>'. "
                  "A reader given no statement supplies one", rel)
+    return check
+
+
+def check_line_tables(root, entries):
+    check = Check("line_tables", "Every line is named by the coordinates "
+                  "it holds and opens with a header that closes its world",
+                  "SPEC 4.3.1")
+    targets = [n for n in (e.replace("\\", "/") for e in entries)
+               if n.startswith("lines/")]
+    if not targets:
+        check.skip("no lines/")
+        return check
+    flag = since(check, root, SINCE_0_16)
+    for rel in targets:
+        stem = os.path.splitext(rel.split("/", 1)[1])[0]
+        if stem == "line" or not LINE_STEM.match(stem):
+            flag("the stem %r does not name the coordinates held constant, "
+                 "in the order x, y, z: line_x2, line_x2_y0, line_xm1"
+                 % stem, rel)
+        try:
+            text, _ = read_text(os.path.join(root, *rel.split("/")))
+        except (ValueError, OSError):
+            continue  # the encoding check reports it
+        header = header_lines(text)
+        if not header:
+            flag("first line is not a comment header", rel)
+            continue
+        segments = [s.strip() for s in header[0].lstrip("#").split("|")]
+        missing = []
+        if "nondimensional" not in header[0].lower():
+            missing.append("that the values are nondimensional")
+        if not any("spacing" in s for s in segments):
+            missing.append("spacing")
+        if not any(re.search(r"\d+\s+of\s+\d+\s+points", s)
+                   for s in segments):
+            missing.append("points returned of points requested")
+        if not any("%" in s for s in segments):
+            missing.append("field precision")
+        if missing:
+            flag("header omits %s" % ", ".join(missing), rel)
     return check
 
 
@@ -2209,6 +2397,7 @@ CHECKS = [
     check_view_field,
     check_signed_range,
     check_plane_formation,
+    check_line_tables,
     check_window_consistency,
     check_candidates,
     check_transient_layers,
@@ -2256,8 +2445,8 @@ def report_text(root, checks, strict, verbose):
              if f["severity"] == INFO]
     if later:
         built = built_to(root)
-        lines.append("  [NOTE] built to SPEC %s: %d finding(s) of 0.15 "
-                     "reported, not counted; --verbose lists them"
+        lines.append("  [NOTE] built to SPEC %s: %d finding(s) of later "
+                     "versions reported, not counted; --verbose lists them"
                      % ("%d.%d" % built if built else "before 0.15, no "
                         "spec_version in manifest.json", len(later)))
     total = len([c for c in checks if not c.skipped])

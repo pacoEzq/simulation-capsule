@@ -1,6 +1,6 @@
 # Simulation Capsule specification
 
-**Version 0.15. Draft.**
+**Version 0.16. Draft.**
 
 This document defines what a Simulation Capsule contains and how its parts are
 named, so that a capsule built from one solver and one case is legible to a model
@@ -87,11 +87,16 @@ alias.
 **A pair or family that varies something other than the case** keeps the
 alias on the reference and adds, on each variant, a suffix naming the
 variable and its value: `_ofm` for a second solver, `_m2` for a second mesh,
-`_single` for a second precision. Several suffixes go in a fixed order:
-solver, mesh, precision, replica (`_ofm_m2`). The suffix repeats what
-`summary.json` already states, on purpose: the Reynolds number in `re0300`
-is also a key inside, and the alias is where a reader sees the variable
-before opening anything.
+`_single` for a second precision. The order is fixed: domain, solver, mesh,
+precision, replica (`_h40_ofm_m2`). A domain suffix names the extent that
+differs and its value in reference lengths, `_h40` for a half-height of 40.
+The suffix repeats what `summary.json` already states, on purpose: the
+Reynolds number in `re0300` is also a key inside, and the alias is where a
+reader sees the variable before opening anything.
+
+A suffix never reuses the letter of a parameter of the same alias. Where
+it would, the suffix is spelled out: `_mesh2` next to a Mach number `m2`,
+as a replica is always `_rep<nn>`.
 
 **A replica** is another realization of the same case, same parameters and
 same build, that differs only in what seeds it: an initial perturbation, a
@@ -390,12 +395,42 @@ A split without `cd_viscous_normal` states that `cd = cd_pressure + cd_friction`
 to within 0.1%. The same split holds for every force coefficient a capsule
 carries.
 
+**A model with a symmetry.** A case may be computed on part of the body,
+closed by a symmetry condition. The capsule describes the whole case and
+says which part was computed:
+
+```
+symmetry { modeled, planes, not_applicable, note }
+```
+
+`modeled` is `half` or `quarter`. `planes` lists the planes of symmetry as
+the header of a plane names its plane, `y_D = 0`. Every coefficient, and
+the reference area behind it, is that of the whole body: the force on the
+part computed over the area of that part is the same number. A quantity
+the symmetry fixes in place of the flow, the force across the plane or the
+frequency of a wake that cannot shed, is omitted, and `not_applicable`
+lists the keys left out, so that their absence reads as a statement. `note`
+says in one sentence what the symmetry rules out.
+
+A table or a view covers the part computed. Nothing is mirrored into a
+file; a reader mirrors by the planes named here.
+
+A symmetry that suppresses the regime expected of the whole body does not
+change `regime_expected` (4.2.3). The run ends `converged` on the symmetric
+branch, `solver_regime_mismatch` is `true`, and `note` says that the fixed
+point exists because the model cannot break the symmetry.
+
 **The Reynolds number** is `re` in `reference`, with the length scale it uses
 named in the key of that scale (`length_scale_D_m`, `chord_m`). A sweep that
 varies it also carries `sweep.parameter` and `sweep.value`, which repeat it on
 purpose. Capsules published before 0.8 carry it as `reynolds_number`,
 `reynolds_L` or `re_cr`; they stay as published, and a reader meets the
 variants in `examples/README.md`.
+
+**Domain.** `domain` gives the extent of the computational domain along
+each axis, in reference lengths, as pairs: `x_L: [-20, 80]`,
+`y_L: [-40, 40]`. A study of the domain (4.2.4) names this one by the value
+it carries in `sizes`.
 
 **Sampling.** A derived quantity read off something coarser than the solver's
 own cells declares it: `"cell"` for a cell or face value, or
@@ -735,12 +770,15 @@ measured it. A capsule that measured nothing writes the block with
 would read as an oversight rather than a statement.
 
 ```
-discretization { study, space, time }
-space { family, cells, ratios, method, iteration_error, quantities }
-time  { levels, deltas_tU_over_L, method, max_delta }
+discretization { study, space, time, domain }
+space  { family, cells, ratios, method, iteration_error, quantities }
+time   { levels, deltas_tU_over_L, method, max_delta }
+domain { parameter, sizes, method, quantities }
 ```
 
-- `study`: `none`, `space`, `time` or `space_time`.
+- `study`: `none`, or what was studied, in the order space, time, domain,
+  joined by underscores: `space`, `time`, `space_time`, `domain`,
+  `space_domain`, `time_domain`, `space_time_domain`.
 - `space.family`: the mesh labels, coarse to fine; `cells` their counts;
   `ratios` the refinement ratios between neighbours, as the method defines
   them; `method` the procedure and its reference, `Celik 2008, Fs 1.25`.
@@ -797,6 +835,13 @@ the range of the values; `nominal` as for a monotone quantity; and
   `time.method` how, `two-level difference` when there are two;
   `time.max_delta`: the largest change in any published key between the two
   levels, with the key named.
+- `domain.parameter`: the extent that was enlarged, with its axis, `x_D
+  downstream of the body`; `sizes` its value in each domain compared, in
+  reference lengths, smallest first; `method` how the limit was estimated,
+  `two-level difference` or the law fitted and its reference.
+- `domain.quantities`: one entry per published key, named by that key, with
+  `values` in `sizes` order, `delta` the relative change between the two
+  largest, and `extrapolated` where `method` fits a law.
 
 The block measures the capsule's own discretization. Which mesh the
 published values come from is `mesh.cells`; the study says how far that
@@ -806,7 +851,9 @@ by this block.
 The value a capsule publishes is the one computed on that mesh, never the
 extrapolate. `extrapolated` travels here, beside it, and a table that
 quotes extrapolates quotes this key, so two figures for one case are told
-apart by where they sit.
+apart by where they sit. The same holds for the domain: the published value
+is the one computed in the capsule's own domain (4.2 `domain`), never the
+corrected one, and the correction travels here.
 
 ### 4.3 `planes/` (settled)
 
@@ -836,6 +883,29 @@ How the values were formed is written `instantaneous at iteration <n>` or
 header counts it. The rule is geometric, so every solver drops the same nodes.
 Wall values belong to the views of the body, not to a plane: a plane node on a
 sharp edge would carry the edge singularity into the table.
+
+#### 4.3.1 `lines/`
+
+A line is a station of one dimension less: the fields along a straight
+line, as a CSV with no image, `lines/line_x2.csv`. A hundred rows read
+without a picture, which is what the pair of a plane is for. The stem names
+every coordinate held constant, in the order x, y, z, by the token rule of
+4.2: `line_x2` in a two-dimensional case, `line_x2_y0` in three dimensions.
+The first column is the coordinate that runs, then the fields. The header
+is that of a plane, with points for nodes:
+
+```
+# line x_D = 2 | 201 points, spacing 0.05 D | 199 of 201 points, 2 in the body | time_mean over tU/D 150 to 300 | fields %.4f | nondimensional
+```
+
+Points in the body are absent by the rule of 4.3. A scalar read off a line
+ends in its token, `u_over_U_min_x2`, and declares `{"line_points": n}` as
+its sampling (4.2).
+
+In a two-dimensional case the stations across the flow are lines. Where a
+three-dimensional case carries `planes/plane_x2.csv`, the two-dimensional
+one carries `lines/line_x2.csv`, and its one plane is the plane of the
+flow, `plane_z0`. A line along a wall is not defined in this version.
 
 ### 4.4 `samples.csv` (settled)
 
@@ -1270,8 +1340,9 @@ nothing.
 `tools/check_capsule.py` runs the mechanical half of this: naming, encoding,
 pairing, image geometry, whether a view shows a field (4.6), whether a compact
 `setup.txt` decodes (4.1), whether the transient layers add up (4.9), whether
-a table says how its values were formed (3.6), whether the statistics share
-a span or say why not (4.2.2) and the rules of section 3. It does not read
+a table says how its values were formed (3.6), whether a line is named by
+the coordinates it holds (4.3.1), whether the statistics share a span or
+say why not (4.2.2) and the rules of section 3. It does not read
 archives, so run it on the expanded directory.
 
 It checks form, not plausibility. `pressure.cp_stagnation` in
@@ -1303,6 +1374,7 @@ case before anything is corrected.
 | 0.13 | 4.1: an optional compact notation for `setup.txt`, lossless, opened by a fixed notation header. The plain form stays valid. One new check: see below. |
 | 0.14 | `modes/` and `snapshots/` specified (4.9.2, 4.9.3); the period cycle by cycle in `signals.json` (4.9.1); `phase_mean`, the eighth `_statistic` (4.2.2, 3.6); a signed field on a symmetric range (3.3); optional `mesh.wall` (4.2.2). The file names allowed in `modes/` and `snapshots/` change. Two new checks: see below. |
 | 0.15 | What a reader would otherwise supply: `candidates` and the token of a station (4.2); the basis of a duration in its key, one span or `windows_note`, the circular mean of an angle (4.2.2); the gate of a single window on its two halves, other stopping rules and the meaning of `solver_regime_mismatch` (4.2.3). Two parameters and a replica in an alias (2.1); a signed field in an odd number of levels, 255 (3.3, 4.7); `spec_version` in `manifest.json` (4.8). Three new checks, counted from the version a capsule declares: see below. |
+| 0.16 | A case computed on part of a symmetric body: `symmetry` (4.2). `lines/`, the station of one dimension less, a CSV with no image (4.3.1). The extent of the domain, `domain` (4.2), and a study of it, `discretization.domain` (4.2.4). The domain as the first suffix of an alias, and a suffix that never reuses the letter of a parameter (2.1). One new check, counted from the version a capsule declares: see below. |
 
 ### 0.3 → 0.4
 
@@ -1551,3 +1623,34 @@ case before anything is corrected.
   keeps its keys written with `_at_`, such as `tracer_max_at_x5`, and a
   `kept` candidate that holds its value and no `published_as`. They stay
   as published.
+
+### 0.15 → 0.16
+
+- 4.2: `symmetry { modeled, planes, not_applicable, note }` for a case
+  computed on half or a quarter of the body. Coefficients and reference
+  area are those of the whole body; a quantity the symmetry fixes is
+  omitted and listed in `not_applicable`; a suppressed regime leaves
+  `regime_expected` as it is and `solver_regime_mismatch` `true`.
+- 4.3.1: `lines/`, with `line_<coordinates>.csv`, the header of a plane
+  with points for nodes, and no image. In a two-dimensional case the
+  stations across the flow are lines. New check `line_tables`: the stem
+  names the coordinates held constant in the order x, y, z, and the header
+  gives the spacing, the points returned of those requested and the
+  precision. `plane_formation` reads the headers of `lines/` too, and
+  `declared_files` accepts the directory.
+- 4.2, 4.2.4: `domain` gives the extent of the domain along each axis as a
+  pair, and `discretization.domain` a study of it, with `study` taking
+  `domain`, `space_domain`, `time_domain` and `space_time_domain`. The
+  published value is the one computed in the capsule's own domain.
+  `summary_blocks` checks the pairs, the eight names of `study`, that
+  `sizes` runs smallest first and that every studied quantity is a
+  published key with one value per size and a `delta`.
+- 2.1: the order of suffixes is domain, solver, mesh, precision, replica;
+  a suffix that would reuse the letter of a parameter of the same alias is
+  spelled out.
+- Compatibility: no capsule in `examples/` or `examples/as-published/`
+  changes its result, with or without `--strict`. None carries `symmetry`,
+  `lines/` or `discretization`, and what 0.16 adds is counted only where
+  `manifest.json` declares 0.16 or later (4.8). The Ahmed body keeps its
+  `domain` block with `x`, `y` and `z`, and the jet its
+  `geometry.domain_x_D`; `_m2` stays as published.
