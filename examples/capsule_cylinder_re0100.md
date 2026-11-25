@@ -30,3 +30,7 @@ the mean and RMS fields.
   `tU/D 105.521 to 299.886`. SPEC 4.9.1 asks one window per capsule; the field
   statistics were accumulated by the solver from a fixed start, so they could not
   follow the period window.
+
+## Side Runs
+
+- [Strouhal and Drag of a 2D Cylinder from Re = 50 to 180: the Two Per Cent That Was the Domain](../docs/side-runs/cylinder-re-sweep/README.md) sweeps the same cylinder and traces a 2 per cent excess in Strouhal number to the side boundaries.

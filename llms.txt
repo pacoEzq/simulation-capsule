@@ -24,8 +24,15 @@ The format is defined by a tutorial series published on the Siemens Simcenter co
 - [8a. Transient Fields I, Time as Statistics: One Window of Whole Periods](https://community.sw.siemens.com/s/question/0D5Vb00001imOEMKA2/preparing-cfd-output-for-large-language-models-8a10-transient-fields-i-time-as-statistics-one-window-of-whole-periods): no new file: every time statistic in `summary.json` names its window of whole periods, cut at upward crossings of the lift and checked by a halves test.
 - [8b. Transient Fields I, Time as Statistics: the Cycle Through Its Phase and Its Spectrum](https://community.sw.siemens.com/s/question/0D5Vb00001l7xXkKAI/preparing-cfd-output-for-large-language-models-8b10-transient-fields-i-time-as-statistics-the-cycle-through-its-phase-and-its-spectrum): `signals/`, the phase average and the leak-free spectrum over the window of `summary.json`.
 
+## Evidence
+
+- [Why a Simulation Capsule, in Five Steps](https://github.com/pacoEzq/simulation-capsule/blob/main/docs/why-a-capsule/README.md): the argument for the format, with figures, what language models did with a capsule and what that record does not show.
+- [probes/](https://github.com/pacoEzq/simulation-capsule/blob/main/probes/README.md): what language models answered when handed each capsule, graded against the files or the solver.
+- [examples/token-ledger.md](https://github.com/pacoEzq/simulation-capsule/blob/main/examples/token-ledger.md): what each example capsule costs in tokens, file by file.
+
 ## Optional
 
+- [docs/side-runs/](https://github.com/pacoEzq/simulation-capsule/blob/main/docs/side-runs/README.md): Side Runs, articles outside the series, each listed with the capsule it starts from.
 - [examples/](https://github.com/pacoEzq/simulation-capsule/tree/main/examples): example capsules.
 - [macros/](https://github.com/pacoEzq/simulation-capsule/tree/main/macros): Simcenter STAR-CCM+ macros that produce capsule artifacts.
 - [tools/](https://github.com/pacoEzq/simulation-capsule/tree/main/tools): scripts that build and check a capsule.

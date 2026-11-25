@@ -29,3 +29,10 @@ pinned at commit `ee7ff59`. The grayscale frame it measures sits in
   needed them and had to take them from Part 3. Against Khan et al. (2020) the
   iteration-mean drag, 0.880, is 6% high, and the transient run on the same mesh
   gives 0.883 (see [docs/side-runs/cube-literature-anchors](../docs/side-runs/cube-literature-anchors/README.md)).
+
+## Side Runs
+
+- [Steady vs Transient CFD of Vortex Shedding: a Cube at Re = 300](../docs/side-runs/cube-re300/README.md) measures what the `no_steady_state` flag of this capsule warns about.
+- [Wake Symmetry Breaking in Transient CFD: How the Initial Condition Selects the Side-Force Plane of a Cube at Re = 300](../docs/side-runs/cube-re300-symmetry-plane/README.md) runs the same set-up and mesh from two starts.
+- [Symmetry-Plane Selection in the Cube Wake at Re = 300: Rotated, Tilted and Wide-Domain Runs](../docs/side-runs/cube-re300-turned/README.md) turns and tilts the same cube.
+- [Cube Drag Coefficient from Re = 100 to 3000: Six Simulation Capsules Against the Literature](../docs/side-runs/cube-literature-anchors/README.md) sets its drag beside the literature.

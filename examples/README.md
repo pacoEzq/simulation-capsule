@@ -32,13 +32,13 @@ Each name opens the capsule's case card, which links to its files.
 | [`capsule_jet_r2_re100`](capsule_jet_r2_re100.md) | Jet in crossflow, r = 2, Re 100 | `+ samples.csv` | Part 4 | [read](../probes/part-4_jet_r2_re100.md) |
 | [`capsule_delta65_a13p3_re1e6`](capsule_delta65_a13p3_re1e6.md) | Delta wing, 65 degrees, alpha 13.3 | `+ features.json` | Part 5 | [read](../probes/part-5_delta65_a13p3_re1e6.md) |
 | [`capsule_ahmed25_re1e6`](capsule_ahmed25_re1e6.md) | Ahmed body, 25 degree slant, Re 1e6 | `setup.txt`, `summary.json`, `views/` | Part 6 | [read](../probes/part-6_ahmed25_re1e6.md) |
-| [`capsule_naca0012_aoa7`](capsule_naca0012_aoa7.md) | NACA 0012, 7 degrees, Re 1e6 | `+ diff.json`, `diff/` | Part 6b | not yet |
-| [`capsule_cube_re0100`](capsule_cube_re0100.md) | Cube, Re 100, laminar, base of the sweep | `+ manifest.json` | Part 7 | not yet |
-| [`capsule_cube_re0300`](capsule_cube_re0300.md) | Cube, Re 300, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
-| [`capsule_cube_re0600`](capsule_cube_re0600.md) | Cube, Re 600, laminar | `+ diff.json`, `diff/` | Part 7a | not yet |
-| [`capsule_cube_re1000`](capsule_cube_re1000.md) | Cube, Re 1000, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
-| [`capsule_cube_re3000`](capsule_cube_re3000.md) | Cube, Re 3000, laminar | `+ diff.json`, `diff/` | Part 7 | not yet |
-| [`capsule_cylinder_re0100`](capsule_cylinder_re0100.md) | Cylinder, Re 100, laminar, 2D, unsteady | `+ signals/` | Part 8 | not yet |
+| [`capsule_naca0012_aoa7`](capsule_naca0012_aoa7.md) | NACA 0012, 7 degrees, Re 1e6 | `+ diff.json`, `diff/` | Part 6b | [read](../probes/part-6b_naca0012_aoa5_aoa7.md) |
+| [`capsule_cube_re0100`](capsule_cube_re0100.md) | Cube, Re 100, laminar, base of the sweep | `+ manifest.json` | Part 7 | [7b](../probes/part-7b_cube_re0100_re3000.md), [7c](../probes/part-7c_cube_re0100_re3000.md) |
+| [`capsule_cube_re0300`](capsule_cube_re0300.md) | Cube, Re 300, laminar | `+ diff.json`, `diff/` | Part 7 | [7b](../probes/part-7b_cube_re0100_re3000.md), [7c](../probes/part-7c_cube_re0100_re3000.md) |
+| [`capsule_cube_re0600`](capsule_cube_re0600.md) | Cube, Re 600, laminar | `+ diff.json`, `diff/` | Part 7a | [read](../probes/part-7a_cube_re0600.md) |
+| [`capsule_cube_re1000`](capsule_cube_re1000.md) | Cube, Re 1000, laminar | `+ diff.json`, `diff/` | Part 7 | [7b](../probes/part-7b_cube_re0100_re3000.md), [7c](../probes/part-7c_cube_re0100_re3000.md) |
+| [`capsule_cube_re3000`](capsule_cube_re3000.md) | Cube, Re 3000, laminar | `+ diff.json`, `diff/` | Part 7 | [7b](../probes/part-7b_cube_re0100_re3000.md), [7c](../probes/part-7c_cube_re0100_re3000.md) |
+| [`capsule_cylinder_re0100`](capsule_cylinder_re0100.md) | Cylinder, Re 100, laminar, 2D, unsteady | `+ signals/` | Part 8 | [8a](../probes/part-8a_cylinder_re0100.md), [8b](../probes/part-8b_cylinder_re0100.md) |
 
 Read down the table and the format assembles itself: scalars, then sections, then a
 volume sample, then named features, then curated views, then a comparison
@@ -46,10 +46,11 @@ between two of them, then a sweep that one chain built point by point, then a
 run whose time is folded into one cycle and a spectrum.
 
 Every capsule from Part 2 to Part 6 was handed whole to a language model and
-questioned about its own case before it was published. The probe records hold
-the questions, the answers
-and what the reader got wrong, and [`probes/README.md`](../probes/README.md) lists
-the nine capsule defects those sessions caught.
+questioned about its own case before it was published: one reader each from
+Part 2 to Part 5, four for Part 6. From Part 6b on each capsule had two
+readers, from two model families. The probe records hold the questions, the answers
+and what the readers got wrong, and [`probes/README.md`](../probes/README.md) lists
+the capsule defects those sessions caught.
 
 ## What they agreed on in the end
 

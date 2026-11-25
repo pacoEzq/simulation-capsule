@@ -2,7 +2,17 @@
 
 What changed in the Simulation Capsule, newest first: the specification, the validator, the extractor and the example capsules. Each release is a version of `SPEC.md`, tagged `spec-0.N`; tools, macros and capsules are listed under the version they were written for. Until 1.0 a version may change what counts as a valid capsule. When it does, section 6 of `SPEC.md` says how, and `tools/check_capsule.py` counts each new check from the version a capsule declares, so a capsule published earlier stays valid as published.
 
-## 0.16 (2026-11-25)
+## Since 0.16 (on main)
+
+### Why a Simulation Capsule, in Five Steps (2026-11-24)
+
+`docs/why-a-capsule/` holds the article that argues for the format: the two halves of AI-assisted CFD, the token cost of the twelve example capsules against their mesh size, and what language models did with a capsule in the probe records, with the limits of that record. Figures, data and the scripts that draw them sit beside the text.
+
+### Side Runs move to `docs/side-runs/` (2026-11-24)
+
+The Side Runs moved from `docs/<name>/` to `docs/side-runs/<name>/`, and `docs/side-runs/README.md` lists them with the capsule each one starts from. A link to an old path no longer resolves.
+
+## 0.16 (2026-11-24)
 
 ### Symmetry, lines and the domain
 

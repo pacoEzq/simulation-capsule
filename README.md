@@ -7,11 +7,73 @@ simulation case, designed to be consumed by a language model.**
 
 A Simulation Capsule is to a CFD case what `llms.txt` is to a website.
 
+One half of AI-assisted CFD is writing the simulation. A capsule is the other
+half: what a model reads from a solved case, so that it can read the flow, audit
+the run and answer questions about both.
+
+[Why a Simulation Capsule, in Five Steps](docs/why-a-capsule/README.md) is the long form of
+that sentence: the argument, the figures and what language models did with a
+capsule.
+
 The format is defined by a tutorial series published on the Siemens Simcenter
 community forum. The forum renders client side and is hard to index; this README
 is the indexable table of contents, and the series table sits below.
 
 ---
+
+## What a model did with a capsule
+
+Each part of the series was reviewed by handing its capsule whole to language
+models in a fresh conversation, then grading every answer against the files or
+against the solver. Three results from [`probes/`](probes/README.md):
+
+**It predicted a run that had not started.** Two readers from two model
+families were given the four cube capsules of a Reynolds sweep and asked what a
+fifth, at Re 600, would contain. Each scored 12 of 13. Both read the
+convergence gate in `summary.json` and answered 5,000 iterations, the value
+later published; interpolating in log Re gives 9,243, a count the chain cannot
+produce. On drag and side forces, plain interpolation came closer than either
+reader. [Part 7a](probes/part-7a_cube_re0600.md)
+
+**It rebuilt a history it was not given.** The cylinder capsule holds no time
+history: `signals/` folds 15,000 time steps into 32 phases and a spectrum, in
+10,532 tokens. From it, one reader rebuilt 36 of 36 recorded values at twelve
+random instants within 1% of each signal's swing, the other 34 of 36.
+[Part 8b](probes/part-8b_cylinder_re0100.md)
+
+**It said what the files do not hold.** Before the Re 600 run, both readers
+stated that the side of the wake deficit could not be read from the planes. It
+was the one field both missed.
+
+These are review records, not benchmarks. No other input format was tested on
+the same questions. [Why a Simulation Capsule, in Five Steps](docs/why-a-capsule/README.md)
+goes through the other records, with figures and with what the record does not
+show.
+
+## Try it in two minutes
+
+Take the cylinder capsule, keep its folders, and attach it to a chat model that
+can open a zip:
+
+```bash
+git clone --depth 1 https://github.com/pacoEzq/simulation-capsule
+cd simulation-capsule/examples
+zip -r capsule_cylinder_re0100.zip capsule_cylinder_re0100
+```
+
+Start a fresh conversation, attach the zip, and ask the model to read every file
+before it answers. Then ask these three questions from the
+[Part 8b probe](probes/part-8b_cylinder_re0100.md) and check each answer against
+the file named below.
+
+| Question | Expected | Where to check |
+|---|---|---|
+| On which bin of the spectrum does the line of `cd` fall, and which file and field say so? | bin 64, St 0.329278 | header of `signals/spectrum.csv` and its row St 0.329278 |
+| What is the lag of the crest of `p1_v` behind the crest of `cl` within one cycle, as a fraction of the cycle? | about 0.59 | `signals/phase_average.csv`, columns `cl_mean` and `p1_v_mean` |
+| A steel rod 5 mm in diameter stands in a water stream (kinematic viscosity 1.0e-6 m²/s) at the same Reynolds number. At what frequency in Hz does the drag force on it fluctuate? | about 1.317 Hz | `signals/spectrum.csv`, row St 0.329278; `summary.json`, `reference.re` |
+
+A model that answers the third with about 0.66 Hz has used the shedding
+frequency of the lift, `temporal.st` in `summary.json`, instead of the drag line.
 
 ## The problem
 
@@ -133,6 +195,8 @@ Part 6b runs alongside Part 6 rather than after it, and introduces the `diff`
 extension.
 
 **Side Runs.** Articles outside the series.
+[`docs/side-runs/`](docs/side-runs/README.md) lists them next to the capsule
+each one starts from.
 
 - [Steady vs Transient CFD of Vortex Shedding: a Cube at Re = 300](docs/side-runs/cube-re300/README.md) measures what the `no_steady_state` flag of `capsule_cube_re0300` warns about.
 - [Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at Re = 100](docs/side-runs/cube-re100/README.md) tests the two stagnation values that `capsule_cube_re0100` reports.
@@ -154,7 +218,7 @@ extension.
 | `macros/` | Java macros for Simcenter STAR-CCM+ export |
 | `assets/` | Figures used by the series |
 | [`docs/why-a-capsule/`](docs/why-a-capsule/README.md) | Why a Simulation Capsule, in five steps: the argument, what models did with one, and how to try it |
-| `docs/side-runs/` | Side Runs, one article per folder with its text, figures, data and scripts |
+| [`docs/side-runs/`](docs/side-runs/README.md) | Side Runs, one article per folder with its text, figures, data and scripts, and an index that ties each to its capsule |
 
 ## Validation
 
@@ -181,7 +245,7 @@ verified, it has only been quiet.
 The reader is a language model. Before a capsule is published it is handed whole to
 one, in a fresh conversation, and asked narrow questions whose answers can be
 checked against the files. [`probes/`](probes/README.md) holds those sessions and
-the fourteen capsule defects they caught, including the one that this validator now
+the capsule defects they caught, including the one that this validator now
 catches automatically.
 
 The current capsules, `examples/capsule_*/`, pass clean, `--strict` included. They did not always: the

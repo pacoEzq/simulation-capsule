@@ -42,3 +42,8 @@ Read 1.068 as the stagnation value of this capsule.
   Khan et al. (2020) and 9% above the Haider and Levenspiel cube correlation; a
   lateral probe rules out the lateral walls, and the inlet distance and the
   reference itself remain open (see [docs/side-runs/cube-literature-anchors](../docs/side-runs/cube-literature-anchors/README.md)).
+
+## Side Runs
+
+- [Pressure Singularity at a Sharp Corner: Mesh Refinement of a Cube at Re = 100](../docs/side-runs/cube-re100/README.md) tests the two stagnation values this capsule reports.
+- [Cube Drag Coefficient from Re = 100 to 3000: Six Simulation Capsules Against the Literature](../docs/side-runs/cube-literature-anchors/README.md) sets its drag beside the literature.
