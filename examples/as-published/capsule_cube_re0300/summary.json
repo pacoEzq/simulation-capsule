@@ -1,0 +1,171 @@
+{
+  "frame": {
+    "x": "streamwise, from inlet to outlet",
+    "y": "normal to lateral_yminus/lateral_yplus",
+    "z": "normal to lateral_zminus/lateral_zplus",
+    "handedness": "right"
+  },
+  "reference": {
+    "side_m": 1.0,
+    "velocity_m_per_s": 1.0,
+    "density_kg_per_m3": 1.0,
+    "dynamic_viscosity_pa_s": 0.0033333333333333335,
+    "note": "Only dimensional block in this file. All other scalars are nondimensional groups."
+  },
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2606",
+    "build": "21.04.007",
+    "platform": "linux-x86_64-2.28",
+    "precision": "double"
+  },
+  "extensions": ["diff"],
+  "sweep": {
+    "parameter": "Re",
+    "value": 300
+  },
+  "mesh": {
+    "cells": 501860,
+    "identical_across_sweep": true,
+    "designed_for_Re_range": [100, 3000],
+    "prism_layers_nonwall": 0,
+    "note": "declared range; no y+ or mesh-independence study"
+  },
+  "convergence": {
+    "solver": "steady segregated",
+    "criterion": "window_stationarity",
+    "criterion_version": 2,
+    "time_basis": "solver iterations (pseudo-time); iteration means are not physical time averages",
+    "regime_expected": {"value": "periodic (hairpin shedding)", "source": "declared", "ref": "Meng et al. JFM 2021; Klotz et al. JFM 2014"},
+    "status": "no_steady_state",
+    "stop_reason": "Reached 15000 iterations; cl failed the stationarity gate in windows 11000-13000 and 13000-15000 (n = 3 cycles < 10).",
+    "solver_regime_mismatch": false,
+    "iterations": 15000,
+    "discard_iterations": 1000,
+    "window_iterations": 2000,
+    "windows_closed": 7,
+    "sampling_interval": 10,
+    "max_iterations": 15000,
+    "k_gate": 2.0,
+    "k_sd": 3.0,
+    "min_cycles": 10,
+    "quantities": {
+      "cd": {"window_means": [0.8795941720324089, 0.879948697979432, 0.8796641504215446, 0.8800429462061315, 0.8795551933133791, 0.8801958893553332, 0.8795743296469469], "window_sds": [0.004869479895893591, 0.004736121548040585, 0.004863913154256368, 0.004732125785040864, 0.004844278358270128, 0.00474815987994008, 0.004812311216588291],
+             "n_cycles_last": 32,
+             "drift_last": -6.215597083862878E-4, "drift_over_se": 0.5200963088525268, "sd_log_ratio_over_tol": 0.025305601522947124, "pass": true},
+      "cl": {"window_means": [-0.031806737238454466, 0.023442522012411753, -0.02955359335536888, 0.02064022685115915, -0.026099742018521846, 0.016657780990767965, -0.021250872370600003], "window_sds": [0.020762301302025832, 0.026013405892294308, 0.023640087009733666, 0.02903440000102764, 0.02722942217960986, 0.03223904050480565, 0.031292892621998754],
+             "n_cycles_last": 13,
+             "drift_last": -0.037908653361367964, "drift_over_se": null, "sd_log_ratio_over_tol": null, "pass": false},
+      "cy": {"window_means": [0.009252781487683756, -0.014798066064158868, 0.01437827091956235, -0.020067999802456646, 0.0198894951641123, -0.025067429921919265, 0.024691638523911187], "window_sds": [0.034048089839013, 0.03610750383011073, 0.03185878021454303, 0.03394182841262377, 0.02854309975556669, 0.029866457665808442, 0.024729606485531554],
+             "n_cycles_last": 10,
+             "drift_last": 0.04975906844583045, "drift_over_se": 4.05800000135657, "sd_log_ratio_over_tol": 0.19894401525338362, "pass": false},
+      "cp_base": {"window_means": [-0.18877674081563828, -0.18912789359312174, -0.18885153125521698, -0.18921852151987203, -0.18874225358965174, -0.1893700772765401, -0.18875863920198235], "window_sds": [0.00506050465629054, 0.004907886942318171, 0.005061223200242228, 0.004899811482953812, 0.005045432771680366, 0.004913294941427947, 0.005014460864687846],
+             "n_cycles_last": 32,
+             "drift_last": 6.114380745577408E-4, "drift_over_se": 0.492684423739001, "sd_log_ratio_over_tol": 0.038431021332625374, "pass": true}
+    }
+  },
+  "forces": {
+    "cd": 0.8797964827078824,
+    "cd_sd": 0.004797044247195565,
+    "cd_window_iterations": 14000,
+    "cd_n_windows": 7,
+    "cd_statistic": "iteration_mean",
+    "cd_pressure": 0.8959927802867395,
+    "cd_pressure_sd": 0.004694734169290916,
+    "cd_pressure_window_iterations": 14000,
+    "cd_pressure_n_windows": 7,
+    "cd_pressure_statistic": "iteration_mean",
+    "cd_friction": -0.016196297578856274,
+    "cd_friction_sd": 2.8914967447110765E-4,
+    "cd_friction_window_iterations": 14000,
+    "cd_friction_n_windows": 7,
+    "cd_friction_statistic": "iteration_mean",
+    "cl": -0.0068529164469437525,
+    "cl_sd": 0.036237460951377753,
+    "cl_window_iterations": 14000,
+    "cl_n_windows": 7,
+    "cl_statistic": "iteration_mean",
+    "cy": 0.0011826700438192634,
+    "cy_sd": 0.03675837229292085,
+    "cy_window_iterations": 14000,
+    "cy_n_windows": 7,
+    "cy_statistic": "iteration_mean"
+  },
+  "pressure": {
+    "cp_base": -0.18897795103600354,
+    "cp_base_sd": 0.0049815356036103904,
+    "cp_base_window_iterations": 14000,
+    "cp_base_n_windows": 7,
+    "cp_base_statistic": "iteration_mean",
+    "cp_min": -2.766631828899487,
+    "cp_min_window_iterations": 14000,
+    "cp_min_n_windows": 7,
+    "cp_min_statistic": "window_min",
+    "cp_stagnation": 1.0387732857830447,
+    "cp_stagnation_window_iterations": 14000,
+    "cp_stagnation_n_windows": 7,
+    "cp_stagnation_statistic": "window_max"
+  },
+  "wake": {
+    "x_reattach_D": 2.7895089285714287,
+    "x_reattach_D_sd": 0.15351705320353876,
+    "x_reattach_D_window_iterations": 14000,
+    "x_reattach_D_n_windows": 7,
+    "x_reattach_D_statistic": "iteration_mean",
+    "recirculation_length_D": 2.2895089285714287,
+    "recirculation_length_D_sd": 0.15351705320353876,
+    "recirculation_length_D_window_iterations": 14000,
+    "recirculation_length_D_n_windows": 7,
+    "recirculation_length_D_statistic": "iteration_mean",
+    "note": "mean of instantaneous lengths; not the recirculation length of the time-averaged field, which is out of scope for this part"
+  },
+  "mass": {
+    "mdot_in_over_rhoUD2": -100.0,
+    "mdot_in_over_rhoUD2_sd": 0.0,
+    "mdot_in_over_rhoUD2_window_iterations": 14000,
+    "mdot_in_over_rhoUD2_n_windows": 7,
+    "mdot_in_over_rhoUD2_statistic": "iteration_mean",
+    "mdot_out_over_rhoUD2": 99.99993250929798,
+    "mdot_out_over_rhoUD2_sd": 4.712475696038832E-4,
+    "mdot_out_over_rhoUD2_window_iterations": 14000,
+    "mdot_out_over_rhoUD2_n_windows": 7,
+    "mdot_out_over_rhoUD2_statistic": "iteration_mean",
+    "mass_imbalance": 6.749070199922301E-7,
+    "mass_imbalance_sd": 4.7124756960388315E-6,
+    "mass_imbalance_window_iterations": 14000,
+    "mass_imbalance_n_windows": 7,
+    "mass_imbalance_statistic": "iteration_mean"
+  },
+  "probes": {
+    "LLM_u_over_U_axis_x2D": {
+      "value": -0.19744634524998864,
+      "sd": 0.08462784339854201,
+      "window_iterations": 14000,
+      "n_windows": 7,
+      "statistic": "iteration_mean",
+      "position_D": [2.0, 0.0, 0.0],
+      "report": "LLM_u_over_U_axis_x2D"
+    }
+  },
+  "plane_extremes": {
+    "y0": {
+      "cp": [-2.3258945514494087, 1.0380622710171434],
+      "u_over_U": [-0.39818307223210364, 1.1399824002929095]
+    },
+    "x1": {
+      "cp": [-0.30027080384519816, -0.009199078477314056],
+      "u_over_U": [-0.37370761952550174, 1.0988584310652358]
+    },
+    "x2": {
+      "cp": [-0.23389536503228792, -0.00624040325318691],
+      "u_over_U": [-0.3140846144686055, 1.0749956599146424]
+    },
+    "x4": {
+      "cp": [-0.11930442708748565, 0.08897028203059877],
+      "u_over_U": [0.17837344161029187, 1.0536299772036852]
+    },
+    "statistic": "window_min_max",
+    "window_iterations": 14000,
+    "n_windows": 7
+  }
+}

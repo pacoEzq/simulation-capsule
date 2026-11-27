@@ -1,0 +1,126 @@
+{
+  "reference": {
+    "length_scale_D_m": 1.0,
+    "velocity_m_per_s": 1.0,
+    "density_kg_per_m3": 1.0,
+    "dynamic_viscosity_pa_s": 0.01,
+    "re": 100,
+    "note": "Only dimensional block in this file. Unit values: D is the cylinder diameter and re = rho U D / mu. All other scalars are nondimensional groups."
+  },
+  "mesh": {
+    "cells": 179040
+  },
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2606",
+    "build": "21.04.007",
+    "platform": "linux-x86_64-2.28",
+    "precision": "double"
+  },
+  "forces": {
+    "cd": 1.3208721889932558,
+    "cd_sd": 0.006137579805535327,
+    "cd_window_tU_over_L": [
+      105.52137787386212,
+      299.88592254061
+    ],
+    "cd_n_windows": 1,
+    "cd_rms": 0.006137579805535327,
+    "cd_rms_window_tU_over_L": [
+      105.52137787386212,
+      299.88592254061
+    ],
+    "cd_rms_n_windows": 1,
+    "cd_statistic": "time_mean",
+    "cd_t_start": 105.52137787386212,
+    "cd_t_end": 299.88592254061,
+    "cd_n_periods": 32,
+    "cd_rms_statistic": "time_rms",
+    "cd_rms_t_start": 105.52137787386212,
+    "cd_rms_t_end": 299.88592254061,
+    "cd_rms_n_periods": 32,
+    "cl": -0.00012026892088241235,
+    "cl_sd": 0.22145725077823092,
+    "cl_window_tU_over_L": [
+      105.52137787386212,
+      299.88592254061
+    ],
+    "cl_n_windows": 1,
+    "cl_rms": 0.22145725077823092,
+    "cl_rms_window_tU_over_L": [
+      105.52137787386212,
+      299.88592254061
+    ],
+    "cl_rms_n_windows": 1,
+    "cl_statistic": "time_mean",
+    "cl_t_start": 105.52137787386212,
+    "cl_t_end": 299.88592254061,
+    "cl_n_periods": 32,
+    "cl_rms_statistic": "time_rms",
+    "cl_rms_t_start": 105.52137787386212,
+    "cl_rms_t_end": 299.88592254061,
+    "cl_rms_n_periods": 32,
+    "formed": "time_mean over 32 whole periods of cl, tU/D 105.521 to 299.886"
+  },
+  "temporal": {
+    "st": 0.16463908093354332,
+    "st_n_cycles": 32,
+    "st_window_tU_over_L": [
+      105.52137787386212,
+      299.88592254061
+    ],
+    "st_method": "n / (t_end - t_start), upward crossings of cl - mean(cl) in tU/D 100 to 300",
+    "cl_amplitude": 0.313249789382446,
+    "cl_amplitude_window_tU_over_L": [
+      105.52137787386212,
+      299.88592254061
+    ],
+    "cl_amplitude_method": "mean over whole periods of half the peak-to-peak cl",
+    "cl_peak_to_peak": 0.626499578764892,
+    "formed": "upward crossings of cl - mean(cl) in tU/D 100 to 300, 32 whole periods of cl, tU/D 105.521 to 299.886",
+    "st_statistic": "whole_periods_per_time",
+    "st_t_start": 105.52137787386212,
+    "st_t_end": 299.88592254061,
+    "st_n_periods": 32,
+    "cl_amplitude_statistic": "mean_half_peak_to_peak",
+    "cl_amplitude_t_start": 105.52137787386212,
+    "cl_amplitude_t_end": 299.88592254061,
+    "cl_amplitude_n_periods": 32,
+    "cl_peak_to_peak_statistic": "mean_peak_to_peak",
+    "cl_peak_to_peak_t_start": 105.52137787386212,
+    "cl_peak_to_peak_t_end": 299.88592254061,
+    "cl_peak_to_peak_n_periods": 32
+  },
+  "window": {
+    "search_tU_over_L": [
+      100.0,
+      300.0
+    ],
+    "method": "first upward crossing of cl - mean(cl) at or after t0 to the last at or before t1; mean(cl) over the samples in [t0, t1]",
+    "t_start": 105.52137787386212,
+    "t_end": 299.88592254061,
+    "n_periods": 32,
+    "halves": {
+      "n_periods_each": 16,
+      "threshold": 0.001,
+      "first": {
+        "t_start": 105.52137787386212,
+        "t_end": 202.7064531818701,
+        "cd_mean": 1.32082452540493,
+        "cl_rms": 0.22143330282817247
+      },
+      "second": {
+        "t_start": 202.7064531818701,
+        "t_end": 299.88592254061,
+        "cd_mean": 1.3209198553311297,
+        "cl_rms": 0.2214811952681219
+      },
+      "rel_diff": {
+        "cd_mean": 7.217195349711206e-05,
+        "cl_rms": 0.0002162604285076748
+      },
+      "pass": true,
+      "reason": null
+    }
+  }
+}

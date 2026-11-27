@@ -45,6 +45,11 @@ volume sample, then named features, then curated views, then a comparison
 between two of them, then a sweep that one chain built point by point, then a
 run whose time is folded into one cycle and a spectrum.
 
+Each directory here is the current copy of its capsule. The capsule exactly as
+its post shipped it is kept, frozen, under
+[`as-published/`](as-published/README.md), one for every part from Part 2 on.
+From Part 7 on the two are the same bytes.
+
 Every capsule from Part 2 to Part 6 was handed whole to a language model and
 questioned about its own case before it was published: one reader each from
 Part 2 to Part 5, four for Part 6. From Part 6b on each capsule had two

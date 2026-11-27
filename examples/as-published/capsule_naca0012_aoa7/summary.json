@@ -1,0 +1,66 @@
+{
+  "case": "naca0012_aoa7",
+  "extensions": [
+    "diff"
+  ],
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2606",
+    "build": "21.04.007",
+    "platform": "linux-x86_64-2.28",
+    "precision": "double",
+    "note": "run and renders share one environment, so no renders subobject"
+  },
+  "regime": {
+    "reynolds_number": 1000000.0,
+    "mach_number": 0.043,
+    "angle_of_attack_deg": 7.0,
+    "angle_of_attack_note": "geometry rotated 5 deg, freestream rotated a further 2 deg at the inlet; mesh identical to naca0012_aoa5",
+    "turbulence_model": "SST (Menter) K-Omega"
+  },
+  "reference": {
+    "chord_m": 1.0,
+    "velocity_m_s": 15.0,
+    "density_kg_m3": 1.18,
+    "viscosity_Pa_s": 1.77e-05,
+    "area_m2": 1.0,
+    "area_note": "chord x unit depth"
+  },
+  "forces": {
+    "cl": 0.73268,
+    "cd": 0.014193,
+    "cd_pressure": 0.0063796,
+    "cd_friction": 0.007813,
+    "cm_quarter_chord": -0.0064033,
+    "lift_to_drag": 51.624,
+    "axes_note": "wind axes; force directions rotated 2 deg with the freestream"
+  },
+  "surface": {
+    "cp_stagnation": 1.00071,
+    "cp_min": -2.9269,
+    "cp_stagnation_note": "exceeds the incompressible bound of 1 by 7.1e-4; 26 percent attributed to the pressure datum measured at the inlet (0.0249 Pa), remainder unattributed between discrete stagnation-point resolution and finite domain"
+  },
+  "wall": {
+    "yplus_max": 1.5177,
+    "yplus_avg": 0.50402
+  },
+  "conservation": {
+    "mass_imbalance_fraction": 4.1406e-14
+  },
+  "convergence": {
+    "iterations": 2567,
+    "monitors_flat": true,
+    "residuals": {
+      "continuity": 2.5541e-09,
+      "x_momentum": 2.6077e-08,
+      "y_momentum": 9.49e-09,
+      "tke": 3.3043e-11,
+      "sdr": 1.1252e-11
+    }
+  },
+  "mesh": {
+    "cell_count": 65885,
+    "dimension": "2D",
+    "farfield_radius_chords": 50
+  }
+}

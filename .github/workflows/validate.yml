@@ -39,9 +39,10 @@ jobs:
         uses: citation-file-format/cffconvert-github-action@2.0.0
         with:
           args: "--validate"
-      # The published capsules predate SPEC 0.2, so their reference quantities
-      # warn and that is the point: the warnings are the migration inventory
-      # Part 7 works from. Never --strict here.
+      # The capsules of Parts 2 to 6 predate SPEC 0.2, so their reference
+      # quantities warn and that is the point: the warnings are the migration
+      # inventory Part 7 works from. The later ones are byte copies of what
+      # their posts linked. Never --strict here.
       - name: Published capsules
         run: |
           set -o pipefail

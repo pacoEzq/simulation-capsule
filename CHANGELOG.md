@@ -4,6 +4,10 @@ What changed in the Simulation Capsule, newest first: the specification, the val
 
 ## Since 0.16 (on main)
 
+### Every published capsule is kept as published (2026-11-27)
+
+`examples/as-published/` now holds every capsule exactly as its post shipped it, from Part 2 on, and `examples/frozen.sha256` guards 123 files instead of 39. Seven capsules joined the five of Parts 2 to 6: `capsule_naca0012_aoa7` as it stood when Part 6b was published on 2026-09-11, the five cubes of Parts 7 and 7a, and the cylinder of Part 8. The copies under `examples/` stay where they were, and from Part 7 on they are the same bytes.
+
 ### Why a Simulation Capsule, in Five Steps (2026-11-24)
 
 `docs/why-a-capsule/` holds the article that argues for the format: the two halves of AI-assisted CFD, the token cost of the twelve example capsules against their mesh size, and what language models did with a capsule in the probe records, with the limits of that record. Figures, data and the scripts that draw them sit beside the text.

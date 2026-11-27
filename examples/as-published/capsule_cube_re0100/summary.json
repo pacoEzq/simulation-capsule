@@ -1,0 +1,170 @@
+{
+  "frame": {
+    "x": "streamwise, from inlet to outlet",
+    "y": "normal to lateral_yminus/lateral_yplus",
+    "z": "normal to lateral_zminus/lateral_zplus",
+    "handedness": "right"
+  },
+  "reference": {
+    "side_m": 1.0,
+    "velocity_m_per_s": 1.0,
+    "density_kg_per_m3": 1.0,
+    "dynamic_viscosity_pa_s": 0.01,
+    "note": "Only dimensional block in this file. All other scalars are nondimensional groups."
+  },
+  "environment": {
+    "solver": "Simcenter STAR-CCM+",
+    "version": "2606",
+    "build": "21.04.007",
+    "platform": "linux-x86_64-2.28",
+    "precision": "double"
+  },
+  "sweep": {
+    "parameter": "Re",
+    "value": 100
+  },
+  "mesh": {
+    "cells": 501860,
+    "identical_across_sweep": true,
+    "designed_for_Re_range": [100, 3000],
+    "prism_layers_nonwall": 0,
+    "note": "declared range; no y+ or mesh-independence study"
+  },
+  "convergence": {
+    "solver": "steady segregated",
+    "criterion": "window_stationarity",
+    "criterion_version": 2,
+    "time_basis": "solver iterations (pseudo-time); iteration means are not physical time averages",
+    "regime_expected": {"value": "steady", "source": "declared", "ref": "Meng et al. JFM 2021; Klotz et al. JFM 2014"},
+    "status": "converged",
+    "stop_reason": "All four coefficients below the steady floor at iteration 3000.",
+    "solver_regime_mismatch": false,
+    "iterations": 3000,
+    "discard_iterations": 1000,
+    "window_iterations": 2000,
+    "windows_closed": 1,
+    "sampling_interval": 10,
+    "max_iterations": 15000,
+    "k_gate": 2.0,
+    "k_sd": 3.0,
+    "min_cycles": 10,
+    "quantities": {
+      "cd": {"window_means": [1.3419383788799004], "window_sds": [5.756458697398521E-8],
+             "n_cycles_last": 0,
+             "drift_last": 0.0, "drift_over_se": 0.0, "sd_log_ratio_over_tol": 0.0, "pass": false},
+      "cl": {"window_means": [1.0074489793115485E-5], "window_sds": [6.068425683161524E-10],
+             "n_cycles_last": 0,
+             "drift_last": 0.0, "drift_over_se": 0.0, "sd_log_ratio_over_tol": 0.0, "pass": false},
+      "cy": {"window_means": [5.846649524334908E-6], "window_sds": [6.710048632970419E-11],
+             "n_cycles_last": 0,
+             "drift_last": 0.0, "drift_over_se": 0.0, "sd_log_ratio_over_tol": 0.0, "pass": false},
+      "cp_base": {"window_means": [-0.2294912036335686], "window_sds": [2.8387094273069137E-8],
+             "n_cycles_last": 0,
+             "drift_last": 0.0, "drift_over_se": 0.0, "sd_log_ratio_over_tol": 0.0, "pass": false}
+    }
+  },
+  "forces": {
+    "cd": 1.3419383945381655,
+    "cd_sd": 0.0,
+    "cd_window_iterations": 1,
+    "cd_n_windows": 1,
+    "cd_statistic": "instantaneous",
+    "cd_pressure": 1.0515079817051498,
+    "cd_pressure_sd": 0.0,
+    "cd_pressure_window_iterations": 1,
+    "cd_pressure_n_windows": 1,
+    "cd_pressure_statistic": "instantaneous",
+    "cd_friction": 0.2904304128330157,
+    "cd_friction_sd": 0.0,
+    "cd_friction_window_iterations": 1,
+    "cd_friction_n_windows": 1,
+    "cd_friction_statistic": "instantaneous",
+    "cl": 1.0074655448782522E-5,
+    "cl_sd": 0.0,
+    "cl_window_iterations": 1,
+    "cl_n_windows": 1,
+    "cl_statistic": "instantaneous",
+    "cy": 5.846667898269164E-6,
+    "cy_sd": 0.0,
+    "cy_window_iterations": 1,
+    "cy_n_windows": 1,
+    "cy_statistic": "instantaneous"
+  },
+  "pressure": {
+    "cp_base": -0.22949121135539396,
+    "cp_base_sd": 0.0,
+    "cp_base_window_iterations": 1,
+    "cp_base_n_windows": 1,
+    "cp_base_statistic": "instantaneous",
+    "cp_min": -3.5130829514607687,
+    "cp_min_window_iterations": 1,
+    "cp_min_n_windows": 1,
+    "cp_min_statistic": "instantaneous",
+    "cp_stagnation": 2.393783490345101,
+    "cp_stagnation_window_iterations": 1,
+    "cp_stagnation_n_windows": 1,
+    "cp_stagnation_statistic": "instantaneous"
+  },
+  "wake": {
+    "x_reattach_D": 1.96875,
+    "x_reattach_D_sd": 0.0,
+    "x_reattach_D_window_iterations": 1,
+    "x_reattach_D_n_windows": 1,
+    "x_reattach_D_statistic": "instantaneous",
+    "recirculation_length_D": 1.46875,
+    "recirculation_length_D_sd": 0.0,
+    "recirculation_length_D_window_iterations": 1,
+    "recirculation_length_D_n_windows": 1,
+    "recirculation_length_D_statistic": "instantaneous",
+    "note": "mean of instantaneous lengths; not the recirculation length of the time-averaged field, which is out of scope for this part"
+  },
+  "mass": {
+    "mdot_in_over_rhoUD2": -100.0,
+    "mdot_in_over_rhoUD2_sd": 0.0,
+    "mdot_in_over_rhoUD2_window_iterations": 1,
+    "mdot_in_over_rhoUD2_n_windows": 1,
+    "mdot_in_over_rhoUD2_statistic": "instantaneous",
+    "mdot_out_over_rhoUD2": 100.00000000000004,
+    "mdot_out_over_rhoUD2_sd": 0.0,
+    "mdot_out_over_rhoUD2_window_iterations": 1,
+    "mdot_out_over_rhoUD2_n_windows": 1,
+    "mdot_out_over_rhoUD2_statistic": "instantaneous",
+    "mass_imbalance": -4.263256414560601E-16,
+    "mass_imbalance_sd": 0.0,
+    "mass_imbalance_window_iterations": 1,
+    "mass_imbalance_n_windows": 1,
+    "mass_imbalance_statistic": "instantaneous"
+  },
+  "probes": {
+    "LLM_u_over_U_axis_x2D": {
+      "value": -0.00881055111622116,
+      "sd": 0.0,
+      "window_iterations": 1,
+      "n_windows": 1,
+      "statistic": "instantaneous",
+      "position_D": [2.0, 0.0, 0.0],
+      "report": "LLM_u_over_U_axis_x2D"
+    }
+  },
+  "plane_extremes": {
+    "y0": {
+      "cp": [-2.7027773290312513, 1.0676157853411175],
+      "u_over_U": [-0.20075923875223708, 1.1111523192913173]
+    },
+    "x1": {
+      "cp": [-0.18887886172566232, -0.006599508550555327],
+      "u_over_U": [-0.19927962790783632, 1.0616074439387606]
+    },
+    "x2": {
+      "cp": [-0.034274403774459734, -0.007538172235990498],
+      "u_over_U": [0.008430694230652366, 1.0277042729768133]
+    },
+    "x4": {
+      "cp": [-0.006937572593113439, 0.018721787825541316],
+      "u_over_U": [0.3785753062700482, 1.0123061149164216]
+    },
+    "statistic": "instantaneous",
+    "window_iterations": 1,
+    "n_windows": 1
+  }
+}
