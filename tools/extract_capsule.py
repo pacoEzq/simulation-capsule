@@ -313,6 +313,36 @@ def write_zip(capsule):
 
 
 # ---------------------------------------------------------------- build
+LAYERS = ("modes", "snapshots")
+
+
+def layer_entries(card, capsule, post):
+    """Manifest entries for modes/ and snapshots/ (SPEC 4.9.2, 4.9.3): the card
+    block that asked for each, every file with its hash, the colorbar of each
+    image, and the chain of tools that produced them outside the adapter."""
+    out = {}
+    images = (post or {}).get("images", {})
+    for layer in LAYERS:
+        folder = capsule / layer
+        if not folder.is_dir():
+            continue
+        files = []
+        for path in sorted(folder.iterdir()):
+            rel = "%s/%s" % (layer, path.name)
+            entry = {"file": rel, "sha256": sha256(path)}
+            if path.suffix == ".png":
+                if rel not in images:
+                    raise ExtractError("postprocess.json declares no colorbar for %s" % rel)
+                entry["colorbar"] = images[rel]
+            files.append(entry)
+        out[layer] = {"card": card.get(layer), "files": files}
+    if out:
+        if not post or not post.get("chain"):
+            raise ExtractError("modes/ or snapshots/ without the chain of postprocess.json")
+        out["postprocess"] = {"chain": post["chain"]}
+    return out
+
+
 def build(pkg, out, tools, strict, commit):
     card = read_json(pkg / "card.json", "card.json")
     alias = validate_card(card)
@@ -335,6 +365,10 @@ def build(pkg, out, tools, strict, commit):
     shutil.copyfile(pkg / "summary.json", capsule / "summary.json")
     if (pkg / "signals").is_dir():
         shutil.copytree(pkg / "signals", capsule / "signals")
+    for layer in LAYERS:
+        if (pkg / layer).is_dir():
+            shutil.copytree(pkg / layer, capsule / layer)
+    post = read_json(pkg / "postprocess.json", "postprocess.json") if (pkg / "postprocess.json").is_file() else None
 
     body = card["body"]
     warnings = []
@@ -373,8 +407,9 @@ def build(pkg, out, tools, strict, commit):
         "views": views,
         "checks": {"colormap_lightness_monotonic": colormap in COLORMAPS,
                    "stations": len(planes), "views": len(views)},
-        "tokens": None,
     }
+    manifest.update(layer_entries(card, capsule, post))
+    manifest["tokens"] = None
     write_manifest(capsule, manifest)
 
     rc, report = run_tool([sys.executable, str(tool(tools, "check_capsule.py"))] + (["--strict"] if strict else [])
